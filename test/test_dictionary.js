@@ -2,13 +2,12 @@ const {WanderingDescriber} = require('english-io')
 
 const d = require('../src/dictionary')
 
-let entities = d.quickDeclare(
-  'the output is routed to the input',
-  'the input is an input of the unit',
-  'the output is an output of another unit'
+let e = d.spawnSingle(
+  'an oscillator'
 )
 
-let describer = new WanderingDescriber(...entities)
+
+let describer = new WanderingDescriber(e)
 let next
 while((next = describer.next()))
   console.log(next.str())

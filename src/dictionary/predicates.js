@@ -1,11 +1,14 @@
 const {Predicate} = require('english-io')
 
+
+
 const BeAnInputOf = new Predicate({
   verb: 'be an input', params:['subject', 'of'],
 
   problem(inlet) {
     return !inlet.is_a('input')
-  }
+  },
+  permanent: true,
 })
 
 const BeAnOutputOf = new Predicate({
@@ -14,13 +17,14 @@ const BeAnOutputOf = new Predicate({
   problem(outlet) {
     return !outlet.is_a('output')
   },
+  permanent: true,
 })
 
 const BeRoutedTo = new Predicate({
   verb: 'be routed', params:['subject', 'to'],
 
   problem(outlet, inlet) {
-    return !(inlet.is_a('input') && outlet.is_a('output'))
+    return !inlet.is_a('input') || !outlet.is_a('output')
   },
 })
 

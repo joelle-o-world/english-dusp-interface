@@ -1,22 +1,29 @@
 const D = require('./dictionary')
 
-const unitConstructorNouns = {}
+const unitConstructorNouns = require('./nounsByDuspConstructor.js')
 
 
 function entify(thing, entity) {
-  if(thing.englishIO_entity)
-    return thing.englishIO_entity
 
-  // otherwise
-  if(!entity) {
-    entity = D.createEntity()
-    thing.englishIO_entity = entity
+  if(thing.englishIO_entity) {
+    if(entity && thing.englishIO_entity != entity)
+      throw 'Oh no, entity conflict!'
+    return thing.englishIO_entity
   }
 
+  // otherwise
+  if(!entity)
+    entity = D.createEntity()
+
+  thing.englishIO_entity = entity
+
+  console.log('entifying', thing.label)
   if(thing.isUnit)
     return entifyUnit(thing, entity)
+
   if(thing.isInlet)
     return entifyInlet(thing, entity)
+
   if(thing.isOutlet)
     return entifyOutlet(thing, entity)
 }
@@ -45,23 +52,29 @@ function entifyUnit(unit, entity) {
   return entity
 }
 
-function entifyInlet(inlet, inletEntity) {
+function entifyInlet(inlet, e) {
   // throw an error if argument is not an inlet
   if(!inlet || !inlet.isInlet)
     throw 'entifyInlet expects a dusp inlet'
 
-  inletEntity.inlet = inlet
-  inletEntity.be_a('input')
+  e.inlet = inlet
+  e.be_a('input')
+
+  if(inlet.type == 'frequency')
+    e.be_a('frequency')
 
   let unitEntity = entify(inlet.unit)
-  D.S('BeAnInputOf', inletEntity, unitEntity).start()
+  if(!unitEntity)
+    throw 'Inlet has no unit.'
+
+  D.S('BeAnInputOf', e, unitEntity).start()
 
   if(inlet.outlet) {
     let outletEntity = entify(inlet.outlet)
-    D.S('BeRoutedTo', outletEntity, inletEntity).start()
+    D.S('BeRoutedTo', outletEntity, e).start()
   }
 
-  return inletEntity
+  return e
 }
 
 function entifyOutlet(outlet, e) {
@@ -73,10 +86,17 @@ function entifyOutlet(outlet, e) {
   e.be_a('output')
 
   let unitEntity = entify(outlet.unit)
+  if(!unitEntity)
+    throw 'Outlet has no unit.'
 
   D.S('BeAnOutputOf', e, unitEntity).start()
 
+
   // TODO: routing
+  for(let inlet of outlet.connections) {
+    let inletEntity = entify(inlet)
+    D.S('BeRoutedTo', e, inletEntity)
+  }
 
   return e
 }
