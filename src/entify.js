@@ -1,20 +1,18 @@
 const D = require('./dictionary')
 const {beAnInputOf, beAnOutputOf, beConnectedTo} = require('./predicates')
 
-const unitConstructorNouns = {
-  Osc: 'oscillator',
-  MultiChannelOsc: 'oscillator',
-  Noise: 'white noise generator',
-}
+const unitConstructorNouns = require('./unitConstructorNouns.json')
 
 
-function entify(thing) {
+function entify(thing, entity) {
   if(thing.englishIO_entity)
     return thing.englishIO_entity
 
   // otherwise
-  let entity = D.createEntity()
-  thing.englishIO_entity = entity
+  if(!entity) {
+    entity = D.createEntity()
+    thing.englishIO_entity = entity
+  }
 
   if(thing.isUnit)
     return entifyUnit(thing, entity)

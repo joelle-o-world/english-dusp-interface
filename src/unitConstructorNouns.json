@@ -1,0 +1,5 @@
+{
+  "Osc": "oscillator",
+  "MultiChannelOsc": "oscillator",
+  "Noise": "white noise generator"
+}

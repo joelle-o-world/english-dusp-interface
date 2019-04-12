@@ -10,7 +10,22 @@ const modulate = new Predicate({
 const beConnectedTo = new Predicate({
   verb: 'be connected',
   params:['subject', 'to'],
-  
+
+  begin(A, B) {
+    let inlet, outlet
+
+    if(A.is('input') && B.is('output')) {
+      inlet = A.inlet
+      outlet = B.outlet
+    } else if(A.is('output') && B.is('input')) {
+      inlet = B.inlet
+      outlet = A.outlet
+    }
+
+    if(inlet && outlet && inlet.isInlet && outlet.isInlet) {
+      inlet.connect(outlet)
+    }
+  }
 })
 
 const beSummedWith = new Predicate({
@@ -38,11 +53,11 @@ const be = new Predicate({
   ]
 })
 
-module.exports = {
+Object.assign(module.exports, {
   modulate: modulate,
   beConnectedTo:beConnectedTo,
   beSummedWith:beSummedWith,
   beAnInputOf: beAnInputOf,
   beAnOutputOf: beAnOutputOf,
   be: be
-}
+})
