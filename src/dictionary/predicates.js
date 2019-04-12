@@ -19,7 +19,7 @@ const BeAnOutputOf = new Predicate({
 const BeRoutedTo = new Predicate({
   verb: 'be routed', params:['subject', 'to'],
 
-  problem(inlet, outlet) {
+  problem(outlet, inlet) {
     return !(inlet.is_a('input') && outlet.is_a('output'))
   },
 })

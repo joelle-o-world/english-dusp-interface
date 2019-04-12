@@ -1,7 +1,6 @@
 const D = require('./dictionary')
-const {beAnInputOf, beAnOutputOf, beConnectedTo} = require('./predicates')
 
-const unitConstructorNouns = require('./unitConstructorNouns.json')
+const unitConstructorNouns = {}
 
 
 function entify(thing, entity) {
@@ -54,23 +53,12 @@ function entifyInlet(inlet, inletEntity) {
   inletEntity.inlet = inlet
   inletEntity.be_a('input')
 
-  switch(inlet.type) {
-    case 'frequency':
-      inletEntity.be_a('frequency')
-      break;
-  }
-
   let unitEntity = entify(inlet.unit)
-  D.S(beAnInputOf, inletEntity, unitEntity).start()
-  inletEntity.addClause('of', unitEntity)
+  D.S('BeAnInputOf', inletEntity, unitEntity).start()
 
-  if(!inlet.outlet) {
-    let constant = inlet.constant + (inlet.measuredIn || '')
-    D.S('be', inletEntity, constant).start()
-  } else {
+  if(inlet.outlet) {
     let outletEntity = entify(inlet.outlet)
-    D.S(beConnectedTo, inletEntity, outletEntity).start()
-    D.S(beConnectedTo, outletEntity, inletEntity).start()
+    D.S('BeRoutedTo', outletEntity, inletEntity).start()
   }
 
   return inletEntity
@@ -85,9 +73,10 @@ function entifyOutlet(outlet, e) {
   e.be_a('output')
 
   let unitEntity = entify(outlet.unit)
-  e.addClause('of', unitEntity)
 
-  D.S(beAnOutputOf, e, unitEntity).start()
+  D.S('BeAnOutputOf', e, unitEntity).start()
+
+  // TODO: routing
 
   return e
 }
