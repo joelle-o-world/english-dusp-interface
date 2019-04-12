@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "english-io": "^1.0.0"
+    "dusp": "^1.0.3",
+    "english-io": "^1.0.2"
   }
 }
