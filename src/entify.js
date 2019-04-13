@@ -17,7 +17,6 @@ function entify(thing, entity) {
 
   thing.englishIO_entity = entity
 
-  console.log('entifying', thing.label)
   if(thing.isUnit)
     return entifyUnit(thing, entity)
 
@@ -41,6 +40,8 @@ function entifyUnit(unit, entity) {
   // TODO: compare constructor name against a table of nouns
   if(unitConstructorNouns[unit.constructor.name])
     entity.be_a(unitConstructorNouns[unit.constructor.name])
+  else
+    entity.adjectives.push(unit.constructor.name)
 
   // entify the inlets
   for(let inlet of unit.inletsOrdered)
@@ -63,6 +64,11 @@ function entifyInlet(inlet, e) {
   if(inlet.type == 'frequency')
     e.be_a('frequency')
 
+  if(inlet.name == 'a')
+    e.adjectives.push('first')
+  if(inlet.name == 'b')
+    e.adjectives.push('second')
+
   let unitEntity = entify(inlet.unit)
   if(!unitEntity)
     throw 'Inlet has no unit.'
@@ -72,6 +78,9 @@ function entifyInlet(inlet, e) {
   if(inlet.outlet) {
     let outletEntity = entify(inlet.outlet)
     D.S('BeRoutedTo', outletEntity, e).start()
+  } else {
+    let constant = inlet.constant + (inlet.measuredIn || '')
+    D.S('BeSetTo', e, constant).start()
   }
 
   return e
@@ -92,7 +101,7 @@ function entifyOutlet(outlet, e) {
   D.S('BeAnOutputOf', e, unitEntity).start()
 
 
-  // TODO: routing
+  // routing
   for(let inlet of outlet.connections) {
     let inletEntity = entify(inlet)
     D.S('BeRoutedTo', e, inletEntity)
