@@ -1,23 +1,28 @@
 const D = require('./dictionary')
-const {beAnInputOf, beAnOutputOf, beConnectedTo} = require('./predicates')
 
-const unitConstructorNouns = require('./unitConstructorNouns.json')
+const unitConstructorNouns = require('./nounsByDuspConstructor.js')
 
 
 function entify(thing, entity) {
-  if(thing.englishIO_entity)
+
+  if(thing.englishIO_entity) {
+    if(entity && thing.englishIO_entity != entity)
+      throw 'Oh no, entity conflict!'
     return thing.englishIO_entity
+  }
 
   // otherwise
-  if(!entity) {
+  if(!entity)
     entity = D.createEntity()
-    thing.englishIO_entity = entity
-  }
+
+  thing.englishIO_entity = entity
 
   if(thing.isUnit)
     return entifyUnit(thing, entity)
+
   if(thing.isInlet)
     return entifyInlet(thing, entity)
+
   if(thing.isOutlet)
     return entifyOutlet(thing, entity)
 }
@@ -27,7 +32,7 @@ module.exports = entify
 
 function entifyUnit(unit, entity) {
   if(!unit || !unit.isUnit)
-    throw 'unexpected input to entitifyUnit()'
+    throw 'unexpected argument in entitifyUnit()'
 
   entity.unit = unit
   entity.be_a('unit')
@@ -35,6 +40,8 @@ function entifyUnit(unit, entity) {
   // TODO: compare constructor name against a table of nouns
   if(unitConstructorNouns[unit.constructor.name])
     entity.be_a(unitConstructorNouns[unit.constructor.name])
+  else
+    entity.adjectives.push(unit.constructor.name)
 
   // entify the inlets
   for(let inlet of unit.inletsOrdered)
@@ -46,34 +53,44 @@ function entifyUnit(unit, entity) {
   return entity
 }
 
-function entifyInlet(inlet, inletEntity) {
+function entifyInlet(inlet, e) {
   // throw an error if argument is not an inlet
   if(!inlet || !inlet.isInlet)
     throw 'entifyInlet expects a dusp inlet'
 
-  inletEntity.inlet = inlet
-  inletEntity.be_a('input')
+  e.inlet = inlet
+  e.be_a('inlet')
 
-  switch(inlet.type) {
-    case 'frequency':
-      inletEntity.be_a('frequency')
-      break;
-  }
+  if(inlet.type == 'frequency')
+    e.be_a('frequency')
+
+  if(inlet.name == 'a')
+    e.adjectives.push('first')
+  if(inlet.name == 'b')
+    e.adjectives.push('second')
 
   let unitEntity = entify(inlet.unit)
-  D.S(beAnInputOf, inletEntity, unitEntity).start()
-  inletEntity.addClause('of', unitEntity)
+  if(!unitEntity)
+    throw 'Inlet has no unit.'
 
-  if(!inlet.outlet) {
-    let constant = inlet.constant + (inlet.measuredIn || '')
-    D.S('be', inletEntity, constant).start()
-  } else {
+  D.S('BeAnInletOf', e, unitEntity).start()
+
+  if(inlet.outlet) {
     let outletEntity = entify(inlet.outlet)
-    D.S(beConnectedTo, inletEntity, outletEntity).start()
-    D.S(beConnectedTo, outletEntity, inletEntity).start()
+    D.S('BeRoutedTo', outletEntity, e).start()
+  } else {
+    let constant = inlet.constant + (inlet.measuredIn || '')
+    D.S('BeSetTo', e, constant).start()
   }
 
-  return inletEntity
+  inlet.on('connect', outlet => {
+    D.S('BeRoutedTo', entify(outlet), e).start()
+  })
+  inlet.on('constant', value => {
+    D.S('BeSetTo', e, value[0].toString()).start()
+  })
+
+  return e
 }
 
 function entifyOutlet(outlet, e) {
@@ -82,12 +99,23 @@ function entifyOutlet(outlet, e) {
     throw 'entifyOutlet expects a dusp.Outlet'
 
   e.outlet = outlet
-  e.be_a('output')
+  e.be_a('outlet')
 
   let unitEntity = entify(outlet.unit)
-  e.addClause('of', unitEntity)
+  if(!unitEntity)
+    throw 'Outlet has no unit.'
 
-  D.S(beAnOutputOf, e, unitEntity).start()
+  D.S('BeAnOutletOf', e, unitEntity).start()
+
+
+  // routing
+  for(let inlet of outlet.connections)
+    D.S('BeRoutedTo', e, enitfy(inlet)).start()
+
+
+  outlet.on('connect', inlet => {
+    D.S('BeRoutedTo', e, entify(inlet)).start()
+  })
 
   return e
 }

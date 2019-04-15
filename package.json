@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "dusp": "^1.0.3",
-    "english-io": "^1.0.2"
+    "english-io": "^1.0.6"
   }
 }
