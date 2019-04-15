@@ -4,9 +4,9 @@ const entify = require('../entify')
 module.exports = [
   'unit',
 
-  'input',
+  'inlet',
 
-  'output',
+  'outlet',
 
 
   // Units:

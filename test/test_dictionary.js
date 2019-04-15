@@ -1,3 +1,6 @@
+console.clear()
+
+
 const {WanderingDescriber} = require('english-io')
 const {dusp} = require('dusp')
 
@@ -8,8 +11,8 @@ let entities = d.quickDeclare(
   'the frequency of the oscillator is set to 200',
   'a summing unit',
   'a noise generator',
-  'the output of the oscillator is routed to the first input of the summing unit',
-  'the output of the noise generator is routed to the second input of the summing unit'
+  'the outlet of the oscillator is routed to the first inlet of the summing unit',
+  'the outlet of the noise generator is routed to the second inlet of the summing unit'
 )
 
 

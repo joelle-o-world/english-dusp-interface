@@ -32,7 +32,7 @@ module.exports = entify
 
 function entifyUnit(unit, entity) {
   if(!unit || !unit.isUnit)
-    throw 'unexpected input to entitifyUnit()'
+    throw 'unexpected argument in entitifyUnit()'
 
   entity.unit = unit
   entity.be_a('unit')
@@ -59,7 +59,7 @@ function entifyInlet(inlet, e) {
     throw 'entifyInlet expects a dusp inlet'
 
   e.inlet = inlet
-  e.be_a('input')
+  e.be_a('inlet')
 
   if(inlet.type == 'frequency')
     e.be_a('frequency')
@@ -73,7 +73,7 @@ function entifyInlet(inlet, e) {
   if(!unitEntity)
     throw 'Inlet has no unit.'
 
-  D.S('BeAnInputOf', e, unitEntity).start()
+  D.S('BeAnInletOf', e, unitEntity).start()
 
   if(inlet.outlet) {
     let outletEntity = entify(inlet.outlet)
@@ -82,6 +82,13 @@ function entifyInlet(inlet, e) {
     let constant = inlet.constant + (inlet.measuredIn || '')
     D.S('BeSetTo', e, constant).start()
   }
+
+  inlet.on('connect', outlet => {
+    D.S('BeRoutedTo', entify(outlet), e).start()
+  })
+  inlet.on('constant', value => {
+    D.S('BeSetTo', e, value[0].toString()).start()
+  })
 
   return e
 }
@@ -92,20 +99,23 @@ function entifyOutlet(outlet, e) {
     throw 'entifyOutlet expects a dusp.Outlet'
 
   e.outlet = outlet
-  e.be_a('output')
+  e.be_a('outlet')
 
   let unitEntity = entify(outlet.unit)
   if(!unitEntity)
     throw 'Outlet has no unit.'
 
-  D.S('BeAnOutputOf', e, unitEntity).start()
+  D.S('BeAnOutletOf', e, unitEntity).start()
 
 
   // routing
-  for(let inlet of outlet.connections) {
-    let inletEntity = entify(inlet)
-    D.S('BeRoutedTo', e, inletEntity)
-  }
+  for(let inlet of outlet.connections)
+    D.S('BeRoutedTo', e, enitfy(inlet)).start()
+
+
+  outlet.on('connect', inlet => {
+    D.S('BeRoutedTo', e, entify(inlet)).start()
+  })
 
   return e
 }

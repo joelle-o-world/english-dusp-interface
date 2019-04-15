@@ -2,11 +2,11 @@ const {Predicate} = require('english-io')
 
 
 
-const BeAnInputOf = new Predicate({
-  verb: 'be an input', params:['subject', 'of'],
+const BeAnInletOf = new Predicate({
+  verb: 'be an inlet', params:['subject', 'of'],
 
   problem(inlet) {
-    return !inlet.is_a('input')
+    return !inlet.is_a('inlet')
   },
   begin(inlet, unit) {
     inlet.addClause('of', unit)
@@ -14,11 +14,11 @@ const BeAnInputOf = new Predicate({
   permanent: true,
 })
 
-const BeAnOutputOf = new Predicate({
-  verb: 'be an output', params:['subject', 'of'],
+const BeAnOutletOf = new Predicate({
+  verb: 'be an outlet', params:['subject', 'of'],
 
   problem(outlet) {
-    return !outlet.is_a('output')
+    return !outlet.is_a('outlet')
   },
   begin(outlet, unit) {
     outlet.addClause('of', unit)
@@ -30,13 +30,16 @@ const BeRoutedTo = new Predicate({
   verb: 'be routed', params:['subject', 'to'],
 
   problem(outlet, inlet) {
-    return !inlet.is_a('input') || !outlet.is_a('output')
+    return !inlet.is_a('inlet') || !outlet.is_a('outlet')
   },
   begin(outlet, inlet) {
     inlet.inlet.connect(outlet.outlet)
   },
   check(outlet, inlet) {
     return inlet.inlet.outlet == outlet.outlet
+  },
+  until(callback, outlet, inlet) {
+    inlet.inlet.once('disconnect', callback)
   }
 })
 
@@ -44,7 +47,7 @@ const BeSetTo = new Predicate({
   verb:'be set', params:['subject', '@to'],
 
   problem(inlet, value) {
-    return !inlet.is_a('input')
+    return !inlet.is_a('inlet')
   },
   begin(inlet, value) {
     value = parseFloat(value)
@@ -53,13 +56,15 @@ const BeSetTo = new Predicate({
   check(inlet, value) {
     value = parseFloat(value)
     return inlet.inlet.constant == value
+  },
+  until(callback, inlet) {
+    inlet.inlet.once('change', callback)
   }
-
 })
 
 module.exports = {
-  BeAnInputOf: BeAnInputOf,
-  BeAnOutputOf: BeAnOutputOf,
+  BeAnInletOf: BeAnInletOf,
+  BeAnOutletOf: BeAnOutletOf,
   BeRoutedTo: BeRoutedTo,
   BeSetTo: BeSetTo,
 }
