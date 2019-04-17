@@ -1,4 +1,12 @@
-const {Osc, Sum, Multiply, Shape, Noise} = require('dusp').components
+const {
+  Osc,
+  Sum,
+  Multiply,
+  Shape,
+  Noise,
+  Filter,
+  Pan
+} = require('dusp').components
 const entify = require('../entify')
 
 module.exports = [
@@ -55,6 +63,39 @@ module.exports = [
     extend(e) {
       if(!e.unit) {
         e.unit = new Noise
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'low pass filter',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Filter
+        e.unit.kind = 'LP'
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'high pass filter',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Filter
+        e.unit.kind = 'HP'
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'panner',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Pan
+        e.unit.kind = 'HP'
         entify(e.unit, e)
       }
     }

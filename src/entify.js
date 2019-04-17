@@ -37,11 +37,14 @@ function entifyUnit(unit, entity) {
   entity.unit = unit
   entity.be_a('unit')
 
-  // TODO: compare constructor name against a table of nouns
-  if(unitConstructorNouns[unit.constructor.name])
-    entity.be_a(unitConstructorNouns[unit.constructor.name])
+  // compare constructor name against a table of nouns
+  let noun = unitConstructorNouns[unit.constructor.name]
+  if(noun && noun.constructor == Function)
+    noun = noun(unit)
+  if(noun && noun.constructor == String)
+    entity.be_a(noun)
   else
-    entity.adjectives.push(unit.constructor.name)
+    entity.nouns.push(unit.constructor.name + ' unit')
 
   // entify the inlets
   for(let inlet of unit.inletsOrdered)
@@ -63,11 +66,6 @@ function entifyInlet(inlet, e) {
 
   if(inlet.type == 'frequency')
     e.be_a('frequency')
-
-  if(inlet.name == 'a')
-    e.adjectives.push('first')
-  if(inlet.name == 'b')
-    e.adjectives.push('second')
 
   let unitEntity = entify(inlet.unit)
   if(!unitEntity)
@@ -110,7 +108,7 @@ function entifyOutlet(outlet, e) {
 
   // routing
   for(let inlet of outlet.connections)
-    D.S('BeRoutedTo', e, enitfy(inlet)).start()
+    D.S('BeRoutedTo', e, entify(inlet)).start()
 
 
   outlet.on('connect', inlet => {
