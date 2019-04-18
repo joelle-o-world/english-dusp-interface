@@ -82,9 +82,21 @@ const BeSetTo = new Predicate({
   }
 })
 
+const BeTheRenderingOutlet = new Predicate({
+  verb: 'be the rendering outlet', params:['subject'],
+  problem(outlet) {
+    if(!outlet.is_a('outlet'))
+      return true
+  },
+  begin(e) {
+    e.isRenderingOutlet = true
+  },
+})
+
 Object.assign(module.exports, {
   BeAnInletOf: BeAnInletOf,
   BeAnOutletOf: BeAnOutletOf,
   BeRoutedTo: BeRoutedTo,
   BeSetTo: BeSetTo,
+  BeTheRenderingOutlet: BeTheRenderingOutlet,
 })
