@@ -14,7 +14,7 @@ let entities = d.quickDeclare(
   'an oscillator',
   'a summing unit',
   'the summing unit is routed to the outlet of the oscillator',
-  'another oscillator is routed to the summing unit'
+  'another oscillator is connected to the summing unit'
 )
 
 
