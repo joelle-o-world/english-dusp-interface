@@ -12,9 +12,19 @@ const entify = require('../entify')
 module.exports = [
   'unit',
 
-  'inlet',
+  {
+    noun:'inlet',
+    extend(e) {
+      e.addNoun('input')
+    }
+  },
 
-  'outlet',
+  {
+    noun:'outlet',
+    extend(e) {
+      e.addNoun('output')
+    }
+  },
 
 
   // Units:
