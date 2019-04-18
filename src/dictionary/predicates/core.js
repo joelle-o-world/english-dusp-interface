@@ -1,4 +1,6 @@
-const {Predicate} = require('english-io')
+const {Predicate, Sentence} = require('english-io')
+const S = Sentence.S
+const entify = require('../../entify')
 
 
 
@@ -40,6 +42,24 @@ const BeRoutedTo = new Predicate({
   },
   until(callback, outlet, inlet) {
     inlet.inlet.once('disconnect', callback)
+  },
+  replace(a, b) {
+    // allow for sloppy usage
+    if(a.is_a('outlet') && b.is_a('inlet'))
+      return false // things are already as they should be, no replacement.
+
+    if(b.is_a('outlet') || a.is_a('inlet')) {
+      let tmp = a
+      a = b
+      b = tmp
+    }
+
+    if(a.is_a('unit'))
+      a = entify(a.unit.defaultOutlet)
+    if(b.is_a('unit'))
+      b = entify(b.unit.firstFreeInlet || b.unit.defaultInlet)
+
+    return S(BeRoutedTo, a, b)
   }
 })
 
@@ -62,9 +82,9 @@ const BeSetTo = new Predicate({
   }
 })
 
-module.exports = {
+Object.assign(module.exports, {
   BeAnInletOf: BeAnInletOf,
   BeAnOutletOf: BeAnOutletOf,
   BeRoutedTo: BeRoutedTo,
   BeSetTo: BeSetTo,
-}
+})
