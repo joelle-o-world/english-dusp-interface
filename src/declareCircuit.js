@@ -5,7 +5,7 @@ function declareCircuit(...strings) {
 
   // search for rendering outlet
   let renderingOutlet = entities.find(e => e.isRenderingOutlet)
-
+  
   if(renderingOutlet) {
     renderingOutlet = renderingOutlet.outlet
   } else {
