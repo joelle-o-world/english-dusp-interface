@@ -66,6 +66,15 @@ function entifyInlet(inlet, e) {
 
   if(inlet.type == 'frequency')
     e.be_a('frequency')
+  else if(inlet.type == 'time' && inlet.name == 'duration')
+    e.be_a('duration')
+  else if(inlet.name == 'min')
+    e.be_a('minimum')
+  else if(inlet.name == 'max')
+    e.be_a('minimum')
+  else {
+    console.log('unhandled inlet name:', inlet.label)
+  }
 
   let unitEntity = entify(inlet.unit)
   if(!unitEntity)

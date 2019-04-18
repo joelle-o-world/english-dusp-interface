@@ -2,10 +2,9 @@ const declareCircuit = require('../src/declareCircuit')
 const {dusp} = require('dusp')
 
 let sentences = [
-  'an oscillator',
-  'a summing unit',
-  'the summing unit is routed to the outlet of the oscillator',
-  'another oscillator is connected to the summing unit',
+  'a sine wave is routed to a multiplying unit',
+  'a decay envelope is routed to a multiplying unit',
+  'the duration of the decay envelope is set to 10'
 ]
 //  'the oscillator is the rendering outlet',]
 let circuit = declareCircuit( ...sentences )

@@ -9,7 +9,7 @@ function declareCircuit(...strings) {
   if(renderingOutlet) {
     renderingOutlet = renderingOutlet.outlet
   } else {
-    let outlets = entities.filter(e => e.is_a('outlet'))
+    let outlets = entities.filter(e => e.is_a('outlet')).reverse()
 
     let winner = null
     let winningScore = 0

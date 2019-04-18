@@ -18,7 +18,7 @@ module.exports = [
 
 
   // Units:
-  { noun:'oscillator',
+  /*{ noun:'oscillator',
     inherits: 'unit',
     extend(e) {
       if(!e.unit) {
@@ -26,6 +26,45 @@ module.exports = [
         entify(e.unit, e)
       }
     },
+  },*/
+
+  { noun: 'sine wave',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Osc(undefined, 'sin')
+        entify(e.unit, e)
+      }
+    }
+  },
+  { noun: 'sawtooth wave',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Osc(undefined, 'saw')
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'triangle wave',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Osc(undefined, 'triangle')
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'square wave',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Osc(undefined, 'square')
+        entify(e.unit, e)
+      }
+    }
   },
 
   { noun:'summing unit',
@@ -48,11 +87,21 @@ module.exports = [
     }
   },
 
-  { noun: 'envelope',
+  { noun: 'attack envelope',
     inherits: 'unit',
     extend(e) {
       if(!e.unit) {
-        e.unit = new Shape
+        e.unit = new Shape('attack')
+        entify(e.unit, e)
+      }
+    }
+  },
+
+  { noun: 'decay envelope',
+    inherits: 'unit',
+    extend(e) {
+      if(!e.unit) {
+        e.unit = new Shape('decay')
         entify(e.unit, e)
       }
     }
@@ -103,4 +152,7 @@ module.exports = [
 
   // Inlet types:
   'frequency',
+  'duration',
+  'minimum',
+  'maximum',
 ]
