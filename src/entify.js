@@ -73,7 +73,7 @@ function entifyInlet(inlet, e) {
   else if(inlet.name == 'max')
     e.be_a('minimum')
   else {
-    console.log('unhandled inlet name:', inlet.label)
+  //  console.log('unhandled inlet name:', inlet.label)
   }
 
   let unitEntity = entify(inlet.unit)
