@@ -29,7 +29,10 @@ const BeAnOutletOf = new Predicate({
 })
 
 const BeRoutedTo = new Predicate({
-  verb: 'be routed', params:['subject', 'to'],
+  forms:[
+    {verb: 'be routed', params:['subject', 'to']},
+    {verb: 'be connected', params:['subject', 'to']}
+  ],
 
   problem(outlet, inlet) {
     return !inlet.is_a('inlet') || !outlet.is_a('outlet')
@@ -83,7 +86,15 @@ const BeSetTo = new Predicate({
 })
 
 const BeTheRenderingOutlet = new Predicate({
-  verb: 'be the rendering outlet', params:['subject'],
+  forms: [
+    {verb: 'be the rendering outlet', params:['subject']},
+    {verb: 'be the main output', params:['subject']}
+  ],
+
+  replace(outlet) {
+    if(outlet.is_a('unit'))
+      return S(BeTheRenderingOutlet, entify(outlet.unit.defaultOutlet))
+  },
   problem(outlet) {
     if(!outlet.is_a('outlet'))
       return true
