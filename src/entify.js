@@ -97,6 +97,10 @@ function entifyInlet(inlet, e) {
     D.S('BeSetTo', e, value[0].toString()).start()
   })
 
+  inlet.on('disconnect', outlet => {
+    D.S('BeDisconnectedFrom', entify(inlet), entify(outlet)).start()
+  })
+
   return e
 }
 
@@ -122,6 +126,10 @@ function entifyOutlet(outlet, e) {
 
   outlet.on('connect', inlet => {
     D.S('BeRoutedTo', e, entify(inlet)).start()
+  })
+
+  outlet.on('disconnect', inlet => {
+    D.S('BeDisconnectedFrom', entify(inlet), entify(outlet)).start()
   })
 
   return e
