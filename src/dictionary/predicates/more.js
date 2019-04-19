@@ -174,5 +174,6 @@ const BeDisconnectedFrom = new Predicate({
   begin({inlet}, {outlet}) {
     inlet.disconnect()
   },
+  until: callback => callback(),
 })
 module.exports.BeDisconnectedFrom = BeDisconnectedFrom

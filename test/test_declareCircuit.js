@@ -1,14 +1,17 @@
+console.clear()
+
 const declareCircuit = require('../src/declareCircuit')
 const {dusp} = require('dusp')
-const {WanderingDescriber, DescriptionContext, sentencify} = require('english-io')
+const {
+  WanderingDescriber,
+  DescriptionContext,
+  sentencify} = require('english-io')
+const entify = require('../src/entify')
 
 let sentences = [
-  'a 200Hz sine wave multiplied by a 1Hz triangle wave',
-  'the output of the sine wave is disconnected from the multiplying unit'
-  //'a 500Hz square wave is routed to the multiplying unit'
-  //'a sawtooth wave is routed to the sine wave',
-//  'the noise generator',
-
+  'a 2 second decay envelope',
+  'the decay envelope is modulated by a sine wave',
+  'the decay envelope is multiplied by a 75Hz square wave'
 ]
 //  'the oscillator is the rendering outlet',]
 let circuit = declareCircuit( ...sentences )
@@ -16,12 +19,16 @@ let circuit = declareCircuit( ...sentences )
 console.log('Propositions:')
 console.log(sentences.map(s=>'\t- '+s).join('\n'))
 
-console.log('\nDescription')
-let ctx = new DescriptionContext
-let describer = new WanderingDescriber(circuit.englishIO_entity)
-let fact
-while(fact = describer.next())
-  console.log('\t\t',sentencify(fact.str('simple_present', ctx)))
+
+let e = entify(circuit)
+if(e) {
+  console.log('\nDescription:')
+  let ctx = new DescriptionContext
+  let describer = new WanderingDescriber(e)
+  let fact
+  while(fact = describer.next())
+    console.log('\t\t',sentencify(fact.str('simple_present', ctx, 2)))
+}
 
 console.log("\nDUSP:")
 console.log(dusp(circuit))

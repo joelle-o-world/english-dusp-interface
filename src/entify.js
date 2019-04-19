@@ -4,6 +4,8 @@ const unitConstructorNouns = require('./nounsByDuspConstructor.js')
 
 
 function entify(thing, entity) {
+  if(thing === null || thing === undefined)
+    return null
 
   if(thing.englishIO_entity) {
     if(entity && thing.englishIO_entity != entity)
@@ -71,7 +73,7 @@ function entifyInlet(inlet, e) {
   else if(inlet.name == 'min')
     e.be_a('minimum')
   else if(inlet.name == 'max')
-    e.be_a('minimum')
+    e.be_a('maximum')
   else {
   //  console.log('unhandled inlet name:', inlet.label)
   }

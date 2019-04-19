@@ -72,14 +72,33 @@ const BeSetTo = new Predicate({
   problem(inlet, value) {
     return !inlet.is_a('inlet')
   },
-  begin(inlet, value) {
-    value = parseFloat(value)
-    inlet.inlet.setConstant(value)
-  },
   check(inlet, value) {
     value = parseFloat(value)
     return inlet.inlet.constant == value
   },
+  begin(inlet, str) {
+    let value = parseFloat(str)
+    inlet.inlet.setConstant(value)
+  },
+  meanwhile(inlet, str, sentence) {
+    let value = parseFloat(str)
+
+    if(inlet.inlet.type == 'frequency') {
+      let unitEntity = entify(inlet.inlet.unit)
+      let adj = value + inlet.inlet.measuredIn
+      unitEntity.addAdjective(adj)
+      sentence.once('stop', () => unitEntity.removeAdjective(adj))
+    }
+
+    if(inlet.inlet.name == 'duration') {
+      let unitEntity = entify(inlet.inlet.unit)
+      let adj = value + inlet.inlet.measuredIn
+      unitEntity.addAdjective(adj)
+      sentence.once('stop', () => unitEntity.removeAdjective(adj))
+      console.log(unitEntity.str())
+    }
+  },
+
   until(callback, inlet) {
     inlet.inlet.once('change', callback)
   },

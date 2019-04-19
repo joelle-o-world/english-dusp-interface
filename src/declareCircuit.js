@@ -12,7 +12,7 @@ function declareCircuit(...strings) {
     let outlets = entities.filter(e => e.is_a('outlet')).reverse()
 
     let winner = null
-    let winningScore = 0
+    let winningScore = -1
     for(let {outlet} of outlets) {
       if(outlet.connections.length)
         continue
