@@ -5,3 +5,4 @@ module.exports = d
 
 d.addNouns(...require('./nouns'))
 d.addPredicates(...Object.values(require('./predicates')))
+d.addEntitySpawners(...require('./spawners'))

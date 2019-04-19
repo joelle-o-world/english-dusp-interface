@@ -82,6 +82,10 @@ const BeSetTo = new Predicate({
   },
   until(callback, inlet) {
     inlet.inlet.once('change', callback)
+  },
+  replace(inlet, value) {
+    if(inlet.is_a('unit'))
+      return S(BeSetTo, entify(inlet.unit.defaultInlet), value)
   }
 })
 
