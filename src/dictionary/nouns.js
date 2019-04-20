@@ -97,8 +97,10 @@ module.exports = [
     }
   },
 
+  { noun: 'envelope', inherits:'unit'},
+
   { noun: 'attack envelope',
-    inherits: 'unit',
+    inherits: 'envelope',
     extend(e) {
       if(!e.unit) {
         e.unit = new Shape('attack')
@@ -108,7 +110,7 @@ module.exports = [
   },
 
   { noun: 'decay envelope',
-    inherits: 'unit',
+    inherits: 'envelope',
     extend(e) {
       if(!e.unit) {
         e.unit = new Shape('decay')

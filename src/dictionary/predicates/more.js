@@ -177,3 +177,21 @@ const BeDisconnectedFrom = new Predicate({
   until: callback => callback(),
 })
 module.exports.BeDisconnectedFrom = BeDisconnectedFrom
+
+const Retrigger = new Predicate({
+  forms:[
+    {verb:'retrigger', params:['subject']},
+    {verb:'trigger', params:['subject']},
+    {verb:'start', params:['subject']},
+    {verb:'restart', params:['subject']},
+  ],
+
+  problem(e) {
+    return !e.is_a('envelope')
+  },
+
+  begin(e) {
+    e.unit.trigger()
+  }
+})
+module.exports.Retrigger = Retrigger

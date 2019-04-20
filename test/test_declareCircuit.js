@@ -9,9 +9,10 @@ const {
 const entify = require('../src/entify')
 
 let sentences = [
-  'connect a sine wave to a square wave',
-  'set the sine wave to 100Hz',
-  'disconnect the sine wave from the square wave'
+  //'connect a sine wave to a square wave',
+  //'set the sine wave to 100Hz',
+  //'disconnect the sine wave from the square wave'
+  'a 10s decay envelope triggers'
 ]
 //  'the oscillator is the rendering outlet',]
 let circuit = declareCircuit( ...sentences )
