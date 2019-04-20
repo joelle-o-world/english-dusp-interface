@@ -21,4 +21,14 @@ module.exports = new SentenceModifierSet(
       })
     }
   ),
+
+  new SentenceModifier(
+    'every second',
+    (args, str, io) => {
+      io.circuit.schedule(0, () =>{
+        io.declare(str)
+        return 1
+      })
+    }
+  ),
 )

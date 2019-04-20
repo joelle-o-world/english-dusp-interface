@@ -1,4 +1,4 @@
-const {Circuit} = require('dusp')
+const {Circuit, dusp} = require('dusp')
 const {Declarer} = require('english-io')
 const d = require('./dictionary')
 
@@ -43,6 +43,7 @@ class EnglishDuspInterface {
   }
 
   findRenderingOutlet() {
+    this.declarer.autoExpandDomain()
     let entities = this.declarer.entities
 
     let renderingOutlet = entities.find(e => e.isRenderingOutlet)
@@ -67,6 +68,17 @@ class EnglishDuspInterface {
 
       renderingOutlet = winner
     }
+
+    if(!renderingOutlet) {
+      console.warn(
+        'could not find rendering outlet',
+        entities
+          //.filter(e => e.is_a('outlet'))
+          //.map(e=>dusp(e.outlet))
+          .map(e => e.str())
+      )
+    }
+
     return renderingOutlet
   }
 

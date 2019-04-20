@@ -2,7 +2,7 @@ const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 
 const {BeRoutedTo, BeSetTo} = require('./core.js')
-const {BeDisconnectedFrom} = require('./more')
+const {BeDisconnectedFrom, BeMultipliedBy} = require('./more')
 
 const ME = 'the human'
 
@@ -54,5 +54,15 @@ module.exports.DisconnectFrom = new ImperativePredicate({
 
   afterwards(a, b) {
     return S(BeDisconnectedFrom, a, b)
+  }
+})
+
+module.exports.MultiplyBy = new ImperativePredicate({
+  forms:[
+    {verb:'multiply', params:['object', 'by']}
+  ],
+
+  afterwards(a, b) {
+    return S(BeMultipliedBy, a, b)
   }
 })

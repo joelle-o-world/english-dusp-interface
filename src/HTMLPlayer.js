@@ -1,13 +1,14 @@
 const EnglishDuspInterface = require('./EnglishDuspInterface')
-const {renderAudioBuffer} = require('dusp')
+const {renderAudioBuffer, dusp} = require('dusp')
 const getSentences = require('./getSentences')
 
 class HTMLPlayer {
-  constructor(str='') {
+  constructor(str='', duration=5) {
     this.inputElement
     this.makeHTML()
 
     this.inputElement.value = str
+    this.durationInput.value = 5
 
     this.ctx = new AudioContext()
   }
@@ -67,12 +68,13 @@ class HTMLPlayer {
     source.connect(this.ctx.destination)
     source.start()
 
-    console.log('playing:', source)
+    console.log('playing:', dusp(outlet), '\nfor', duration, 'seconds')
     this.nowPlayingSource = source
   }
 
   stop() {
-    this.nowPlayingSource.stop()
+    if(this.nowPlayingSource)
+      this.nowPlayingSource.stop()
     this.nowPlayingSource = null
   }
 }

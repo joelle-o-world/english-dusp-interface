@@ -72328,12 +72328,7 @@ module.exports = renderAudioBuffer
 },{"../renderChannelData":202,"./channelDataToAudioBuffer":205}],208:[function(require,module,exports){
 const HTMLPlayer = require('../src/HTMLPlayer')
 
-window.onload = function() {
-  let player1 = new HTMLPlayer('a 200Hz sine wave')
-  console.log(player1)
-
-  document.body.appendChild(player1.div)
-}
+window.HTMLPlayer = HTMLPlayer
 
 },{"../src/HTMLPlayer":212}],209:[function(require,module,exports){
 module.exports = require('/Users/joel/Programming/dusp/src/')
@@ -72342,7 +72337,7 @@ module.exports = require('/Users/joel/Programming/dusp/src/')
 module.exports = require('/Users/joel/Programming/english-io/src')
 
 },{"/Users/joel/Programming/english-io/src":251}],211:[function(require,module,exports){
-const {Circuit} = require('dusp')
+const {Circuit, dusp} = require('dusp')
 const {Declarer} = require('english-io')
 const d = require('./dictionary')
 
@@ -72387,6 +72382,7 @@ class EnglishDuspInterface {
   }
 
   findRenderingOutlet() {
+    this.declarer.autoExpandDomain()
     let entities = this.declarer.entities
 
     let renderingOutlet = entities.find(e => e.isRenderingOutlet)
@@ -72411,6 +72407,17 @@ class EnglishDuspInterface {
 
       renderingOutlet = winner
     }
+
+    if(!renderingOutlet) {
+      console.warn(
+        'could not find rendering outlet',
+        entities
+          //.filter(e => e.is_a('outlet'))
+          //.map(e=>dusp(e.outlet))
+          .map(e => e.str())
+      )
+    }
+
     return renderingOutlet
   }
 
@@ -72424,15 +72431,16 @@ module.exports = EnglishDuspInterface
 
 },{"./dictionary":215,"./modifiers":224,"dusp":209,"english-io":210}],212:[function(require,module,exports){
 const EnglishDuspInterface = require('./EnglishDuspInterface')
-const {renderAudioBuffer} = require('dusp')
+const {renderAudioBuffer, dusp} = require('dusp')
 const getSentences = require('./getSentences')
 
 class HTMLPlayer {
-  constructor(str='') {
+  constructor(str='', duration=5) {
     this.inputElement
     this.makeHTML()
 
     this.inputElement.value = str
+    this.durationInput.value = 5
 
     this.ctx = new AudioContext()
   }
@@ -72492,12 +72500,13 @@ class HTMLPlayer {
     source.connect(this.ctx.destination)
     source.start()
 
-    console.log('playing:', source)
+    console.log('playing:', dusp(outlet), '\nfor', duration, 'seconds')
     this.nowPlayingSource = source
   }
 
   stop() {
-    this.nowPlayingSource.stop()
+    if(this.nowPlayingSource)
+      this.nowPlayingSource.stop()
     this.nowPlayingSource = null
   }
 }
@@ -72960,7 +72969,7 @@ const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 
 const {BeRoutedTo, BeSetTo} = require('./core.js')
-const {BeDisconnectedFrom} = require('./more')
+const {BeDisconnectedFrom, BeMultipliedBy} = require('./more')
 
 const ME = 'the human'
 
@@ -73012,6 +73021,16 @@ module.exports.DisconnectFrom = new ImperativePredicate({
 
   afterwards(a, b) {
     return S(BeDisconnectedFrom, a, b)
+  }
+})
+
+module.exports.MultiplyBy = new ImperativePredicate({
+  forms:[
+    {verb:'multiply', params:['object', 'by']}
+  ],
+
+  afterwards(a, b) {
+    return S(BeMultipliedBy, a, b)
   }
 })
 
@@ -73117,7 +73136,8 @@ const BeMultipliedBy = new Predicate({
   ],
 
   begin(a, b) {
-    let sum = quick.multiply(a.outlet, b.outlet)
+    let mult = quick.multiply(a.outlet, b.outlet)
+    console.log('BeMultipliedBy.begin', mult)
   },
 
   problem(a, b) {
@@ -73486,6 +73506,16 @@ module.exports = new SentenceModifierSet(
       io.circuit.schedule(0, () =>{
         io.declare(str)
         return args[0]
+      })
+    }
+  ),
+
+  new SentenceModifier(
+    'every second',
+    (args, str, io) => {
+      io.circuit.schedule(0, () =>{
+        io.declare(str)
+        return 1
       })
     }
   ),
@@ -74748,11 +74778,17 @@ class Declarer {
         for(let e of fact.entityArgs)
           this.addEntity(e)
     }
+
+    this.autoExpandDomain()
   }
 
   addEntities(...entities) {
     for(let entity of entities)
       this.addEntity(entity)
+  }
+
+  autoExpandDomain() {
+    this.entities = [...search.explore(this.entities)]
   }
 
   parse(declarationStr, tenses, forbidSpawn=false) {
@@ -74814,8 +74850,6 @@ class Declarer {
   declare(...declarationStrings) {
     for(let str of declarationStrings) {
       this.declareSingle(str)
-
-      this.entities = [...search.explore(this.entities)]
     }
 
     return this
@@ -74847,11 +74881,14 @@ class Declarer {
         console.warn('declaration with strange tense:', sentence.parsed_tense)
       }
 
+      this.autoExpandDomain()
+
       return
     }
 
     let imperative = this.parseImperative(str)
     if(imperative) {
+      console.log('imperative', imperative.str())
       this.addEntities(...imperative.entityArgs)
       imperative.start()
       return
@@ -77210,10 +77247,10 @@ class Sentence extends EventEmitter {
 
     // exit early if sentence is not 'true'
     if(this.truthValue != 'true' /*&& this.truthValue != 'planned'*/) {
-    console.warn(
-      'rejected sentence stop because truth value = ' + this.truthValue,
-      '('+this.str()+')'
-    )
+      /*console.warn(
+        'rejected sentence stop because truth value = ' + this.truthValue,
+        '('+this.str()+')'
+      )*/
       return this
     }
 

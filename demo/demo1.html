@@ -5,6 +5,19 @@
     <title>English Language Modular Synthesiser Demo</title>
     <script type="text/javascript" src='bundle.js'></script>
     <link rel="stylesheet" href="style.css">
+
+    <script>
+      let demos = [
+        'A sine wave.',
+        'A 200Hz triangle wave. After 2s, every 2 seconds another sine wave modulates the triangle wave. Multiply the triangle wave by a 1s decay envelope. The envelope restarts every 2 seconds.',
+      ]
+      window.onload = function() {
+        for(let str of demos) {
+          let player = new HTMLPlayer(str)
+          document.body.appendChild(player.div)
+        }
+      }
+    </script>
   </head>
   <body>
 

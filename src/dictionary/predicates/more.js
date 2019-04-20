@@ -94,7 +94,8 @@ const BeMultipliedBy = new Predicate({
   ],
 
   begin(a, b) {
-    let sum = quick.multiply(a.outlet, b.outlet)
+    let mult = quick.multiply(a.outlet, b.outlet)
+    console.log('BeMultipliedBy.begin', mult)
   },
 
   problem(a, b) {
