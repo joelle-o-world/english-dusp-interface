@@ -829,7 +829,7 @@ AudioBufferList.prototype.join = function join (from, to) {
   return this
 }
 
-},{"audio-buffer":5,"audio-buffer-utils":6,"events":276,"inherits":16,"is-audio-buffer":17,"is-plain-obj":21,"negative-index":23,"object-assign":25}],5:[function(require,module,exports){
+},{"audio-buffer":5,"audio-buffer-utils":6,"events":277,"inherits":16,"is-audio-buffer":17,"is-plain-obj":21,"negative-index":23,"object-assign":25}],5:[function(require,module,exports){
 /**
  * AudioBuffer class
  *
@@ -1841,7 +1841,7 @@ module.exports = function getContext (options) {
 })(this);
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":274}],11:[function(require,module,exports){
+},{"buffer":275}],11:[function(require,module,exports){
 module.exports = clamp
 
 function clamp(value, min, max) {
@@ -3553,7 +3553,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"audio-buffer":27,"buffer":274,"is-audio-buffer":17,"os":281,"to-array-buffer":36}],27:[function(require,module,exports){
+},{"audio-buffer":27,"buffer":275,"is-audio-buffer":17,"os":282,"to-array-buffer":36}],27:[function(require,module,exports){
 arguments[4][5][0].apply(exports,arguments)
 },{"audio-context":9,"buffer-to-arraybuffer":10,"dup":5,"is-audio-buffer":17,"is-browser":18,"is-buffer":19,"is-plain-obj":21}],28:[function(require,module,exports){
 'use strict';
@@ -64540,7 +64540,7 @@ WAAWritable.prototype.end = function () {
 	return this;
 };
 
-},{"./write":45,"inherits":16,"stream":298}],45:[function(require,module,exports){
+},{"./write":45,"inherits":16,"stream":299}],45:[function(require,module,exports){
 /**
  * @module  web-audio-stream/write
  *
@@ -65646,7 +65646,7 @@ Piglet.prototype.__defineGetter__("circuit", function() {
   return this.unit.circuit
 })
 
-},{"./SignalChunk.js":55,"./config.js":124,"events":276}],54:[function(require,module,exports){
+},{"./SignalChunk.js":55,"./config.js":124,"events":277}],54:[function(require,module,exports){
 const {Readable} = require("stream")
 const AudioBuffer = require('audio-buffer')
 
@@ -65730,7 +65730,7 @@ class RenderStream extends Readable {
 }
 module.exports = RenderStream
 
-},{"audio-buffer":8,"stream":298}],55:[function(require,module,exports){
+},{"audio-buffer":8,"stream":299}],55:[function(require,module,exports){
 function SignalChunk(numberOfChannels, chunkSize) {
   this.numberOfChannels = numberOfChannels
   this.chunkSize = chunkSize
@@ -66170,7 +66170,7 @@ UnitOrPatch.prototype.scheduleFinish = function(t) {
   })
 }
 
-},{"./Event.js":49,"events":276}],58:[function(require,module,exports){
+},{"./Event.js":49,"events":277}],58:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require("../config.js")
 
@@ -68775,7 +68775,7 @@ localConfig.sampleInterval = 1/module.exports.sampleRate
 module.exports = localConfig
 
 }).call(this,require('_process'))
-},{"_process":283,"minimist":22}],125:[function(require,module,exports){
+},{"_process":284,"minimist":22}],125:[function(require,module,exports){
 function constructExpression(o, index, destinations) {
   if(o.constructor == String)
     o = parseExpression(o, index)
@@ -72336,7 +72336,7 @@ module.exports = require('/Users/joel/Programming/dusp/src/')
 },{"/Users/joel/Programming/dusp/src/":136}],210:[function(require,module,exports){
 module.exports = require('/Users/joel/Programming/english-io/src')
 
-},{"/Users/joel/Programming/english-io/src":251}],211:[function(require,module,exports){
+},{"/Users/joel/Programming/english-io/src":252}],211:[function(require,module,exports){
 const {Circuit, dusp} = require('dusp')
 const {Declarer} = require('english-io')
 const d = require('./dictionary')
@@ -72429,7 +72429,7 @@ class EnglishDuspInterface {
 }
 module.exports = EnglishDuspInterface
 
-},{"./dictionary":215,"./modifiers":224,"dusp":209,"english-io":210}],212:[function(require,module,exports){
+},{"./dictionary":215,"./modifiers":225,"dusp":209,"english-io":210}],212:[function(require,module,exports){
 const EnglishDuspInterface = require('./EnglishDuspInterface')
 const {renderAudioBuffer, dusp} = require('dusp')
 const getSentences = require('./getSentences')
@@ -72440,7 +72440,7 @@ class HTMLPlayer {
     this.makeHTML()
 
     this.inputElement.value = str
-    this.durationInput.value = 5
+    this.durationInput.value = duration
 
     this.ctx = new AudioContext()
   }
@@ -72453,6 +72453,14 @@ class HTMLPlayer {
     let input = document.createElement('textarea')
     this.inputElement = input
     input.className = 'engdusp_input'
+    input.addEventListener('keydown', e => {
+      if(e.metaKey && e.keyCode == 13){
+        if(this.nowPlayingSource)
+          this.stop()
+        else
+          this.render()
+      }
+    })
     div.appendChild(input)
 
     let playBTN = document.createElement('button')
@@ -72512,7 +72520,7 @@ class HTMLPlayer {
 }
 module.exports = HTMLPlayer
 
-},{"./EnglishDuspInterface":211,"./getSentences":223,"dusp":209}],213:[function(require,module,exports){
+},{"./EnglishDuspInterface":211,"./getSentences":224,"dusp":209}],213:[function(require,module,exports){
 const placeholderRegex = /#_/g
 
 class SentenceModifier {
@@ -72652,7 +72660,7 @@ d.addNouns(...require('./nouns'))
 d.addPredicates(...Object.values(require('./predicates')))
 d.addEntitySpawners(...require('./spawners'))
 
-},{"./nouns":216,"./predicates":219,"./spawners":221,"english-io":210}],216:[function(require,module,exports){
+},{"./nouns":216,"./predicates":220,"./spawners":222,"english-io":210}],216:[function(require,module,exports){
 const {
   Osc,
   Sum,
@@ -72792,6 +72800,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Filter
         e.unit.kind = 'LP'
+        e.unit.F = 100
         entify(e.unit, e)
       }
     }
@@ -72803,6 +72812,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Filter
         e.unit.kind = 'HP'
+        e.unit.F = 1000
         entify(e.unit, e)
       }
     }
@@ -72813,7 +72823,6 @@ module.exports = [
     extend(e) {
       if(!e.unit) {
         e.unit = new Pan
-        e.unit.kind = 'HP'
         entify(e.unit, e)
       }
     }
@@ -72826,7 +72835,102 @@ module.exports = [
   'maximum',
 ]
 
-},{"../entify":222,"dusp":209}],217:[function(require,module,exports){
+},{"../entify":223,"dusp":209}],217:[function(require,module,exports){
+const {Predicate, Sentence} = require('english-io')
+const S = Sentence.S
+const {Shape} = require('dusp').components
+const entify = require('../../entify')
+
+const SlideFromToIn = new Predicate({
+  forms:[
+    {verb:'slide', params:['subject', '@from', '@to', '@in']},
+    {verb:'glide', params:['subject', '@from', '@to', '@in']},
+    {verb:'move smoothly', params:['subject', '@from', '@to', '@in']},
+    {verb:'slide', params:['subject', '@from', '@to', '@over']},
+    {verb:'glide', params:['subject', '@from', '@to', '@over']},
+    {verb:'move smoothly', params:['subject', '@from', '@to', '@over']},
+  ],
+
+  problem(inlet, startValue, endValue, duration) {
+    return !inlet.is_a('inlet')
+            || isNaN(parseFloat(startValue))
+            || isNaN(parseFloat(endValue))
+            || isNaN(parseFloat(duration))
+  },
+
+  begin(inlet, from, to, d, sentence) {
+    let shape = new Shape(
+      'attack',
+      d.constructor == Number ? d : parseFloat(d),
+      from.constructor == Number ? from : parseFloat(from),
+      to.constructor == Number ? to : parseFloat(to),
+    )
+
+    shape.on('finish', () => sentence.stop())
+    inlet.inlet.connect(shape)
+    shape.trigger()
+  },
+
+  replace(inlet, from, to, d) {
+    if(inlet.is_a('unit'))
+      return S(SlideFromToIn, entify(inlet.unit.defaultInlet), from, to, d)
+  }
+})
+module.exports.SlideFromToIn = SlideFromToIn
+
+const SlideFromTo = new Predicate({
+  forms:[
+    {verb:'slide', params:['subject', '@from', '@to']},
+    {verb:'glide', params:['subject', '@from', '@to']},
+    {verb:'move smoothly', params:['subject', '@from', '@to']},
+  ],
+
+  replace(inlet, from, to) {
+    return S(SlideFromToIn, inlet, from, to, Math.random()+'s')
+  }
+})
+module.exports.SlideFromTo = SlideFromTo
+
+const SlideTo = new Predicate({
+  forms:[
+    {verb:'slide', params:['subject', '@to']},
+    {verb:'glide', params:['subject', '@to']},
+    {verb:'move smoothly', params:['subject', '@to']},
+  ],
+
+  replace(inlet, to) {
+    if(inlet.is_a('unit'))
+      inlet = entify(inlet.unit.defaultInlet)
+
+    if(inlet.is_a('inlet'))
+      return S(SlideFromToIn, inlet, inlet.inlet.constant.toString(), to, Math.random()+'s')
+  }
+})
+module.exports.SlideTo = SlideTo
+
+const SlideToIn = new Predicate({
+  forms:[
+    {verb:'slide', params:['subject', '@to', '@in']},
+    {verb:'glide', params:['subject', '@to', '@in']},
+    {verb:'move smoothly', params:['subject', '@to', '@in']},
+    {verb:'slide', params:['subject', '@to', '@over']},
+    {verb:'glide', params:['subject', '@to', '@over']},
+    {verb:'move smoothly', params:['subject', '@to', '@over']},
+  ],
+
+  replace(inlet, to, d) {
+    if(inlet.is_a('unit'))
+      inlet = entify(inlet.unit.defaultInlet)
+
+    if(inlet.is_a('inlet')) {
+      console.log('iefnvjkf')
+      return S(SlideFromToIn, inlet, inlet.inlet.constant.toString(), to, d)
+    }
+  }
+})
+module.exports.SlideToIn = SlideToIn
+
+},{"../../entify":223,"dusp":209,"english-io":210}],218:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 const entify = require('../../entify')
@@ -72964,7 +73068,7 @@ Object.assign(module.exports, {
   BeTheRenderingOutlet: BeTheRenderingOutlet,
 })
 
-},{"../../entify":222,"english-io":210}],218:[function(require,module,exports){
+},{"../../entify":223,"english-io":210}],219:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 
@@ -73034,12 +73138,13 @@ module.exports.MultiplyBy = new ImperativePredicate({
   }
 })
 
-},{"./core.js":217,"./more":220,"english-io":210}],219:[function(require,module,exports){
+},{"./core.js":218,"./more":221,"english-io":210}],220:[function(require,module,exports){
 Object.assign(module.exports, require('./core'))
 Object.assign(module.exports, require('./more'))
 Object.assign(module.exports, require('./imperative'))
+Object.assign(module.exports, require('./automation'))
 
-},{"./core":217,"./imperative":218,"./more":220}],220:[function(require,module,exports){
+},{"./automation":217,"./core":218,"./imperative":219,"./more":221}],221:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const {quick} = require('dusp')
 const S = Sentence.S
@@ -73239,7 +73344,7 @@ const Retrigger = new Predicate({
 })
 module.exports.Retrigger = Retrigger
 
-},{"../../entify":222,"dusp":209,"english-io":210}],221:[function(require,module,exports){
+},{"../../entify":223,"dusp":209,"english-io":210}],222:[function(require,module,exports){
 const {EntitySpawner} = require('english-io')
 const dusp = require('dusp')
 
@@ -73302,6 +73407,14 @@ const HzTriangleWave = new EntitySpawner({
   }
 })
 
+const RandomSineWave = new EntitySpawner({
+  template: 'random sine wave',
+  construct() {
+    let osc = new dusp.components.Osc(Math.random()*1000+20)
+    return entify(osc)
+  }
+})
+
 const SecondDecayEnvelope = new EntitySpawner({
   template: '#_(?:s| second) decay envelope',
   construct(duration) {
@@ -73323,10 +73436,11 @@ const SecondAttackEnvelope = new EntitySpawner({
 module.exports = [
   SumOfAnd, MultipliedBy,
   HzSineWave, HzSquareWave, HzSawWave, HzTriangleWave,
+  RandomSineWave,
   SecondDecayEnvelope, SecondAttackEnvelope,
 ]
 
-},{"../entify":222,"dusp":209,"english-io":210}],222:[function(require,module,exports){
+},{"../entify":223,"dusp":209,"english-io":210}],223:[function(require,module,exports){
 const D = require('./dictionary')
 
 const unitConstructorNouns = require('./nounsByDuspConstructor.js')
@@ -73466,7 +73580,7 @@ function entifyOutlet(outlet, e) {
   return e
 }
 
-},{"./dictionary":215,"./nounsByDuspConstructor.js":225}],223:[function(require,module,exports){
+},{"./dictionary":215,"./nounsByDuspConstructor.js":226}],224:[function(require,module,exports){
 function getSentences(str) {
   let lines = str.split('\n')
 
@@ -73485,7 +73599,7 @@ function getSentences(str) {
 }
 module.exports = getSentences
 
-},{}],224:[function(require,module,exports){
+},{}],225:[function(require,module,exports){
 const SentenceModifier = require('./SentenceModifier')
 const SentenceModifierSet = require('./SentenceModifierSet')
 
@@ -73521,7 +73635,7 @@ module.exports = new SentenceModifierSet(
   ),
 )
 
-},{"./SentenceModifier":213,"./SentenceModifierSet":214}],225:[function(require,module,exports){
+},{"./SentenceModifier":213,"./SentenceModifierSet":214}],226:[function(require,module,exports){
 module.exports = {
   Osc: unit => {
     if(unit.waveform == 'sin')
@@ -73551,7 +73665,7 @@ module.exports = {
   Pan: 'panner',
 }
 
-},{}],226:[function(require,module,exports){
+},{}],227:[function(require,module,exports){
 'use strict';
 /* eslint indent: 4 */
 
@@ -73731,7 +73845,7 @@ class DRange {
 
 module.exports = DRange;
 
-},{}],227:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
 "use strict";
 
 const CARDINALS = [
@@ -73889,7 +74003,7 @@ const decimal_to_cardinal = function (n) {
 
 module.exports = decimal_to_cardinal;
 
-},{}],228:[function(require,module,exports){
+},{}],229:[function(require,module,exports){
 "use strict";
 
 const english = require("integer-to-cardinal-english");
@@ -73938,7 +74052,7 @@ function ordinal(input) {
 
 module.exports = ordinal;
 
-},{"integer-to-cardinal-english":227}],229:[function(require,module,exports){
+},{"integer-to-cardinal-english":228}],230:[function(require,module,exports){
 const ret    = require('ret');
 const DRange = require('drange');
 const types  = ret.types;
@@ -74201,7 +74315,7 @@ module.exports = class RandExp {
   }
 };
 
-},{"drange":226,"ret":230}],230:[function(require,module,exports){
+},{"drange":227,"ret":231}],231:[function(require,module,exports){
 const util      = require('./util');
 const types     = require('./types');
 const sets      = require('./sets');
@@ -74485,14 +74599,14 @@ module.exports = (regexpStr) => {
 
 module.exports.types = types;
 
-},{"./positions":231,"./sets":232,"./types":233,"./util":234}],231:[function(require,module,exports){
+},{"./positions":232,"./sets":233,"./types":234,"./util":235}],232:[function(require,module,exports){
 const types = require('./types');
 exports.wordBoundary = () => ({ type: types.POSITION, value: 'b' });
 exports.nonWordBoundary = () => ({ type: types.POSITION, value: 'B' });
 exports.begin = () => ({ type: types.POSITION, value: '^' });
 exports.end = () => ({ type: types.POSITION, value: '$' });
 
-},{"./types":233}],232:[function(require,module,exports){
+},{"./types":234}],233:[function(require,module,exports){
 const types = require('./types');
 
 const INTS = () => [{ type: types.RANGE , from: 48, to: 57 }];
@@ -74543,7 +74657,7 @@ exports.whitespace = () => ({ type: types.SET, set: WHITESPACE(), not: false });
 exports.notWhitespace = () => ({ type: types.SET, set: WHITESPACE(), not: true });
 exports.anyChar = () => ({ type: types.SET, set: NOTANYCHAR(), not: true });
 
-},{"./types":233}],233:[function(require,module,exports){
+},{"./types":234}],234:[function(require,module,exports){
 module.exports = {
   ROOT       : 0,
   GROUP      : 1,
@@ -74555,7 +74669,7 @@ module.exports = {
   CHAR       : 7,
 };
 
-},{}],234:[function(require,module,exports){
+},{}],235:[function(require,module,exports){
 const types = require('./types');
 const sets  = require('./sets');
 
@@ -74665,7 +74779,7 @@ exports.error = (regexp, msg) => {
   throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
 };
 
-},{"./sets":232,"./types":233}],235:[function(require,module,exports){
+},{"./sets":233,"./types":234}],236:[function(require,module,exports){
 const regOps = require('./util/regOps')
 const PredicateSet = require('./PredicateSet')
 const Sentence = require('./Sentence')
@@ -74948,7 +75062,7 @@ class Declarer {
 }
 module.exports = Declarer
 
-},{"./DescriptionContext":236,"./NounPhraseSentence":243,"./PredicateSet":245,"./Sentence":247,"./search":252,"./util/conjugate/verbPhrase":259,"./util/regOps":266}],236:[function(require,module,exports){
+},{"./DescriptionContext":237,"./NounPhraseSentence":244,"./PredicateSet":246,"./Sentence":248,"./search":253,"./util/conjugate/verbPhrase":260,"./util/regOps":267}],237:[function(require,module,exports){
 const ordinal = require('integer-to-ordinal-english')
 
 /**
@@ -75111,7 +75225,7 @@ class DescriptionContext {
 }
 module.exports = DescriptionContext
 
-},{"integer-to-ordinal-english":228}],237:[function(require,module,exports){
+},{"integer-to-ordinal-english":229}],238:[function(require,module,exports){
 const PredicateSet = require('./PredicateSet')
 
 const Declarer = require('./Declarer')
@@ -75248,7 +75362,7 @@ class Dictionary {
 }
 module.exports = Dictionary
 
-},{"./Declarer":235,"./Entity":238,"./EntitySpawner":239,"./Noun":242,"./PredicateSet":245,"./Sentence":247,"./search":252,"./spawn":253,"./spawn2":254}],238:[function(require,module,exports){
+},{"./Declarer":236,"./Entity":239,"./EntitySpawner":240,"./Noun":243,"./PredicateSet":246,"./Sentence":248,"./search":253,"./spawn":254,"./spawn2":255}],239:[function(require,module,exports){
 // Entity is the base class of all entities in EntityGame.
 const regOps = require('./util/regOps.js')
 const RandExp = require('randexp')
@@ -75718,7 +75832,7 @@ module.exports = Entity
 
 const spawn = require('./spawn2')
 
-},{"./Sentence":247,"./entityStr":250,"./spawn2":254,"./util/regOps.js":266,"./util/specarr":268,"./util/spellcheck":269,"events":276,"randexp":229}],239:[function(require,module,exports){
+},{"./Sentence":248,"./entityStr":251,"./spawn2":255,"./util/regOps.js":267,"./util/specarr":269,"./util/spellcheck":270,"events":277,"randexp":230}],240:[function(require,module,exports){
 const Substitution = require('./util/Substitution')
 const getNounPhraselet = require('./util/getNounPhraselet')
 const regops = require('./util/regops')
@@ -75831,7 +75945,7 @@ class EntitySpawner {
 EntitySpawner.prototype.isEntitySpawner = true
 module.exports = EntitySpawner
 
-},{"./search":252,"./util/Substitution":255,"./util/getNounPhraselet":260,"./util/politeList":265,"./util/regops":267}],240:[function(require,module,exports){
+},{"./search":253,"./util/Substitution":256,"./util/getNounPhraselet":261,"./util/politeList":266,"./util/regops":268}],241:[function(require,module,exports){
 const {sub} = require('./util/Substitution')
 const specarr = require('./util/specarr')
 
@@ -75931,7 +76045,7 @@ function entityStr(entity, ctx, options={}) {
 }
 module.exports = entityStr
 
-},{"./util/Substitution":255,"./util/specarr":268}],241:[function(require,module,exports){
+},{"./util/Substitution":256,"./util/specarr":269}],242:[function(require,module,exports){
 const EventEmitter = require('events')
 const Sentence = require('./Sentence')
 
@@ -76019,7 +76133,7 @@ module.exports = FactListener
 // PROBLEMS:
 // - Eliminating duplicates.
 
-},{"./Sentence":247,"events":276}],242:[function(require,module,exports){
+},{"./Sentence":248,"events":277}],243:[function(require,module,exports){
 /**
  * @class Noun
  * @constructor
@@ -76065,7 +76179,7 @@ class Noun {
 }
 module.exports = Noun
 
-},{}],243:[function(require,module,exports){
+},{}],244:[function(require,module,exports){
 /**
   A subclass of Sentence. This class is used to represent a sentence (predicate
   + arguments) in the form of a noun. For example, "the cigarette that he was
@@ -76099,7 +76213,7 @@ class NounPhraseSentence extends Sentence {
 NounPhraseSentence.prototype.isNounPhraseSentence = true
 module.exports = NounPhraseSentence
 
-},{"./Sentence":247}],244:[function(require,module,exports){
+},{"./Sentence":248}],245:[function(require,module,exports){
 const PredicateSyntax = require('./PredicateSyntax')
 
 /**
@@ -76438,7 +76552,7 @@ class Predicate {
 Predicate.prototype.isPredicate = true
 module.exports = Predicate
 
-},{"./PredicateSyntax":246}],245:[function(require,module,exports){
+},{"./PredicateSyntax":247}],246:[function(require,module,exports){
 const Predicate = require('./Predicate')
 
 /**
@@ -76561,7 +76675,7 @@ class PredicateSet {
 }
 module.exports = PredicateSet
 
-},{"./Predicate":244}],246:[function(require,module,exports){
+},{"./Predicate":245}],247:[function(require,module,exports){
 /**
   A class for representing a single syntactic 'form' of a predicate.
   @class PredicateSyntax
@@ -76910,9 +77024,9 @@ class PredicateSyntax {
     let score = this.verb.length
     for(let param of this.params) {
       if(param.name[0] != '_')
-        score += param.name.length
-      if(param.literal)
-        score -= 10
+        score += param.name.length * (param.literal ? 1 : 3)
+      //if(param.literal)
+        //score -= 10
     }
 
     this.specificness = score
@@ -76922,7 +77036,7 @@ class PredicateSyntax {
 PredicateSyntax.prototype.isPredicateSyntax = true
 module.exports = PredicateSyntax
 
-},{"./util/conjugate/verbPhrase":259}],247:[function(require,module,exports){
+},{"./util/conjugate/verbPhrase":260}],248:[function(require,module,exports){
 const EventEmitter = require('events')
 const SentenceQueue = require('./SentenceQueue')
 // ...more requires at bottom
@@ -77089,8 +77203,10 @@ class Sentence extends EventEmitter {
     */
   start() {
     // throw an error if this.checkArgs() fails
-    if(!this.checkArgs())
+    if(!this.checkArgs()) {
+      console.log(this)
       throw 'sentence has illegal args'
+    }
 
     // exit early if predicate's skipIf returns truthy value
     if(this.predicate.skipIf) {
@@ -77444,7 +77560,7 @@ class Sentence extends EventEmitter {
 Sentence.prototype.isSentence = true
 module.exports = Sentence
 
-},{"./SentenceQueue":248,"events":276}],248:[function(require,module,exports){
+},{"./SentenceQueue":249,"events":277}],249:[function(require,module,exports){
 // a list of sentence to be executed consequetively
 
 const EventEmitter = require('events')
@@ -77544,7 +77660,7 @@ class SentenceQueue extends EventEmitter {
 }
 module.exports = SentenceQueue
 
-},{"events":276}],249:[function(require,module,exports){
+},{"events":277}],250:[function(require,module,exports){
 /**
   * A class for generating descriptions by following relationships between
   * objects.
@@ -77633,7 +77749,7 @@ class WanderingDescriber {
 }
 module.exports = WanderingDescriber
 
-},{}],250:[function(require,module,exports){
+},{}],251:[function(require,module,exports){
 /*
   entityStr()
   Convert a entity into a string using a flexible set of parameters
@@ -77686,7 +77802,7 @@ function entityStr(entity, ctx, options={}) {
 }
 module.exports = entityStr
 
-},{"./Entity_nounPhraseletStr":240,"./util/Substitution":255,"./util/specarr":268}],251:[function(require,module,exports){
+},{"./Entity_nounPhraseletStr":241,"./util/Substitution":256,"./util/specarr":269}],252:[function(require,module,exports){
 /**
  * @module entity-game
  */
@@ -77719,7 +77835,7 @@ module.exports = {
   //util: require('./util'),
 }
 
-},{"./Declarer":235,"./DescriptionContext":236,"./Dictionary":237,"./Entity":238,"./EntitySpawner":239,"./FactListener":241,"./Predicate":244,"./PredicateSyntax":246,"./Sentence":247,"./WanderingDescriber":249,"./search":252,"./util/spellcheck":269}],252:[function(require,module,exports){
+},{"./Declarer":236,"./DescriptionContext":237,"./Dictionary":238,"./Entity":239,"./EntitySpawner":240,"./FactListener":242,"./Predicate":245,"./PredicateSyntax":247,"./Sentence":248,"./WanderingDescriber":250,"./search":253,"./util/spellcheck":270}],253:[function(require,module,exports){
 // search within a given iterator for a entity matching a given string.
 
 //const spawn = require('./spawn')
@@ -77777,7 +77893,7 @@ module.exports.explore = explore
 module.exports.first = findFirst
 //module.exports.orSpawn = findOrSpawn
 
-},{}],253:[function(require,module,exports){
+},{}],254:[function(require,module,exports){
 const articleReg = /the|a|an|another/
 const regOps = require('./util/regOps.js')
 const getNounPhraselet = require('./util/getNounPhraselet')
@@ -77819,7 +77935,7 @@ function randomSpawn(dictionary) {
 }
 module.exports.random = randomSpawn
 
-},{"./Entity":238,"./util/getNounPhraselet":260,"./util/regOps.js":266}],254:[function(require,module,exports){
+},{"./Entity":239,"./util/getNounPhraselet":261,"./util/regOps.js":267}],255:[function(require,module,exports){
 /** A more flexible version of spawn, allowing quanitifiers and adjectives */
 
 // REQUIRES AT BOTTOM!
@@ -77872,7 +77988,7 @@ function randomInRange({min, max}) {
 const parseNounPhrase = require('./util/parseNounPhrase')
 const Entity = require('./Entity')
 
-},{"./Entity":238,"./util/parseNounPhrase":261}],255:[function(require,module,exports){
+},{"./Entity":239,"./util/parseNounPhrase":262}],256:[function(require,module,exports){
 /*
   Substitution is a class for formatting sentence involving zero or more
   args. It can be used to avoid generating the noun phrases until the program
@@ -78039,7 +78155,7 @@ const formatRegex = (o, depth) => {
   }
 }
 
-},{"./politeList":265,"./regOps":266,"./toPossessiveAdjective":270,"./toSubject":271,"randexp":229}],256:[function(require,module,exports){
+},{"./politeList":266,"./regOps":267,"./toPossessiveAdjective":271,"./toSubject":272,"randexp":230}],257:[function(require,module,exports){
 /*
   Given the infinitive form of a verb and a person/verbform number (0-8) return
   the conjugated verb form.
@@ -78139,7 +78255,7 @@ function anyPersonRegex(infinitive) {
 module.exports = conjugate
 conjugate.anyPersonRegex
 
-},{"../regOps":266,"./irregularConjugations":258}],257:[function(require,module,exports){
+},{"../regOps":267,"./irregularConjugations":259}],258:[function(require,module,exports){
 // Determine the numeric person of a given noun phrase
 
 /*
@@ -78191,7 +78307,7 @@ function getPerson(subject) {
 }
 module.exports = getPerson
 
-},{"../Substitution":255}],258:[function(require,module,exports){
+},{"../Substitution":256}],259:[function(require,module,exports){
 // list of irregular verbs with their conjugations.
 // (indexed by infinitive)
 
@@ -78292,7 +78408,7 @@ module.exports = {
 
 }
 
-},{}],259:[function(require,module,exports){
+},{}],260:[function(require,module,exports){
 /*
 Tenses: [source ef.co.uk]
   - Simple Present ("They walk home.")
@@ -78534,7 +78650,7 @@ verbPhrase.tenseList = Object.keys(tenses).reverse() // in descending order of c
 verbPhrase.anyTenseRegex = anyTenseRegex
 verbPhrase.getTenseType = tenseType
 
-},{"../Substitution":255,"../regOps":266,"./conjugate":256,"./getPerson":257}],260:[function(require,module,exports){
+},{"../Substitution":256,"../regOps":267,"./conjugate":257,"./getPerson":258}],261:[function(require,module,exports){
 const ordinal = require('integer-to-ordinal-english')
 const regops = require('./regOps')
 
@@ -78567,7 +78683,7 @@ function getNounPhraselet(str) {
 }
 module.exports = getNounPhraselet
 
-},{"./regOps":266,"integer-to-ordinal-english":228}],261:[function(require,module,exports){
+},{"./regOps":267,"integer-to-ordinal-english":229}],262:[function(require,module,exports){
 const Plur = require('./plural')
 const parseQuantifier = require('./parseQuantifier')
 
@@ -78670,7 +78786,7 @@ function rangeOverlap(range1, range2) {
   }
 }
 
-},{"./parseQuantifier":262,"./plural":264}],262:[function(require,module,exports){
+},{"./parseQuantifier":263,"./plural":265}],263:[function(require,module,exports){
 /**
  * Parse a quantifier word/phrase as a range of possible meanings
  * @method parseQuantifier
@@ -78729,7 +78845,7 @@ function getWord(wordReg, str) {
     return null
 }
 
-},{}],263:[function(require,module,exports){
+},{}],264:[function(require,module,exports){
 /*
   Borrowed from NULP, https://github.com/joelyjoel/Nulp/
   Seperate words, punctuation and capitalisation. Form an array which is easier
@@ -78891,7 +79007,7 @@ function recombine(bits) {
 }
 module.exports.recombine = recombine
 
-},{}],264:[function(require,module,exports){
+},{}],265:[function(require,module,exports){
 /**
  * Convert english nouns between their singular and plural forms.
  * @class plural
@@ -79017,7 +79133,7 @@ for(let singular in irregular) {
   irregularInverted[plural] = singular
 }
 
-},{}],265:[function(require,module,exports){
+},{}],266:[function(require,module,exports){
 function politeList(list) {
   if(list.length == 1)
     return list[0]
@@ -79036,7 +79152,7 @@ function parsePoliteList(str) {
 }
 module.exports.parse = parsePoliteList
 
-},{}],266:[function(require,module,exports){
+},{}],267:[function(require,module,exports){
 function sourcify(list) {
   return list
     .filter(item => item)
@@ -79149,9 +79265,9 @@ module.exports = {
   capture: capture,
 }
 
-},{}],267:[function(require,module,exports){
-arguments[4][266][0].apply(exports,arguments)
-},{"dup":266}],268:[function(require,module,exports){
+},{}],268:[function(require,module,exports){
+arguments[4][267][0].apply(exports,arguments)
+},{"dup":267}],269:[function(require,module,exports){
 /*
   A set of tools for using the so-called 'special array', or 'specarr'.
 
@@ -79390,7 +79506,7 @@ module.exports = {
   random: random,
 }
 
-},{"randexp":229}],269:[function(require,module,exports){
+},{"randexp":230}],270:[function(require,module,exports){
 const parseText = require("./parseText")
 
 function spellcheck(str) {
@@ -79418,7 +79534,7 @@ function sentencify(str) {
 }
 module.exports.sentencify = sentencify
 
-},{"./parseText":263}],270:[function(require,module,exports){
+},{"./parseText":264}],271:[function(require,module,exports){
 
 /* Convert a noun-phrase, proper-noun or pronoun to a possessive adjective. */
 function toPossessiveAdjective(nounPhrase) {
@@ -79464,7 +79580,7 @@ function toPossessiveAdjective(nounPhrase) {
 }
 module.exports = toPossessiveAdjective
 
-},{}],271:[function(require,module,exports){
+},{}],272:[function(require,module,exports){
 // get the subject-form of a pronoun
 
 const subjectForms = {
@@ -79482,7 +79598,7 @@ function toSubject(str) {
 }
 module.exports = toSubject
 
-},{}],272:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -79598,9 +79714,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],273:[function(require,module,exports){
-
 },{}],274:[function(require,module,exports){
+
+},{}],275:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -81316,7 +81432,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":272,"ieee754":277}],275:[function(require,module,exports){
+},{"base64-js":273,"ieee754":278}],276:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -81427,7 +81543,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":279}],276:[function(require,module,exports){
+},{"../../is-buffer/index.js":280}],277:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -81731,7 +81847,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],277:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -81817,9 +81933,9 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],278:[function(require,module,exports){
+},{}],279:[function(require,module,exports){
 arguments[4][16][0].apply(exports,arguments)
-},{"dup":16}],279:[function(require,module,exports){
+},{"dup":16}],280:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -81842,14 +81958,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],280:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],281:[function(require,module,exports){
+},{}],282:[function(require,module,exports){
 exports.endianness = function () { return 'LE' };
 
 exports.hostname = function () {
@@ -81896,7 +82012,7 @@ exports.tmpdir = exports.tmpDir = function () {
 
 exports.EOL = '\n';
 
-},{}],282:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -81943,7 +82059,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 }
 
 }).call(this,require('_process'))
-},{"_process":283}],283:[function(require,module,exports){
+},{"_process":284}],284:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -82129,10 +82245,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],284:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":285}],285:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":286}],286:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -82257,7 +82373,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":287,"./_stream_writable":289,"core-util-is":275,"inherits":278,"process-nextick-args":282}],286:[function(require,module,exports){
+},{"./_stream_readable":288,"./_stream_writable":290,"core-util-is":276,"inherits":279,"process-nextick-args":283}],287:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -82305,7 +82421,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":288,"core-util-is":275,"inherits":278}],287:[function(require,module,exports){
+},{"./_stream_transform":289,"core-util-is":276,"inherits":279}],288:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -83315,7 +83431,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":285,"./internal/streams/BufferList":290,"./internal/streams/destroy":291,"./internal/streams/stream":292,"_process":283,"core-util-is":275,"events":276,"inherits":278,"isarray":280,"process-nextick-args":282,"safe-buffer":297,"string_decoder/":299,"util":273}],288:[function(require,module,exports){
+},{"./_stream_duplex":286,"./internal/streams/BufferList":291,"./internal/streams/destroy":292,"./internal/streams/stream":293,"_process":284,"core-util-is":276,"events":277,"inherits":279,"isarray":281,"process-nextick-args":283,"safe-buffer":298,"string_decoder/":300,"util":274}],289:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -83530,7 +83646,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":285,"core-util-is":275,"inherits":278}],289:[function(require,module,exports){
+},{"./_stream_duplex":286,"core-util-is":276,"inherits":279}],290:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -84197,7 +84313,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":285,"./internal/streams/destroy":291,"./internal/streams/stream":292,"_process":283,"core-util-is":275,"inherits":278,"process-nextick-args":282,"safe-buffer":297,"util-deprecate":300}],290:[function(require,module,exports){
+},{"./_stream_duplex":286,"./internal/streams/destroy":292,"./internal/streams/stream":293,"_process":284,"core-util-is":276,"inherits":279,"process-nextick-args":283,"safe-buffer":298,"util-deprecate":301}],291:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -84272,7 +84388,7 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":297}],291:[function(require,module,exports){
+},{"safe-buffer":298}],292:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -84345,13 +84461,13 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":282}],292:[function(require,module,exports){
+},{"process-nextick-args":283}],293:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":276}],293:[function(require,module,exports){
+},{"events":277}],294:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":294}],294:[function(require,module,exports){
+},{"./readable":295}],295:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -84360,13 +84476,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":285,"./lib/_stream_passthrough.js":286,"./lib/_stream_readable.js":287,"./lib/_stream_transform.js":288,"./lib/_stream_writable.js":289}],295:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":286,"./lib/_stream_passthrough.js":287,"./lib/_stream_readable.js":288,"./lib/_stream_transform.js":289,"./lib/_stream_writable.js":290}],296:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":294}],296:[function(require,module,exports){
+},{"./readable":295}],297:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":289}],297:[function(require,module,exports){
+},{"./lib/_stream_writable.js":290}],298:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -84430,7 +84546,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":274}],298:[function(require,module,exports){
+},{"buffer":275}],299:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -84559,7 +84675,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":276,"inherits":278,"readable-stream/duplex.js":284,"readable-stream/passthrough.js":293,"readable-stream/readable.js":294,"readable-stream/transform.js":295,"readable-stream/writable.js":296}],299:[function(require,module,exports){
+},{"events":277,"inherits":279,"readable-stream/duplex.js":285,"readable-stream/passthrough.js":294,"readable-stream/readable.js":295,"readable-stream/transform.js":296,"readable-stream/writable.js":297}],300:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('safe-buffer').Buffer;
@@ -84832,7 +84948,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":297}],300:[function(require,module,exports){
+},{"safe-buffer":298}],301:[function(require,module,exports){
 (function (global){
 
 /**

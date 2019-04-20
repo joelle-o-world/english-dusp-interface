@@ -8,7 +8,7 @@ class HTMLPlayer {
     this.makeHTML()
 
     this.inputElement.value = str
-    this.durationInput.value = 5
+    this.durationInput.value = duration
 
     this.ctx = new AudioContext()
   }
@@ -21,6 +21,14 @@ class HTMLPlayer {
     let input = document.createElement('textarea')
     this.inputElement = input
     input.className = 'engdusp_input'
+    input.addEventListener('keydown', e => {
+      if(e.metaKey && e.keyCode == 13){
+        if(this.nowPlayingSource)
+          this.stop()
+        else
+          this.render()
+      }
+    })
     div.appendChild(input)
 
     let playBTN = document.createElement('button')

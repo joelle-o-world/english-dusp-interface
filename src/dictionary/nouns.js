@@ -137,6 +137,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Filter
         e.unit.kind = 'LP'
+        e.unit.F = 100
         entify(e.unit, e)
       }
     }
@@ -148,6 +149,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Filter
         e.unit.kind = 'HP'
+        e.unit.F = 1000
         entify(e.unit, e)
       }
     }
@@ -158,7 +160,6 @@ module.exports = [
     extend(e) {
       if(!e.unit) {
         e.unit = new Pan
-        e.unit.kind = 'HP'
         entify(e.unit, e)
       }
     }

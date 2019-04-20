@@ -8,12 +8,26 @@
 
     <script>
       let demos = [
-        'A sine wave.',
-        'A 200Hz triangle wave. After 2s, every 2 seconds another sine wave modulates the triangle wave. Multiply the triangle wave by a 1s decay envelope. The envelope restarts every 2 seconds.',
+        new HTMLPlayer('A sine wave.'),
+        new HTMLPlayer(
+          'A 50Hz triangle wave. After 7s, every 2 seconds another random sine wave modulates the triangle wave. Multiply the triangle wave by a 1s decay envelope. The envelope restarts every 2 seconds.',
+          16
+        ),
+        new HTMLPlayer(
+          'A 50Hz sawtooth wave is routed to a low pass filter. The low pass filter is attenuated by a 5s decay envelope.'
+        ),
+        new HTMLPlayer(
+          "A square wave slides from 50Hz to 100Hz in 3s. After 6 seconds, the frequency slides from 100Hz to 50Hz in 2 seconds.",
+          10
+        ),
+
+
+        new HTMLPlayer('A 200Hz sine wave slides to 100Hz'),
       ]
       window.onload = function() {
-        for(let str of demos) {
-          let player = new HTMLPlayer(str)
+        for(let player of demos) {
+          if(player.constructor == String)
+            player = new HTMLPlayer(player)
           document.body.appendChild(player.div)
         }
       }

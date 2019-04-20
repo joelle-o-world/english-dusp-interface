@@ -60,6 +60,14 @@ const HzTriangleWave = new EntitySpawner({
   }
 })
 
+const RandomSineWave = new EntitySpawner({
+  template: 'random sine wave',
+  construct() {
+    let osc = new dusp.components.Osc(Math.random()*1000+20)
+    return entify(osc)
+  }
+})
+
 const SecondDecayEnvelope = new EntitySpawner({
   template: '#_(?:s| second) decay envelope',
   construct(duration) {
@@ -81,5 +89,6 @@ const SecondAttackEnvelope = new EntitySpawner({
 module.exports = [
   SumOfAnd, MultipliedBy,
   HzSineWave, HzSquareWave, HzSawWave, HzTriangleWave,
+  RandomSineWave,
   SecondDecayEnvelope, SecondAttackEnvelope,
 ]
