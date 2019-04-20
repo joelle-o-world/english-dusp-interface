@@ -105,6 +105,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Shape('attack')
         entify(e.unit, e)
+        e.unit.trigger()
       }
     }
   },
@@ -115,6 +116,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Shape('decay')
         entify(e.unit, e)
+        e.unit.trigger()
       }
     }
   },
