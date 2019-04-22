@@ -77,7 +77,7 @@ const SecondDecayEnvelope = new EntitySpawner({
   }
 })
 const SecondAttackEnvelope = new EntitySpawner({
-  template: '#_(?:s| second) decay envelope',
+  template: '#_(?:s| second) attack envelope',
   construct(duration) {
     let shape = new dusp.components.Shape('attack', duration)
     shape.trigger()
