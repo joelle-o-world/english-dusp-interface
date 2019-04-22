@@ -1,4 +1,4 @@
-const {EntitySpawner} = require('english-io')
+const {EntitySpawner, search} = require('english-io')
 const dusp = require('dusp')
 
 const entify = require('../entify')
@@ -85,10 +85,25 @@ const SecondAttackEnvelope = new EntitySpawner({
   }
 })
 
+const Of = new EntitySpawner({
+  template: '@_ of _', phraseletMode:false,
+  construct(str, unit) {
+    //console.log("parsed Of spawner", str, unit)
+    if(!unit.is_a('unit'))
+      return null
+
+    let piglets = [...unit.unit.inletsOrdered, ...unit.unit.outletsOrdered]
+      .map(piglet => entify(piglet))
+
+  //  console.log(str, piglets)
+    return search.first(str, piglets)
+  }
+})
+
 
 module.exports = [
   SumOfAnd, MultipliedBy,
   HzSineWave, HzSquareWave, HzSawWave, HzTriangleWave,
   RandomSineWave,
-  SecondDecayEnvelope, SecondAttackEnvelope,
+  SecondDecayEnvelope, SecondAttackEnvelope, Of
 ]

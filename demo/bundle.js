@@ -3,7 +3,7 @@ const HTMLPlayer = require('../src/HTMLPlayer')
 
 window.HTMLPlayer = HTMLPlayer
 
-},{"../src/HTMLPlayer":256}],2:[function(require,module,exports){
+},{"../src/HTMLPlayer":211}],2:[function(require,module,exports){
 "use strict";
 
 // rawAsap provides everything we need except exception management.
@@ -834,7 +834,7 @@ AudioBufferList.prototype.join = function join (from, to) {
   return this
 }
 
-},{"audio-buffer":6,"audio-buffer-utils":7,"events":275,"inherits":217,"is-audio-buffer":220,"is-plain-obj":224,"negative-index":226,"object-assign":228}],6:[function(require,module,exports){
+},{"audio-buffer":6,"audio-buffer-utils":7,"events":277,"inherits":180,"is-audio-buffer":181,"is-plain-obj":185,"negative-index":187,"object-assign":189}],6:[function(require,module,exports){
 /**
  * AudioBuffer class
  *
@@ -1028,7 +1028,7 @@ AudioBuffer.prototype.copyToChannel = function (source, channelNumber, startInCh
 };
 
 
-},{"audio-context":10,"buffer-to-arraybuffer":11,"is-audio-buffer":220,"is-browser":221,"is-buffer":222,"is-plain-obj":224}],7:[function(require,module,exports){
+},{"audio-context":10,"buffer-to-arraybuffer":11,"is-audio-buffer":181,"is-browser":182,"is-buffer":183,"is-plain-obj":185}],7:[function(require,module,exports){
 /**
  * @module  audio-buffer-utils
  */
@@ -1650,9 +1650,9 @@ function data (buffer, data) {
 	return data;
 }
 
-},{"audio-buffer":8,"audio-context":10,"clamp":12,"is-audio-buffer":220,"is-browser":221,"negative-index":226,"typedarray-methods":246}],8:[function(require,module,exports){
+},{"audio-buffer":8,"audio-context":10,"clamp":12,"is-audio-buffer":181,"is-browser":182,"negative-index":187,"typedarray-methods":201}],8:[function(require,module,exports){
 arguments[4][6][0].apply(exports,arguments)
-},{"audio-context":10,"buffer-to-arraybuffer":11,"dup":6,"is-audio-buffer":220,"is-browser":221,"is-buffer":222,"is-plain-obj":224}],9:[function(require,module,exports){
+},{"audio-context":10,"buffer-to-arraybuffer":11,"dup":6,"is-audio-buffer":181,"is-browser":182,"is-buffer":183,"is-plain-obj":185}],9:[function(require,module,exports){
 /**
  * AudioBuffer class
  *
@@ -1846,7 +1846,7 @@ module.exports = function getContext (options) {
 })(this);
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":273}],12:[function(require,module,exports){
+},{"buffer":275}],12:[function(require,module,exports){
 module.exports = clamp
 
 function clamp(value, min, max) {
@@ -2069,7 +2069,7 @@ function compute() {
 
 module.exports = compute;
 
-},{"validate.io-array":247,"validate.io-function":248,"validate.io-integer-array":249}],14:[function(require,module,exports){
+},{"validate.io-array":202,"validate.io-function":203,"validate.io-integer-array":204}],14:[function(require,module,exports){
 'use strict';
 
 // MODULES //
@@ -2182,7 +2182,7 @@ function lcm() {
 
 module.exports = lcm;
 
-},{"compute-gcd":13,"validate.io-array":247,"validate.io-function":248,"validate.io-integer-array":249}],15:[function(require,module,exports){
+},{"compute-gcd":13,"validate.io-array":202,"validate.io-function":203,"validate.io-integer-array":204}],15:[function(require,module,exports){
 'use strict';
 
 module.exports = function () {
@@ -2192,186 +2192,6 @@ module.exports = function () {
 };
 
 },{}],16:[function(require,module,exports){
-'use strict';
-/* eslint indent: 4 */
-
-
-// Private helper class
-class SubRange {
-    constructor(low, high) {
-        this.low = low;
-        this.high = high;
-        this.length = 1 + high - low;
-    }
-
-    overlaps(range) {
-        return !(this.high < range.low || this.low > range.high);
-    }
-
-    touches(range) {
-        return !(this.high + 1 < range.low || this.low - 1 > range.high);
-    }
-
-    // Returns inclusive combination of SubRanges as a SubRange.
-    add(range) {
-        return new SubRange(
-            Math.min(this.low, range.low),
-            Math.max(this.high, range.high)
-        );
-    }
-
-    // Returns subtraction of SubRanges as an array of SubRanges.
-    // (There's a case where subtraction divides it in 2)
-    subtract(range) {
-        if (range.low <= this.low && range.high >= this.high) {
-            return [];
-        } else if (range.low > this.low && range.high < this.high) {
-            return [
-                new SubRange(this.low, range.low - 1),
-                new SubRange(range.high + 1, this.high)
-            ];
-        } else if (range.low <= this.low) {
-            return [new SubRange(range.high + 1, this.high)];
-        } else {
-            return [new SubRange(this.low, range.low - 1)];
-        }
-    }
-
-    toString() {
-        return this.low == this.high ?
-            this.low.toString() : this.low + '-' + this.high;
-    }
-}
-
-
-class DRange {
-    constructor(a, b) {
-        this.ranges = [];
-        this.length = 0;
-        if (a != null) this.add(a, b);
-    }
-
-    _update_length() {
-        this.length = this.ranges.reduce((previous, range) => {
-            return previous + range.length;
-        }, 0);
-    }
-
-    add(a, b) {
-        var _add = (subrange) => {
-            var i = 0;
-            while (i < this.ranges.length && !subrange.touches(this.ranges[i])) {
-                i++;
-            }
-            var newRanges = this.ranges.slice(0, i);
-            while (i < this.ranges.length && subrange.touches(this.ranges[i])) {
-                subrange = subrange.add(this.ranges[i]);
-                i++;
-            }
-            newRanges.push(subrange);
-            this.ranges = newRanges.concat(this.ranges.slice(i));
-            this._update_length();
-        }
-
-        if (a instanceof DRange) {
-            a.ranges.forEach(_add);
-        } else {
-            if (b == null) b = a;
-            _add(new SubRange(a, b));
-        }
-        return this;
-    }
-
-    subtract(a, b) {
-        var _subtract = (subrange) => {
-            var i = 0;
-            while (i < this.ranges.length && !subrange.overlaps(this.ranges[i])) {
-                i++;
-            }
-            var newRanges = this.ranges.slice(0, i);
-            while (i < this.ranges.length && subrange.overlaps(this.ranges[i])) {
-                newRanges = newRanges.concat(this.ranges[i].subtract(subrange));
-                i++;
-            }
-            this.ranges = newRanges.concat(this.ranges.slice(i));
-            this._update_length();
-        };
-
-        if (a instanceof DRange) {
-            a.ranges.forEach(_subtract);
-        } else {
-            if (b == null) b = a;
-            _subtract(new SubRange(a, b));
-        }
-        return this;
-    }
-
-    intersect(a, b) {
-        var newRanges = [];
-        var _intersect = (subrange) => {
-            var i = 0;
-            while (i < this.ranges.length && !subrange.overlaps(this.ranges[i])) {
-                i++;
-            }
-            while (i < this.ranges.length && subrange.overlaps(this.ranges[i])) {
-                var low = Math.max(this.ranges[i].low, subrange.low);
-                var high = Math.min(this.ranges[i].high, subrange.high);
-                newRanges.push(new SubRange(low, high));
-                i++;
-            }
-        };
-
-        if (a instanceof DRange) {
-            a.ranges.forEach(_intersect);
-        } else {
-            if (b == null) b = a;
-            _intersect(new SubRange(a, b));
-        }
-        this.ranges = newRanges;
-        this._update_length();
-        return this;
-    }
-
-    index(index) {
-        var i = 0;
-        while (i < this.ranges.length && this.ranges[i].length <= index) {
-            index -= this.ranges[i].length;
-            i++;
-        }
-        return this.ranges[i].low + index;
-    }
-
-    toString() {
-        return '[ ' + this.ranges.join(', ') + ' ]';
-    }
-
-    clone() {
-        return new DRange(this);
-    }
-
-    numbers() {
-        return this.ranges.reduce((result, subrange) => {
-            var i = subrange.low;
-            while (i <= subrange.high) {
-                result.push(i);
-                i++;
-            }
-            return result;
-        }, []);
-    }
-
-    subranges() {
-        return this.ranges.map((subrange) => ({
-            low: subrange.low,
-            high: subrange.high,
-            length: 1 + subrange.high - subrange.low
-        }));
-    }
-}
-
-module.exports = DRange;
-
-},{}],17:[function(require,module,exports){
 const config = require("./config.js")
 
 class CircleBuffer {
@@ -2409,7 +2229,7 @@ class CircleBuffer {
 }
 module.exports = CircleBuffer
 
-},{"./config.js":95}],18:[function(require,module,exports){
+},{"./config.js":94}],17:[function(require,module,exports){
 /*
   Circuit
   The Circuit class is responsibible for executing a Unit objects in the correct
@@ -2693,7 +2513,7 @@ Circuit.prototype.findUnit = function(label) {
   return null
 }
 
-},{"./Event":20,"./explore":106,"compute-gcd":13,"promise":231}],19:[function(require,module,exports){
+},{"./Event":19,"./explore":105,"compute-gcd":13,"promise":192}],18:[function(require,module,exports){
 const explore = require('./explore')
 const vis = require('vis')
 
@@ -2855,7 +2675,7 @@ function renderGraph(container, ...units) {
 }
 module.exports.render = renderGraph
 
-},{"./explore":106,"vis":252}],20:[function(require,module,exports){
+},{"./explore":105,"vis":207}],19:[function(require,module,exports){
 const config = require("./config")
 
 function Event(time, f, unit, circuit) {
@@ -2887,7 +2707,7 @@ Event.prototype.run = function() {
     return null
 }
 
-},{"./config":95}],21:[function(require,module,exports){
+},{"./config":94}],20:[function(require,module,exports){
 const Piglet = require("./Piglet.js")
 const SignalChunk = require("./SignalChunk.js")
 
@@ -3007,7 +2827,7 @@ module.exports = Inlet
 
 Inlet.prototype.isInlet = true
 
-},{"./Piglet.js":24,"./SignalChunk.js":26}],22:[function(require,module,exports){
+},{"./Piglet.js":23,"./SignalChunk.js":25}],21:[function(require,module,exports){
 const Piglet = require("./Piglet.js")
 
 /**
@@ -3039,7 +2859,7 @@ class Outlet extends Piglet {
 Outlet.prototype.isOutlet = true
 module.exports = Outlet
 
-},{"./Piglet.js":24}],23:[function(require,module,exports){
+},{"./Piglet.js":23}],22:[function(require,module,exports){
 // A class for the quick construction and connection of complex dsp structures
 // A Patch is an object for overseeing the construction of a circuit or part of a circuit
 const UnitOrPatch = require("./UnitOrPatch.js")
@@ -3160,7 +2980,7 @@ Patch.prototype.trigger = function() {
   return this
 }
 
-},{"./Event.js":20,"./UnitOrPatch.js":28}],24:[function(require,module,exports){
+},{"./Event.js":19,"./UnitOrPatch.js":27}],23:[function(require,module,exports){
 // Class from which Outlet and Inlet inherit from so that they can share code
 const config = require("./config.js")
 const SignalChunk = require("./SignalChunk.js")
@@ -3244,7 +3064,7 @@ Piglet.prototype.__defineGetter__("circuit", function() {
   return this.unit.circuit
 })
 
-},{"./SignalChunk.js":26,"./config.js":95,"events":275}],25:[function(require,module,exports){
+},{"./SignalChunk.js":25,"./config.js":94,"events":277}],24:[function(require,module,exports){
 const {Readable} = require("stream")
 const AudioBuffer = require('audio-buffer')
 
@@ -3328,7 +3148,7 @@ class RenderStream extends Readable {
 }
 module.exports = RenderStream
 
-},{"audio-buffer":9,"stream":297}],26:[function(require,module,exports){
+},{"audio-buffer":9,"stream":299}],25:[function(require,module,exports){
 function SignalChunk(numberOfChannels, chunkSize) {
   this.numberOfChannels = numberOfChannels
   this.chunkSize = chunkSize
@@ -3350,7 +3170,7 @@ SignalChunk.prototype.duplicateChannelData = function() {
   return data
 }
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 const UnitOrPatch = require("./UnitOrPatch.js")
 const config = require("./config.js")
 const Outlet = require("./Outlet.js")
@@ -3671,7 +3491,7 @@ Unit.prototype.remove = function() {
     this.circuit.remove(this)
 }
 
-},{"./Circuit":18,"./Inlet.js":21,"./Outlet.js":22,"./UnitOrPatch.js":28,"./config.js":95}],28:[function(require,module,exports){
+},{"./Circuit":17,"./Inlet.js":20,"./Outlet.js":21,"./UnitOrPatch.js":27,"./config.js":94}],27:[function(require,module,exports){
 const Event = require("./Event.js")
 const EventEmitter = require('events')
 
@@ -3768,7 +3588,7 @@ UnitOrPatch.prototype.scheduleFinish = function(t) {
   })
 }
 
-},{"./Event.js":20,"events":275}],29:[function(require,module,exports){
+},{"./Event.js":19,"events":277}],28:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require("../config.js")
 
@@ -3861,7 +3681,7 @@ AHD.random = function(duration) {
   return new AHD(a, h, d)
 }
 
-},{"../Unit.js":27,"../config.js":95}],30:[function(require,module,exports){
+},{"../Unit.js":26,"../config.js":94}],29:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Abs(input) {
@@ -3887,7 +3707,7 @@ Abs.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],31:[function(require,module,exports){
+},{"../Unit.js":26}],30:[function(require,module,exports){
 const CombFilter = require("./CombFilter.js")
 
 class AllPass extends CombFilter {
@@ -3940,7 +3760,7 @@ AllPass.manyRandomInSeries = function(n, maxDelayTime, maxFeedbackGain) {
   }
 }
 
-},{"./CombFilter.js":36}],32:[function(require,module,exports){
+},{"./CombFilter.js":35}],31:[function(require,module,exports){
 /*
   A base class for CircleBufferReader and CircleBufferWriter.
 */
@@ -3974,7 +3794,7 @@ class CircleBufferNode extends Unit {
 }
 module.exports = CircleBufferNode
 
-},{"../Unit.js":27}],33:[function(require,module,exports){
+},{"../Unit.js":26}],32:[function(require,module,exports){
 const CircleBufferNode = require("./CircleBufferNode.js")
 
 class CircleBufferReader extends CircleBufferNode {
@@ -4003,7 +3823,7 @@ class CircleBufferReader extends CircleBufferNode {
 }
 module.exports = CircleBufferReader
 
-},{"./CircleBufferNode.js":32}],34:[function(require,module,exports){
+},{"./CircleBufferNode.js":31}],33:[function(require,module,exports){
 const CircleBufferNode = require("./CircleBufferNode.js")
 
 class CircleBufferWriter extends CircleBufferNode {
@@ -4032,7 +3852,7 @@ class CircleBufferWriter extends CircleBufferNode {
 }
 module.exports = CircleBufferWriter
 
-},{"./CircleBufferNode.js":32}],35:[function(require,module,exports){
+},{"./CircleBufferNode.js":31}],34:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class Clip extends Unit {
@@ -4057,7 +3877,7 @@ class Clip extends Unit {
 }
 module.exports = Clip
 
-},{"../Unit.js":27}],36:[function(require,module,exports){
+},{"../Unit.js":26}],35:[function(require,module,exports){
 const FixedDelay = require("./FixedDelay.js")
 
 class CombFilter extends FixedDelay {
@@ -4085,7 +3905,7 @@ class CombFilter extends FixedDelay {
 }
 module.exports = CombFilter
 
-},{"./FixedDelay.js":43}],37:[function(require,module,exports){
+},{"./FixedDelay.js":42}],36:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function ConcatChannels(A, B) {
@@ -4117,7 +3937,7 @@ ConcatChannels.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],38:[function(require,module,exports){
+},{"../Unit.js":26}],37:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function CrossFader(a, b, dial) {
@@ -4148,7 +3968,7 @@ CrossFader.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],39:[function(require,module,exports){
+},{"../Unit.js":26}],38:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function DecibelToScaler(input) {
@@ -4169,7 +3989,7 @@ DecibelToScaler.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],40:[function(require,module,exports){
+},{"../Unit.js":26}],39:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require("../config.js")
 
@@ -4222,7 +4042,7 @@ class Delay extends Unit {
 }
 module.exports = Delay
 
-},{"../Unit.js":27,"../config.js":95}],41:[function(require,module,exports){
+},{"../Unit.js":26,"../config.js":94}],40:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Divide(a, b) {
@@ -4251,7 +4071,7 @@ Divide.prototype._tick = function(clock) {
   }
 }
 
-},{"../Unit.js":27}],42:[function(require,module,exports){
+},{"../Unit.js":26}],41:[function(require,module,exports){
 // A butterworth filter
 
 const Unit = require("../Unit.js")
@@ -4357,7 +4177,7 @@ Filter.coefficientFunctions = {
   },
 }
 
-},{"../Unit.js":27}],43:[function(require,module,exports){
+},{"../Unit.js":26}],42:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class FixedDelay extends Unit {
@@ -4397,7 +4217,7 @@ class FixedDelay extends Unit {
 }
 module.exports = FixedDelay
 
-},{"../Unit.js":27}],44:[function(require,module,exports){
+},{"../Unit.js":26}],43:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function FixedMultiply(sf, input) {
@@ -4421,7 +4241,7 @@ FixedMultiply.prototype._tick = function() {
     this.out[t] = this.in[t] * this.sf
 }
 
-},{"../Unit.js":27}],45:[function(require,module,exports){
+},{"../Unit.js":26}],44:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Gain(gain) {
@@ -4451,7 +4271,7 @@ function dB(db) { // decibel to scale factor (for amplitude calculations)
   return Math.pow(10, db/20);
 }
 
-},{"../Unit.js":27}],46:[function(require,module,exports){
+},{"../Unit.js":26}],45:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function GreaterThan(input, val) {
@@ -4474,7 +4294,7 @@ GreaterThan.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],47:[function(require,module,exports){
+},{"../Unit.js":26}],46:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class HardClipAbove extends Unit {
@@ -4502,7 +4322,7 @@ class HardClipAbove extends Unit {
 }
 module.exports = HardClipAbove
 
-},{"../Unit.js":27}],48:[function(require,module,exports){
+},{"../Unit.js":26}],47:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class HardClipBelow extends Unit {
@@ -4530,7 +4350,7 @@ class HardClipBelow extends Unit {
 }
 module.exports = HardClipBelow
 
-},{"../Unit.js":27}],49:[function(require,module,exports){
+},{"../Unit.js":26}],48:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function LessThan(input, val) {
@@ -4553,7 +4373,7 @@ LessThan.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],50:[function(require,module,exports){
+},{"../Unit.js":26}],49:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function MidiToFrequency(midi) {
@@ -4576,7 +4396,7 @@ MidiToFrequency.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],51:[function(require,module,exports){
+},{"../Unit.js":26}],50:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Monitor(input) {
@@ -4593,7 +4413,7 @@ Monitor.prototype._tick = function() {
   console.log(this.in)
 }
 
-},{"../Unit.js":27}],52:[function(require,module,exports){
+},{"../Unit.js":26}],51:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function MonoDelay(input, delay) {
@@ -4625,7 +4445,7 @@ MonoDelay.prototype._tick = function(clock) {
   }
 }
 
-},{"../Unit.js":27}],53:[function(require,module,exports){
+},{"../Unit.js":26}],52:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const dusp = require("../dusp")
 
@@ -4662,7 +4482,7 @@ Multiply.prototype._tick = function(clock) {
   }
 }
 
-},{"../Unit.js":27,"../dusp":105}],54:[function(require,module,exports){
+},{"../Unit.js":26,"../dusp":104}],53:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Noise(f) {
@@ -4692,7 +4512,7 @@ Noise.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],55:[function(require,module,exports){
+},{"../Unit.js":26}],54:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const config = require("../../config.js")
 const waveTables = require("./waveTables.js")
@@ -4756,7 +4576,7 @@ MultiChannelOsc.prototype.randomPhaseFlip = function() {
       this.phase[i] += config.sampleRate/2
 }
 
-},{"../../Unit.js":27,"../../config.js":95,"./waveTables.js":58}],56:[function(require,module,exports){
+},{"../../Unit.js":26,"../../config.js":94,"./waveTables.js":57}],55:[function(require,module,exports){
 
 const Unit = require("../../Unit.js")
 const waveTables = require("./waveTables.js")
@@ -4824,11 +4644,11 @@ Osc.prototype.randomPhaseFlip = function() {
     this.phase += Unit.sampleRate/2
 }
 
-},{"../../Unit.js":27,"./waveTables.js":58}],57:[function(require,module,exports){
+},{"../../Unit.js":26,"./waveTables.js":57}],56:[function(require,module,exports){
 module.exports = require("./Osc")
 //module.exports.MultiChannelOsc = require("./MultiChannelOsc")
 
-},{"./Osc":56}],58:[function(require,module,exports){
+},{"./Osc":55}],57:[function(require,module,exports){
 const config = require("../../config.js")
 
 const PHI = 2 * Math.PI
@@ -4870,7 +4690,7 @@ module.exports = {
   "8bit": eightBitTable,
 }
 
-},{"../../config.js":95}],59:[function(require,module,exports){
+},{"../../config.js":94}],58:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Pan(input, pan) {
@@ -4900,7 +4720,7 @@ function dB(db) { // decibel to scale factor (for amplitude calculations)
   return Math.pow(10, db/20);
 }
 
-},{"../Unit.js":27}],60:[function(require,module,exports){
+},{"../Unit.js":26}],59:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function PickChannel(input, c) {
@@ -4923,7 +4743,7 @@ PickChannel.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],61:[function(require,module,exports){
+},{"../Unit.js":26}],60:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class PolarityInvert extends Unit {
@@ -4947,7 +4767,7 @@ class PolarityInvert extends Unit {
 }
 module.exports = PolarityInvert
 
-},{"../Unit.js":27}],62:[function(require,module,exports){
+},{"../Unit.js":26}],61:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class Pow extends Unit {
@@ -4981,7 +4801,7 @@ class Pow extends Unit {
 }
 module.exports = Pow
 
-},{"../Unit.js":27}],63:[function(require,module,exports){
+},{"../Unit.js":26}],62:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Ramp(duration, y0, y1) {
@@ -5023,7 +4843,7 @@ Ramp.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],64:[function(require,module,exports){
+},{"../Unit.js":26}],63:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require("../config.js")
 
@@ -5068,7 +4888,7 @@ ReadBackDelay.prototype._tick = function() {
   this.tBuffer = t1
 }
 
-},{"../Unit.js":27,"../config.js":95}],65:[function(require,module,exports){
+},{"../Unit.js":26,"../config.js":94}],64:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Repeater(val, measuredIn) {
@@ -5100,7 +4920,7 @@ Repeater.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],66:[function(require,module,exports){
+},{"../Unit.js":26}],65:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function Rescale(inLower, inUpper, outLower, outUpper) {
@@ -5139,7 +4959,7 @@ Rescale.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],67:[function(require,module,exports){
+},{"../Unit.js":26}],66:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class Retriggerer extends Unit {
@@ -5177,7 +4997,7 @@ class Retriggerer extends Unit {
 }
 module.exports = Retriggerer
 
-},{"../Unit.js":27}],68:[function(require,module,exports){
+},{"../Unit.js":26}],67:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function SampleRateRedux(input, ammount) {
@@ -5215,7 +5035,7 @@ SampleRateRedux.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],69:[function(require,module,exports){
+},{"../Unit.js":26}],68:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require('../config.js')
 
@@ -5237,7 +5057,7 @@ SecondsToSamples.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27,"../config.js":95}],70:[function(require,module,exports){
+},{"../Unit.js":26,"../config.js":94}],69:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function SemitoneToRatio(midi) {
@@ -5261,7 +5081,7 @@ SemitoneToRatio.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],71:[function(require,module,exports){
+},{"../Unit.js":26}],70:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const config = require("../../config.js")
 const Divide = require("../Divide.js")
@@ -5425,7 +5245,7 @@ Shape.prototype.randomDecay = function(maxDuration) {
   this.MAX = 1
 }
 
-},{"../../Unit.js":27,"../../config.js":95,"../Divide.js":41,"./shapeTables.js":72}],72:[function(require,module,exports){
+},{"../../Unit.js":26,"../../config.js":94,"../Divide.js":40,"./shapeTables.js":71}],71:[function(require,module,exports){
 const config = require("../../config.js")
 
 function makeTable(func, name) {
@@ -5465,7 +5285,7 @@ module.exports = {
   )
 }
 
-},{"../../config.js":95}],73:[function(require,module,exports){
+},{"../../config.js":94}],72:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 function SignalCombiner(a, b) {
@@ -5500,7 +5320,7 @@ SignalCombiner.prototype.collapseB = function() {
   this.B.disconnect()
 }
 
-},{"../Unit.js":27}],74:[function(require,module,exports){
+},{"../Unit.js":26}],73:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 class SporadicRetriggerer extends Unit {
@@ -5532,7 +5352,7 @@ class SporadicRetriggerer extends Unit {
 }
 module.exports = SporadicRetriggerer
 
-},{"../Unit.js":27}],75:[function(require,module,exports){
+},{"../Unit.js":26}],74:[function(require,module,exports){
 const Unit = require("../Unit.js")
 const config = require("../config.js")
 
@@ -5563,7 +5383,7 @@ Subtract.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27,"../config.js":95}],76:[function(require,module,exports){
+},{"../Unit.js":26,"../config.js":94}],75:[function(require,module,exports){
 const SignalCombiner = require("./SignalCombiner.js")
 const config = require("../config.js")
 const dusp = require("../dusp")
@@ -5610,7 +5430,7 @@ Sum.prototype._tick = function() {
   }
 }
 
-},{"../config.js":95,"../dusp":105,"./SignalCombiner.js":73}],77:[function(require,module,exports){
+},{"../config.js":94,"../dusp":104,"./SignalCombiner.js":72}],76:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 /*class Timer extends Unit {
@@ -5658,7 +5478,7 @@ Timer.prototype.trigger = function() {
   this.t = 0
 }
 
-},{"../Unit.js":27}],78:[function(require,module,exports){
+},{"../Unit.js":26}],77:[function(require,module,exports){
 const Unit = require("../Unit.js")
 
 // Does a pythagorus across channels
@@ -5688,7 +5508,7 @@ VectorMagnitude.prototype._tick = function() {
   }
 }
 
-},{"../Unit.js":27}],79:[function(require,module,exports){
+},{"../Unit.js":26}],78:[function(require,module,exports){
 module.exports = {
 	AHD: require("./AHD.js"),
 	Abs: require("./Abs.js"),
@@ -5753,7 +5573,7 @@ module.exports = {
 	CircularMotion: require("./vector/CircularMotion.js"),
 	LinearMotion: require("./vector/LinearMotion.js")
 }
-},{"./AHD.js":29,"./Abs.js":30,"./AllPass.js":31,"./CircleBufferNode.js":32,"./CircleBufferReader.js":33,"./CircleBufferWriter.js":34,"./Clip.js":35,"./CombFilter.js":36,"./ConcatChannels.js":37,"./CrossFader.js":38,"./DecibelToScaler.js":39,"./Delay.js":40,"./Divide.js":41,"./Filter.js":42,"./FixedDelay.js":43,"./FixedMultiply.js":44,"./Gain.js":45,"./GreaterThan.js":46,"./HardClipAbove.js":47,"./HardClipBelow.js":48,"./LessThan.js":49,"./MidiToFrequency.js":50,"./Monitor.js":51,"./MonoDelay.js":52,"./Multiply.js":53,"./Noise.js":54,"./Osc/MultiChannelOsc.js":55,"./Osc/Osc.js":56,"./Pan.js":59,"./PickChannel.js":60,"./PolarityInvert.js":61,"./Pow.js":62,"./Ramp.js":63,"./ReadBackDelay.js":64,"./Repeater.js":65,"./Rescale.js":66,"./Retriggerer.js":67,"./SampleRateRedux.js":68,"./SecondsToSamples.js":69,"./SemitoneToRatio.js":70,"./Shape/index.js":71,"./SignalCombiner.js":73,"./SporadicRetrigger.js":74,"./Subtract.js":75,"./Sum.js":76,"./Timer.js":77,"./VectorMagnitude.js":78,"./spectral/Augment.js":80,"./spectral/BinShift.js":81,"./spectral/FFT.js":82,"./spectral/HardHighPass.js":83,"./spectral/HardLowPass.js":84,"./spectral/Hopper.js":85,"./spectral/IFFT.js":86,"./spectral/ReChunk.js":87,"./spectral/SpectralGate.js":88,"./spectral/SpectralSum.js":89,"./spectral/SpectralUnit.js":90,"./spectral/UnHopper.js":91,"./spectral/Windower.js":92,"./vector/CircularMotion.js":93,"./vector/LinearMotion.js":94}],80:[function(require,module,exports){
+},{"./AHD.js":28,"./Abs.js":29,"./AllPass.js":30,"./CircleBufferNode.js":31,"./CircleBufferReader.js":32,"./CircleBufferWriter.js":33,"./Clip.js":34,"./CombFilter.js":35,"./ConcatChannels.js":36,"./CrossFader.js":37,"./DecibelToScaler.js":38,"./Delay.js":39,"./Divide.js":40,"./Filter.js":41,"./FixedDelay.js":42,"./FixedMultiply.js":43,"./Gain.js":44,"./GreaterThan.js":45,"./HardClipAbove.js":46,"./HardClipBelow.js":47,"./LessThan.js":48,"./MidiToFrequency.js":49,"./Monitor.js":50,"./MonoDelay.js":51,"./Multiply.js":52,"./Noise.js":53,"./Osc/MultiChannelOsc.js":54,"./Osc/Osc.js":55,"./Pan.js":58,"./PickChannel.js":59,"./PolarityInvert.js":60,"./Pow.js":61,"./Ramp.js":62,"./ReadBackDelay.js":63,"./Repeater.js":64,"./Rescale.js":65,"./Retriggerer.js":66,"./SampleRateRedux.js":67,"./SecondsToSamples.js":68,"./SemitoneToRatio.js":69,"./Shape/index.js":70,"./SignalCombiner.js":72,"./SporadicRetrigger.js":73,"./Subtract.js":74,"./Sum.js":75,"./Timer.js":76,"./VectorMagnitude.js":77,"./spectral/Augment.js":79,"./spectral/BinShift.js":80,"./spectral/FFT.js":81,"./spectral/HardHighPass.js":82,"./spectral/HardLowPass.js":83,"./spectral/Hopper.js":84,"./spectral/IFFT.js":85,"./spectral/ReChunk.js":86,"./spectral/SpectralGate.js":87,"./spectral/SpectralSum.js":88,"./spectral/SpectralUnit.js":89,"./spectral/UnHopper.js":90,"./spectral/Windower.js":91,"./vector/CircularMotion.js":92,"./vector/LinearMotion.js":93}],79:[function(require,module,exports){
 const SpectralUnit = require("./SpectralUnit.js")
 
 class Augment extends SpectralUnit {
@@ -5784,7 +5604,7 @@ class Augment extends SpectralUnit {
 }
 module.exports = Augment
 
-},{"./SpectralUnit.js":90}],81:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],80:[function(require,module,exports){
 const SpectralUnit = require("./SpectralUnit.js")
 
 class BinShift extends SpectralUnit {
@@ -5814,7 +5634,7 @@ class BinShift extends SpectralUnit {
 }
 module.exports = BinShift
 
-},{"./SpectralUnit.js":90}],82:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],81:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const FFTjs = require("fft.js")
 
@@ -5843,7 +5663,7 @@ class FFT extends Unit {
 }
 module.exports = FFT
 
-},{"../../Unit.js":27,"fft.js":216}],83:[function(require,module,exports){
+},{"../../Unit.js":26,"fft.js":179}],82:[function(require,module,exports){
 /*
   Spectrally implemented high pass filter.
 */
@@ -5878,7 +5698,7 @@ class HardHighPass extends SpectralUnit {
 }
 module.exports = HardHighPass
 
-},{"./SpectralUnit.js":90}],84:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],83:[function(require,module,exports){
 /*
   Spectrally implemented low pass filter.
 */
@@ -5913,7 +5733,7 @@ class HardLowPass extends SpectralUnit {
 }
 module.exports = HardLowPass
 
-},{"./SpectralUnit.js":90}],85:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],84:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const gcd = require("compute-gcd")
 
@@ -5954,7 +5774,7 @@ class Hopper extends Unit {
 }
 module.exports = Hopper
 
-},{"../../Unit.js":27,"compute-gcd":13}],86:[function(require,module,exports){
+},{"../../Unit.js":26,"compute-gcd":13}],85:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const FFTjs = require("fft.js")
 
@@ -5991,7 +5811,7 @@ class IFFT extends Unit {
 }
 module.exports = IFFT
 
-},{"../../Unit.js":27,"fft.js":216}],87:[function(require,module,exports){
+},{"../../Unit.js":26,"fft.js":179}],86:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const gcd = require("compute-gcd")
 const lcm = require("compute-lcm")
@@ -6045,7 +5865,7 @@ class ReChunk extends Unit {
 }
 module.exports = ReChunk
 
-},{"../../Unit.js":27,"compute-gcd":13,"compute-lcm":14}],88:[function(require,module,exports){
+},{"../../Unit.js":26,"compute-gcd":13,"compute-lcm":14}],87:[function(require,module,exports){
 const SpectralUnit = require("./SpectralUnit.js")
 
 class SpectralGate extends SpectralUnit {
@@ -6081,7 +5901,7 @@ class SpectralGate extends SpectralUnit {
 }
 module.exports = SpectralGate
 
-},{"./SpectralUnit.js":90}],89:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],88:[function(require,module,exports){
 const SpectralUnit = require("./SpectralUnit.js")
 
 class SpectralSum extends SpectralUnit {
@@ -6109,7 +5929,7 @@ class SpectralSum extends SpectralUnit {
 }
 module.exports = SpectralSum
 
-},{"./SpectralUnit.js":90}],90:[function(require,module,exports){
+},{"./SpectralUnit.js":89}],89:[function(require,module,exports){
 /*
   A base class for unit which process spectral data.
 */
@@ -6145,7 +5965,7 @@ class SpectralUnit extends Unit {
 SpectralUnit.prototype.isSpectralUnit = true
 module.exports = SpectralUnit
 
-},{"../../Unit.js":27,"../../config":95}],91:[function(require,module,exports){
+},{"../../Unit.js":26,"../../config":94}],90:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 
 class UnHopper extends Unit {
@@ -6193,7 +6013,7 @@ class UnHopper extends Unit {
 }
 module.exports = UnHopper
 
-},{"../../Unit.js":27}],92:[function(require,module,exports){
+},{"../../Unit.js":26}],91:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 
 class Windower extends Unit {
@@ -6244,7 +6064,7 @@ function getEnvelope(size, type) {
 }
 Windower.getEnvelope = getEnvelope
 
-},{"../../Unit.js":27}],93:[function(require,module,exports){
+},{"../../Unit.js":26}],92:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const config = require('../../config.js')
 
@@ -6287,7 +6107,7 @@ CircularMotion.random = function(fMax, rMax, oMax) {
   return circ
 }
 
-},{"../../Unit.js":27,"../../config.js":95}],94:[function(require,module,exports){
+},{"../../Unit.js":26,"../../config.js":94}],93:[function(require,module,exports){
 const Unit = require("../../Unit.js")
 const config = require("../../config.js")
 
@@ -6347,7 +6167,7 @@ LinearMotion.prototype._tick = function() {
   }
 }
 
-},{"../../Unit.js":27,"../../config.js":95}],95:[function(require,module,exports){
+},{"../../Unit.js":26,"../../config.js":94}],94:[function(require,module,exports){
 (function (process){
 const argv = require("minimist")(process.argv.slice(2))
 
@@ -6373,7 +6193,7 @@ localConfig.sampleInterval = 1/module.exports.sampleRate
 module.exports = localConfig
 
 }).call(this,require('_process'))
-},{"_process":282,"minimist":225}],96:[function(require,module,exports){
+},{"_process":284,"minimist":186}],95:[function(require,module,exports){
 function constructExpression(o, index, destinations) {
   if(o.constructor == String)
     o = parseExpression(o, index)
@@ -6422,7 +6242,7 @@ const constructObjectProperty = require("./constructObjectProperty")
 const constructShorthand = require("./constructShorthand")
 const constructString = require("./constructString")
 
-},{"../parseDSP/getExpression.js":114,"./constructNumber":97,"./constructObject":98,"./constructObjectProperty":99,"./constructObjectReference":100,"./constructOperation":101,"./constructShorthand":102,"./constructString":103}],97:[function(require,module,exports){
+},{"../parseDSP/getExpression.js":113,"./constructNumber":96,"./constructObject":97,"./constructObjectProperty":98,"./constructObjectReference":99,"./constructOperation":100,"./constructShorthand":101,"./constructString":102}],96:[function(require,module,exports){
 function constructNumber(o) {
   if(o.constructor == String)
     o = parseNumber(o)
@@ -6436,7 +6256,7 @@ function constructNumber(o) {
 module.exports = constructNumber
 const parseNumber = require("../parseDSP/getNumber.js")
 
-},{"../parseDSP/getNumber.js":124}],98:[function(require,module,exports){
+},{"../parseDSP/getNumber.js":123}],97:[function(require,module,exports){
 
 
 function constructObject(o, index) {
@@ -6496,7 +6316,7 @@ const parseObject = require("../parseDSP/getObject.js")
 const components = require("../patchesAndComponents")
 const constructExpression = require("./constructExpression")
 
-},{"../parseDSP/getObject.js":125,"../patchesAndComponents":171,"./constructExpression":96}],99:[function(require,module,exports){
+},{"../parseDSP/getObject.js":124,"../patchesAndComponents":170,"./constructExpression":95}],98:[function(require,module,exports){
 function constructObjectProperty(o, index) {
   var obj = constructExpression(o.object, index)
   return obj[o.property]
@@ -6505,7 +6325,7 @@ function constructObjectProperty(o, index) {
 module.exports = constructObjectProperty
 const constructExpression = require("./constructExpression")
 
-},{"./constructExpression":96}],100:[function(require,module,exports){
+},{"./constructExpression":95}],99:[function(require,module,exports){
 function constructObjectReference(o, index) {
   if(o.constructor == String)
     o = parseObjectReference(o)
@@ -6520,7 +6340,7 @@ module.exports = constructObjectReference
 
 const parseObjectReference = require("../parseDSP/getObjectReference.js")
 
-},{"../parseDSP/getObjectReference.js":127}],101:[function(require,module,exports){
+},{"../parseDSP/getObjectReference.js":126}],100:[function(require,module,exports){
 function constructOperation(o, index, destinations) {
   if(!o.a || !o.b || !o.operator)
     throw "could not construct operation"
@@ -6615,7 +6435,7 @@ const constructExpression = require("./constructExpression")
 const components = require("../components")
 const Repeater = require("../components/Repeater.js")
 
-},{"../components":79,"../components/Repeater.js":65,"../quick":172,"./constructExpression":96}],102:[function(require,module,exports){
+},{"../components":78,"../components/Repeater.js":64,"../quick":171,"./constructExpression":95}],101:[function(require,module,exports){
 function constructShorthand(o, index) {
   if(o.constructor == String)
     o = parseShorthand(o)
@@ -6640,7 +6460,7 @@ const parseShorthand = require("../parseDSP/getShorthand.js")
 const constructNumber = require("./constructNumber")
 const shorthandConstructors = require("./shorthandConstructors")
 
-},{"../parseDSP/getShorthand.js":130,"../patchesAndComponents":171,"./constructNumber":97,"./shorthandConstructors":104}],103:[function(require,module,exports){
+},{"../parseDSP/getShorthand.js":129,"../patchesAndComponents":170,"./constructNumber":96,"./shorthandConstructors":103}],102:[function(require,module,exports){
 function constructString(o, index) {
   if(o.constructor == String)
     o = parseString(o)
@@ -6656,7 +6476,7 @@ function constructString(o, index) {
 module.exports = constructString
 const parseString = require("../parseDSP/getString.js")
 
-},{"../parseDSP/getString.js":132}],104:[function(require,module,exports){
+},{"../parseDSP/getString.js":131}],103:[function(require,module,exports){
 const components = require("../components")
 
 module.exports = {
@@ -6704,7 +6524,7 @@ module.exports = {
   },
 }
 
-},{"../components":79}],105:[function(require,module,exports){
+},{"../components":78}],104:[function(require,module,exports){
 // reduce things to dusp
 const config = require("./config.js")
 
@@ -6826,7 +6646,7 @@ function duspString(str, index) {
   return "\"" + str + "\""
 }
 
-},{"./config.js":95}],106:[function(require,module,exports){
+},{"./config.js":94}],105:[function(require,module,exports){
 function* exploreConnections(...list) {
   // explore a circuit, yielding every new object found
   for(let i=0; i<list.length; i++) {
@@ -6862,7 +6682,7 @@ function checkConnection(unit, ...set) {
 }
 module.exports.checkConnection = checkConnection
 
-},{}],107:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 
 /**
  * Root class for DUSP
@@ -6891,7 +6711,7 @@ module.exports = {
   DuspPlayer: require('./webaudioapi/DuspPlayer')
 }
 
-},{"./Circuit":18,"./Patch":23,"./Unit":27,"./components":79,"./dusp":105,"./patches":170,"./quick":172,"./renderChannelData":173,"./unDusp":174,"./webaudioapi/DuspPlayer":175,"./webaudioapi/channelDataToAudioBuffer":176,"./webaudioapi/connectToWAA":177,"./webaudioapi/renderAudioBuffer":178}],108:[function(require,module,exports){
+},{"./Circuit":17,"./Patch":22,"./Unit":26,"./components":78,"./dusp":104,"./patches":169,"./quick":171,"./renderChannelData":172,"./unDusp":173,"./webaudioapi/DuspPlayer":174,"./webaudioapi/channelDataToAudioBuffer":175,"./webaudioapi/connectToWAA":176,"./webaudioapi/renderAudioBuffer":177}],107:[function(require,module,exports){
 module.exports = {
   operators: [
     "->", // connect
@@ -6923,7 +6743,7 @@ const components = require("../patchesAndComponents")
 for(var constr in components)
   module.exports.shorthandConstructors.push(constr)
 
-},{"../patchesAndComponents":171}],109:[function(require,module,exports){
+},{"../patchesAndComponents":170}],108:[function(require,module,exports){
 const whitespaceRegex = /\s/
 function countWhitespace(str, i0) {
   i0 = i0 || 0
@@ -6936,7 +6756,7 @@ function countWhitespace(str, i0) {
 }
 module.exports = countWhitespace
 
-},{}],110:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 function findCoordinate(str, point) {
   var col = 0
   var row = 0
@@ -6952,7 +6772,7 @@ function findCoordinate(str, point) {
 }
 module.exports = findCoordinate
 
-},{}],111:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 function getArgument(str, i0) {
   var id = getObjectReference(str, i0)
   if(id) return id
@@ -6986,7 +6806,7 @@ const getAttribute = require("./getAttribute")
 const getWord = require("./getWord.js")
 const getExpression = require("./getExpression")
 
-},{"./getAttribute":112,"./getExpression":114,"./getObjectReference.js":127,"./getWord.js":134}],112:[function(require,module,exports){
+},{"./getAttribute":111,"./getExpression":113,"./getObjectReference.js":126,"./getWord.js":133}],111:[function(require,module,exports){
 const getWord = require("./getWord.js")
 const countWhitespace = require("./countWhitespace")
 
@@ -7020,7 +6840,7 @@ module.exports = getAttribute
 
 const getExpression = require("./getExpression.js")
 
-},{"./countWhitespace":109,"./getExpression.js":114,"./getWord.js":134}],113:[function(require,module,exports){
+},{"./countWhitespace":108,"./getExpression.js":113,"./getWord.js":133}],112:[function(require,module,exports){
 const skipCommentsAndWhitespace = require("./skipCommentsAndWhitespace")
 const getWord = require("./getWord")
 
@@ -7040,7 +6860,7 @@ function getDotProperty(str, i0) {
 }
 module.exports = getDotProperty
 
-},{"./getWord":134,"./skipCommentsAndWhitespace":136}],114:[function(require,module,exports){
+},{"./getWord":133,"./skipCommentsAndWhitespace":135}],113:[function(require,module,exports){
 function getExpression(str, i0) {
   i0 = i0 || 0
 
@@ -7158,9 +6978,9 @@ const getString = require("./getString")
 const getJSON = require("./getJSON")
 const getVariable = require('./getVariable')
 
-},{"./getJSON":122,"./getNumber.js":124,"./getObjectOrObjectProperty":126,"./getObjectReference.js":127,"./getOperatorOperand":129,"./getShorthand":130,"./getString":132,"./getVariable":133,"./skipCommentsAndWhitespace":136}],115:[function(require,module,exports){
-arguments[4][110][0].apply(exports,arguments)
-},{"dup":110}],116:[function(require,module,exports){
+},{"./getJSON":121,"./getNumber.js":123,"./getObjectOrObjectProperty":125,"./getObjectReference.js":126,"./getOperatorOperand":128,"./getShorthand":129,"./getString":131,"./getVariable":132,"./skipCommentsAndWhitespace":135}],114:[function(require,module,exports){
+arguments[4][109][0].apply(exports,arguments)
+},{"dup":109}],115:[function(require,module,exports){
 function getArray(str, i0=0) {
   if(str[i0] != "[")
     return null
@@ -7202,7 +7022,7 @@ module.exports = getArray
 const skipWhitespace = require("./skipWhitespace")
 const getJSON = require("./index.js")
 
-},{"./index.js":122,"./skipWhitespace":123}],117:[function(require,module,exports){
+},{"./index.js":121,"./skipWhitespace":122}],116:[function(require,module,exports){
 const numberRegex = /[0-9.\-]/
 
 function getNumber(str, startIndex=0) {
@@ -7235,7 +7055,7 @@ function getNumber(str, startIndex=0) {
 module.exports = getNumber
 const findCoordinate = require("./findCoordinate")
 
-},{"./findCoordinate":115}],118:[function(require,module,exports){
+},{"./findCoordinate":114}],117:[function(require,module,exports){
 function getObject(str, i0=0) {
   if(str[i0] != "{")
     return null
@@ -7276,7 +7096,7 @@ module.exports = getObject
 const getProperty = require("./getProperty")
 const skipWhitespace = require("./skipWhitespace.js")
 
-},{"./getProperty":119,"./skipWhitespace.js":123}],119:[function(require,module,exports){
+},{"./getProperty":118,"./skipWhitespace.js":122}],118:[function(require,module,exports){
 function getProperty(str, i0=0) {
   var name = getWord(str, i0) || getString(str, i0) || getNumber(str, i0)
   if(!name)
@@ -7316,7 +7136,7 @@ const getJSON = require("./index.js")
 const skipWhitespace = require("./skipWhitespace")
 const getNumber = require("./getNumber")
 
-},{"./getNumber":117,"./getString":120,"./getWord.js":121,"./index.js":122,"./skipWhitespace":123}],120:[function(require,module,exports){
+},{"./getNumber":116,"./getString":119,"./getWord.js":120,"./index.js":121,"./skipWhitespace":122}],119:[function(require,module,exports){
 function getString(str, i0=0) {
 
   if(str[i0] == "\"")
@@ -7342,7 +7162,7 @@ function getString(str, i0=0) {
 
 module.exports = getString
 
-},{}],121:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 
 const findCoordinate = require("./findCoordinate")
 const wordRegex = /[a-zA-Z_]/
@@ -7367,7 +7187,7 @@ function getWord(str, startIndex) {
 }
 module.exports = getWord
 
-},{"./findCoordinate":115}],122:[function(require,module,exports){
+},{"./findCoordinate":114}],121:[function(require,module,exports){
 function getJSON(str, i0=0) {
   var string = getString(str, i0)
   if(string)
@@ -7403,7 +7223,7 @@ const getNumber = require("./getNumber")
 const getArray = require("./getArray")
 const getObject = require("./getObject")
 
-},{"./getArray":116,"./getNumber":117,"./getObject":118,"./getString":120}],123:[function(require,module,exports){
+},{"./getArray":115,"./getNumber":116,"./getObject":117,"./getString":119}],122:[function(require,module,exports){
 const whitespaceRegex = /\s/
 function skipWhitespace(str, i0) {
   i0 = i0 || 0
@@ -7417,7 +7237,7 @@ function skipWhitespace(str, i0) {
 }
 module.exports = skipWhitespace
 
-},{}],124:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 const numberRegex = /[0-9.\-]/
 
 function getNumber(str, startIndex) {
@@ -7438,7 +7258,7 @@ function getNumber(str, startIndex) {
 }
 module.exports = getNumber
 
-},{}],125:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 function getObject(str, i0) {
   i0 = i0 || 0
   if(str[i0] != "[")
@@ -7511,7 +7331,7 @@ const getWord = require("./getWord")
 const getArgument = require("./getArgument")
 const countWhitespace = require("./countWhitespace")
 
-},{"./countWhitespace":109,"./getArgument":111,"./getWord":134,"./skipCommentsAndWhitespace.js":136}],126:[function(require,module,exports){
+},{"./countWhitespace":108,"./getArgument":110,"./getWord":133,"./skipCommentsAndWhitespace.js":135}],125:[function(require,module,exports){
 function getObjectOrObjectProperty(str, i0) {
   i0 = i0 || 0
   var object = getObject(str, i0)
@@ -7541,7 +7361,7 @@ const getDotProperty = require("./getDotProperty")
 const getObjectReference = require("./getObjectReference")
 const getShorthand = require("./getShorthand")
 
-},{"./getDotProperty":113,"./getObject":125,"./getObjectReference":127,"./getShorthand":130}],127:[function(require,module,exports){
+},{"./getDotProperty":112,"./getObject":124,"./getObjectReference":126,"./getShorthand":129}],126:[function(require,module,exports){
 const getWordWithDigits = require("./getWordWithDigits.js")
 
 function getObjectReference(str, startIndex) {
@@ -7562,7 +7382,7 @@ function getObjectReference(str, startIndex) {
 }
 module.exports = getObjectReference
 
-},{"./getWordWithDigits.js":135}],128:[function(require,module,exports){
+},{"./getWordWithDigits.js":134}],127:[function(require,module,exports){
 function getOperator(str, i0=0) {
   var winner = ""
   for(var i in operators) {
@@ -7581,7 +7401,7 @@ module.exports = getOperator
 const {operators} = require("./config")
 const getSpecific = require("./getSpecific")
 
-},{"./config":108,"./getSpecific":131}],129:[function(require,module,exports){
+},{"./config":107,"./getSpecific":130}],128:[function(require,module,exports){
 function getOperatorOperand(str, i0) {
   i0 = i0 || 0
 
@@ -7612,7 +7432,7 @@ const skipCommentsAndWhitespace = require("./skipCommentsAndWhitespace.js")
 const config = require("./config")
 const getOperator = require("./getOperator")
 
-},{"./config":108,"./getExpression.js":114,"./getOperator":128,"./skipCommentsAndWhitespace.js":136}],130:[function(require,module,exports){
+},{"./config":107,"./getExpression.js":113,"./getOperator":127,"./skipCommentsAndWhitespace.js":135}],129:[function(require,module,exports){
 function getShorthand(str, i0) {
   i0 = i0 || 0
   var constr = getWord(str, i0)
@@ -7652,7 +7472,7 @@ const getWord = require("./getWord")
 const getNumber = require("./getNumber")
 const config = require("./config")
 
-},{"./config":108,"./getNumber":124,"./getWord":134}],131:[function(require,module,exports){
+},{"./config":107,"./getNumber":123,"./getWord":133}],130:[function(require,module,exports){
 function getSpecific(searchStr, str, i0) {
   i0 = i0 || 0
   for(var i=0; i<searchStr.length; i++)
@@ -7663,7 +7483,7 @@ function getSpecific(searchStr, str, i0) {
 }
 module.exports = getSpecific
 
-},{}],132:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 function getString(str, i0) {
   i0 = i0 || 0
 
@@ -7690,7 +7510,7 @@ function getString(str, i0) {
 
 module.exports = getString
 
-},{}],133:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 // variables begin with a $ sign just like in php
 
 const getWordWithDigits = require("./getWordWithDigits.js")
@@ -7713,9 +7533,9 @@ function getVariable(str, startIndex) {
 }
 module.exports = getVariable
 
-},{"./getWordWithDigits.js":135}],134:[function(require,module,exports){
-arguments[4][121][0].apply(exports,arguments)
-},{"./findCoordinate":110,"dup":121}],135:[function(require,module,exports){
+},{"./getWordWithDigits.js":134}],133:[function(require,module,exports){
+arguments[4][120][0].apply(exports,arguments)
+},{"./findCoordinate":109,"dup":120}],134:[function(require,module,exports){
 
 const wordRegex = /[a-zA-Z0-9_]/
 
@@ -7733,7 +7553,7 @@ function getWordWithDigits(str, startIndex) {
 }
 module.exports = getWordWithDigits
 
-},{}],136:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 const skipWhitespace = require('./skipWhitespace')
 const skipLineComment = require('./skipLineComment')
 const skipMultilineComment = require('./skipMultilineComment')
@@ -7753,7 +7573,7 @@ function skipCommentsAndWhitespace(str, i0) {
 }
 module.exports = skipCommentsAndWhitespace
 
-},{"./skipLineComment":137,"./skipMultilineComment":138,"./skipWhitespace":139}],137:[function(require,module,exports){
+},{"./skipLineComment":136,"./skipMultilineComment":137,"./skipWhitespace":138}],136:[function(require,module,exports){
 function skipLineComment(str, i0) {
   if(str[i0] == '/' && str[i0+1] == '/') {
     let iEnd = str.indexOf('\n', i0+2)
@@ -7766,7 +7586,7 @@ function skipLineComment(str, i0) {
 }
 module.exports = skipLineComment
 
-},{}],138:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 function skipMultilineComment(str, i0) {
   if(str.slice(i0, i0+2) == '/*') {
     let iEnd = str.indexOf('*/', i0+2)
@@ -7780,9 +7600,9 @@ function skipMultilineComment(str, i0) {
 }
 module.exports = skipMultilineComment
 
-},{}],139:[function(require,module,exports){
-arguments[4][123][0].apply(exports,arguments)
-},{"dup":123}],140:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
+arguments[4][122][0].apply(exports,arguments)
+},{"dup":122}],139:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const AllPass = require("../components/AllPass.js")
 
@@ -7816,7 +7636,7 @@ class APStack extends Patch {
 }
 module.exports = APStack
 
-},{"../Patch.js":23,"../components/AllPass.js":31}],141:[function(require,module,exports){
+},{"../Patch.js":22,"../components/AllPass.js":30}],140:[function(require,module,exports){
 const Patch = require("../Patch")
 const AttenuationMatrix = require("./AttenuationMatrix.js")
 const AllPass = require("../components/AllPass.js")
@@ -7842,7 +7662,7 @@ class APWeb extends Patch {
 }
 module.exports = APWeb
 
-},{"../Patch":23,"../components/AllPass.js":31,"./AttenuationMatrix.js":142}],142:[function(require,module,exports){
+},{"../Patch":22,"../components/AllPass.js":30,"./AttenuationMatrix.js":141}],141:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Mixer = require("./Mixer.js")
 
@@ -7885,7 +7705,7 @@ class AttenuationMatrix extends Patch {
 }
 module.exports = AttenuationMatrix
 
-},{"../Patch.js":23,"./Mixer.js":155}],143:[function(require,module,exports){
+},{"../Patch.js":22,"./Mixer.js":154}],142:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Filter = require("../components/Filter.js")
 
@@ -7908,7 +7728,7 @@ class BandFilter extends Patch {
 }
 module.exports = BandFilter
 
-},{"../Patch.js":23,"../components/Filter.js":42}],144:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Filter.js":41}],143:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Shape = require("../components/Shape")
 const Osc = require("../components/Osc")
@@ -7939,7 +7759,7 @@ class Boop extends Patch {
 }
 module.exports = Boop
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Osc":57,"../components/Shape":71}],145:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Osc":56,"../components/Shape":70}],144:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const CircularMotion = require("../components/vector/CircularMotion.js")
 const Multiply = require("../components/Multiply.js")
@@ -8022,7 +7842,7 @@ ComplexOrbit.random = function(n, fMax, rMax, oMax) {
   return new ComplexOrbit( frequencyRatios, radiusRatios, centre)
 }
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Repeater.js":65,"../components/vector/CircularMotion.js":93}],146:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Repeater.js":64,"../components/vector/CircularMotion.js":92}],145:[function(require,module,exports){
 const Patch = require("../Patch")
 const CircleBuffer = require("../CircleBuffer.js")
 const CircleBufferReader = require("../components/CircleBufferReader.js")
@@ -8060,7 +7880,7 @@ class DelayMixer extends Patch {
 }
 module.exports = DelayMixer
 
-},{"../CircleBuffer.js":17,"../Patch":23,"../components/CircleBufferReader.js":33,"../components/CircleBufferWriter.js":34,"../quick.js":172}],147:[function(require,module,exports){
+},{"../CircleBuffer.js":16,"../Patch":22,"../components/CircleBufferReader.js":32,"../components/CircleBufferWriter.js":33,"../quick.js":171}],146:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Repeater = require("../components/Repeater.js")
 
@@ -8120,7 +7940,7 @@ FMOsc.prototype.resetPhase = function() {
   this.osc.resetPhase()
 }
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Osc/MultiChannelOsc":55,"../components/Repeater.js":65,"../components/SemitoneToRatio.js":70}],148:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Osc/MultiChannelOsc":54,"../components/Repeater.js":64,"../components/SemitoneToRatio.js":69}],147:[function(require,module,exports){
 
 const Synth = require("./Synth.js")
 const unDusp = require("../unDusp")
@@ -8312,7 +8132,7 @@ class FMSynth extends Synth {
 }
 module.exports = FMSynth
 
-},{"../components/Shape":71,"../dusp":105,"../patches/FMOsc":147,"../quick.js":172,"../unDusp":174,"./FrequencyGroup.js":149,"./Mixer.js":155,"./StereoDetune.js":165,"./Synth.js":167,"./Worm.js":169}],149:[function(require,module,exports){
+},{"../components/Shape":70,"../dusp":104,"../patches/FMOsc":146,"../quick.js":171,"../unDusp":173,"./FrequencyGroup.js":148,"./Mixer.js":154,"./StereoDetune.js":164,"./Synth.js":166,"./Worm.js":168}],148:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Repeater = require("../components/Repeater.js")
 const quick = require("../quick.js")
@@ -8356,7 +8176,7 @@ FrequencyGroup.prototype.addRandomHarmonics = function(n, maxNum, maxDenom) {
   return harmonicsAdded
 }
 
-},{"../Patch.js":23,"../components/Repeater.js":65,"../quick.js":172}],150:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Repeater.js":64,"../quick.js":171}],149:[function(require,module,exports){
 /*
   A spectrally implemented band pass filter with sqaure attenuation curves.
 */
@@ -8392,7 +8212,7 @@ class HardBandPass extends Patch {
 }
 module.exports = HardBandPass
 
-},{"../Patch.js":23,"../components/spectral/HardHighPass.js":83,"../components/spectral/HardLowPass.js":84}],151:[function(require,module,exports){
+},{"../Patch.js":22,"../components/spectral/HardHighPass.js":82,"../components/spectral/HardLowPass.js":83}],150:[function(require,module,exports){
 /*
   A Karplus-Strong string synthesis patch.
 */
@@ -8475,7 +8295,7 @@ class Karplus extends Patch {
 }
 module.exports = Karplus
 
-},{"../Patch":23,"../components/Delay":40,"../components/Divide":41,"../components/Filter":42,"../components/Multiply":53,"../components/Noise":54,"../components/Repeater":65,"../components/Shape":71,"../components/Sum":76,"../config":95,"../quick":172}],152:[function(require,module,exports){
+},{"../Patch":22,"../components/Delay":39,"../components/Divide":40,"../components/Filter":41,"../components/Multiply":52,"../components/Noise":53,"../components/Repeater":64,"../components/Shape":70,"../components/Sum":75,"../config":94,"../quick":171}],151:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Osc = require("../components/Osc")
 const Multiply = require("../components/Multiply.js")
@@ -8534,7 +8354,7 @@ LFO.prototype.__defineSetter__("waveform", function(waveform) {
   this.osc.waveform = waveform
 })
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Osc":57,"../components/Sum.js":76}],153:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Osc":56,"../components/Sum.js":75}],152:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const StereoOsc = require("./StereoOsc")
 const Repeater = require("../components/Repeater.js")
@@ -8581,7 +8401,7 @@ ManyOsc.random = function(n, min, max) {
   return ManyOsc.ofFrequencies(1, freqs)
 }
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Osc":57,"../components/Repeater.js":65,"../components/Sum.js":76,"./StereoOsc":166}],154:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Osc":56,"../components/Repeater.js":64,"../components/Sum.js":75,"./StereoOsc":165}],153:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Osc = require("../components/Osc")
 const MidiToFrequency = require("../components/MidiToFrequency.js")
@@ -8603,7 +8423,7 @@ MidiOsc.prototype = Object.create(Patch.prototype)
 MidiOsc.prototype.constructor = MidiOsc
 module.exports = MidiOsc
 
-},{"../Patch.js":23,"../components/MidiToFrequency.js":50,"../components/Osc":57}],155:[function(require,module,exports){
+},{"../Patch.js":22,"../components/MidiToFrequency.js":49,"../components/Osc":56}],154:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Repeater = require("../components/Repeater.js")
 const Sum = require("../components/Sum.js")
@@ -8724,7 +8544,7 @@ Mixer.prototype.__defineGetter__("numberOfInputs", function() {
   return this.inputs.length
 })
 
-},{"../Patch.js":23,"../components/Gain.js":45,"../components/Multiply.js":53,"../components/Repeater.js":65,"../components/Sum.js":76}],156:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Gain.js":44,"../components/Multiply.js":52,"../components/Repeater.js":64,"../components/Sum.js":75}],155:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const CircleBuffer = require("../CircleBuffer.js")
 const CircleBufferReader = require("../components/CircleBufferReader.js")
@@ -8771,7 +8591,7 @@ class MultiTapDelay extends Patch {
 }
 module.exports = MultiTapDelay
 
-},{"../CircleBuffer.js":17,"../Patch.js":23,"../components/CircleBufferReader.js":33,"../components/CircleBufferWriter.js":34,"../quick.js":172}],157:[function(require,module,exports){
+},{"../CircleBuffer.js":16,"../Patch.js":22,"../components/CircleBufferReader.js":32,"../components/CircleBufferWriter.js":33,"../quick.js":171}],156:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const MidiOsc = require("./MidiOsc")
 const Osc = require("../components/Osc")
@@ -8809,7 +8629,7 @@ OrbittySine.prototype.__defineSetter__("waveform", function(waveform) {
   this.osc.waveform = waveform
 })
 
-},{"../Patch.js":23,"../components/Osc":57,"./ComplexOrbit.js":145,"./MidiOsc":154,"./Space.js":162}],158:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Osc":56,"./ComplexOrbit.js":144,"./MidiOsc":153,"./Space.js":161}],157:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Space = require("./Space.js")
 const Repeater = require("../components/Repeater.js")
@@ -8838,7 +8658,7 @@ ScaryPatch.prototype = Object.create(Patch.prototype)
 ScaryPatch.prototype.constructor = ScaryPatch
 module.exports = ScaryPatch
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Repeater.js":65,"./Space.js":162}],159:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Repeater.js":64,"./Space.js":161}],158:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const CrossFader = require("../components/CrossFader.js")
 const Delay = require("../components/Delay.js")
@@ -8882,7 +8702,7 @@ SimpleDelay.prototype = Object.create(Patch.prototype)
 SimpleDelay.prototype.constructor = SimpleDelay
 module.exports = SimpleDelay
 
-},{"../Patch.js":23,"../components/CrossFader.js":38,"../components/Delay.js":40,"../components/Multiply.js":53,"../components/Repeater.js":65,"../components/SecondsToSamples.js":69,"../components/Sum.js":76}],160:[function(require,module,exports){
+},{"../Patch.js":22,"../components/CrossFader.js":37,"../components/Delay.js":39,"../components/Multiply.js":52,"../components/Repeater.js":64,"../components/SecondsToSamples.js":68,"../components/Sum.js":75}],159:[function(require,module,exports){
 const config = require("../config.js")
 const Patch = require("../Patch.js")
 const MidiOsc = require("../patches/MidiOsc")
@@ -8927,7 +8747,7 @@ SineBoop.prototype.trigger = function() {
   return this
 }
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Ramp.js":63,"../components/Shape":71,"../config.js":95,"../patches/MidiOsc":154}],161:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Ramp.js":62,"../components/Shape":70,"../config.js":94,"../patches/MidiOsc":153}],160:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const OrbittySine = require("./OrbittySine.js")
 const Mixer = require("./Mixer.js")
@@ -8981,7 +8801,7 @@ SineCloud.prototype.__defineSetter__("waveform", function(waveform) {
     this.orbittySines[i].waveform = waveform
 })
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../components/Repeater.js":65,"./Mixer.js":155,"./OrbittySine.js":157}],162:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../components/Repeater.js":64,"./Mixer.js":154,"./OrbittySine.js":156}],161:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const SpaceChannel = require("./SpaceChannel.js")
 const PickChannel = require("../components/PickChannel.js")
@@ -9047,7 +8867,7 @@ Space.prototype.addSpeaker = function(speakerPosition) {
   this.addUnit(chan)
 }
 
-},{"../Patch.js":23,"../components/ConcatChannels.js":37,"../components/PickChannel.js":60,"../components/Repeater.js":65,"../config.js":95,"./SpaceChannel.js":164}],163:[function(require,module,exports){
+},{"../Patch.js":22,"../components/ConcatChannels.js":36,"../components/PickChannel.js":59,"../components/Repeater.js":64,"../config.js":94,"./SpaceChannel.js":163}],162:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const config = require("../config.js")
 
@@ -9107,7 +8927,7 @@ SpaceBoop.prototype.__defineSetter__("decayForm", function(shape) {
   this.envelope.shape = shape
 })
 
-},{"../Patch.js":23,"../components/Divide.js":41,"../components/MidiToFrequency.js":50,"../components/Multiply.js":53,"../components/Osc":57,"../components/Shape":71,"../config.js":95,"../patches/Space.js":162}],164:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Divide.js":40,"../components/MidiToFrequency.js":49,"../components/Multiply.js":52,"../components/Osc":56,"../components/Shape":70,"../config.js":94,"../patches/Space.js":161}],163:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Subtract = require("../components/Subtract.js")
 const VectorMagnitude = require("../components/VectorMagnitude.js")
@@ -9156,7 +8976,7 @@ SpaceChannel.prototype = Object.create(Patch.prototype)
 SpaceChannel.prototype.constructor = SpaceChannel
 module.exports = SpaceChannel
 
-},{"../Patch.js":23,"../components/Gain.js":45,"../components/MonoDelay.js":52,"../components/Multiply.js":53,"../components/Subtract.js":75,"../components/VectorMagnitude.js":78,"../config.js":95}],165:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Gain.js":44,"../components/MonoDelay.js":51,"../components/Multiply.js":52,"../components/Subtract.js":74,"../components/VectorMagnitude.js":77,"../config.js":94}],164:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Multiply = require("../components/Multiply.js")
 const quick = require("../quick.js")
@@ -9187,7 +9007,7 @@ StereoDetune.random = function(input, maxAmmount) {
   return new StereoDetune(input, ammount)
 }
 
-},{"../Patch.js":23,"../components/Multiply.js":53,"../quick.js":172}],166:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Multiply.js":52,"../quick.js":171}],165:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Osc = require("../components/Osc")
 const Pan = require("../components/Pan.js")
@@ -9240,7 +9060,7 @@ StereoOsc.prototype.__defineSetter__("waveform", function(waveform) {
   this.osc.waveform = waveform
 })
 
-},{"../Patch.js":23,"../components/Gain.js":45,"../components/MidiToFrequency.js":50,"../components/Osc":57,"../components/Pan.js":59,"../components/Sum.js":76}],167:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Gain.js":44,"../components/MidiToFrequency.js":49,"../components/Osc":56,"../components/Pan.js":58,"../components/Sum.js":75}],166:[function(require,module,exports){
 const Patch = require("../Patch.js")
 
 class Synth extends Patch {
@@ -9270,7 +9090,7 @@ class Synth extends Patch {
 }
 module.exports = Synth
 
-},{"../Patch.js":23}],168:[function(require,module,exports){
+},{"../Patch.js":22}],167:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Mixer = require("./Mixer.js")
 
@@ -9307,7 +9127,7 @@ TriggerGroup.prototype.trigger = function(which) {
     console.log(this.label, "unknown trigger:", which)
 }
 
-},{"../Patch.js":23,"./Mixer.js":155}],169:[function(require,module,exports){
+},{"../Patch.js":22,"./Mixer.js":154}],168:[function(require,module,exports){
 const Patch = require("../Patch.js")
 const Noise = require("../components/Noise")
 const Filter = require("../components/Filter.js")
@@ -9336,7 +9156,7 @@ class Worm extends Patch {
 }
 module.exports = Worm
 
-},{"../Patch.js":23,"../components/Filter.js":42,"../components/Noise":54,"../components/Repeater.js":65,"../quick.js":172}],170:[function(require,module,exports){
+},{"../Patch.js":22,"../components/Filter.js":41,"../components/Noise":53,"../components/Repeater.js":64,"../quick.js":171}],169:[function(require,module,exports){
 module.exports = {
 	APStack: require("./APStack.js"),
 	APWeb: require("./APWeb.js"),
@@ -9369,7 +9189,7 @@ module.exports = {
 	TriggerGroup: require("./TriggerGroup.js"),
 	Worm: require("./Worm.js")
 }
-},{"./APStack.js":140,"./APWeb.js":141,"./AttenuationMatrix.js":142,"./BandFilter.js":143,"./Boop.js":144,"./ComplexOrbit.js":145,"./DelayMixer.js":146,"./FMOsc.js":147,"./FMSynth.js":148,"./FrequencyGroup.js":149,"./HardBandPass.js":150,"./Karplus.js":151,"./LFO.js":152,"./ManyOsc.js":153,"./MidiOsc.js":154,"./Mixer.js":155,"./MultiTapDelay.js":156,"./OrbittySine.js":157,"./ScaryPatch.js":158,"./SimpleDelay.js":159,"./SineBoop.js":160,"./SineCloud.js":161,"./Space.js":162,"./SpaceBoop.js":163,"./SpaceChannel.js":164,"./StereoDetune.js":165,"./StereoOsc.js":166,"./Synth.js":167,"./TriggerGroup.js":168,"./Worm.js":169}],171:[function(require,module,exports){
+},{"./APStack.js":139,"./APWeb.js":140,"./AttenuationMatrix.js":141,"./BandFilter.js":142,"./Boop.js":143,"./ComplexOrbit.js":144,"./DelayMixer.js":145,"./FMOsc.js":146,"./FMSynth.js":147,"./FrequencyGroup.js":148,"./HardBandPass.js":149,"./Karplus.js":150,"./LFO.js":151,"./ManyOsc.js":152,"./MidiOsc.js":153,"./Mixer.js":154,"./MultiTapDelay.js":155,"./OrbittySine.js":156,"./ScaryPatch.js":157,"./SimpleDelay.js":158,"./SineBoop.js":159,"./SineCloud.js":160,"./Space.js":161,"./SpaceBoop.js":162,"./SpaceChannel.js":163,"./StereoDetune.js":164,"./StereoOsc.js":165,"./Synth.js":166,"./TriggerGroup.js":167,"./Worm.js":168}],170:[function(require,module,exports){
 const patches = require("./patches")
 const components = require("./components")
 
@@ -9379,7 +9199,7 @@ for(var name in patches)
 
 Object.assign(exports, components, patches)
 
-},{"./components":79,"./patches":170}],172:[function(require,module,exports){
+},{"./components":78,"./patches":169}],171:[function(require,module,exports){
 /* quick.js provides a set of operators for combining numbers or signals making
   efficiency savings where possible */
 
@@ -9497,7 +9317,7 @@ exports.mix = function(...inputs) {
   return new Mixer(...inputs)
 }
 
-},{"./components/ConcatChannels.js":37,"./components/Divide.js":41,"./components/HardClipAbove.js":47,"./components/HardClipBelow.js":48,"./components/Multiply.js":53,"./components/PolarityInvert.js":61,"./components/Pow.js":62,"./components/SemitoneToRatio.js":70,"./components/Subtract.js":75,"./components/Sum.js":76,"./patches/Mixer":155}],173:[function(require,module,exports){
+},{"./components/ConcatChannels.js":36,"./components/Divide.js":40,"./components/HardClipAbove.js":46,"./components/HardClipBelow.js":47,"./components/Multiply.js":52,"./components/PolarityInvert.js":60,"./components/Pow.js":61,"./components/SemitoneToRatio.js":69,"./components/Subtract.js":74,"./components/Sum.js":75,"./patches/Mixer":154}],172:[function(require,module,exports){
 const AudioBuffer = require('audio-buffer')
 const Circuit = require('./Circuit')
 
@@ -9558,7 +9378,7 @@ async function renderChannelData(outlet,
 
 module.exports = renderChannelData
 
-},{"./Circuit":18,"audio-buffer":9}],174:[function(require,module,exports){
+},{"./Circuit":17,"audio-buffer":9}],173:[function(require,module,exports){
 const constructExpression = require("./construct/constructExpression.js")
 //const parseExpression = require("./parseDSP/getExpression.js")
 
@@ -9577,7 +9397,7 @@ function unDusp(o) {
 }
 module.exports = unDusp
 
-},{"./construct/constructExpression.js":96}],175:[function(require,module,exports){
+},{"./construct/constructExpression.js":95}],174:[function(require,module,exports){
 const unDusp = require("../unDusp")
 const renderAudioBuffer = require('./renderAudioBuffer')
 const DOTGraph = require('../DOTGraph')
@@ -9867,7 +9687,7 @@ function formatDuration(seconds) {
   return minutes + ":" + seconds
 }
 
-},{"../DOTGraph":19,"../unDusp":174,"./renderAudioBuffer":178}],176:[function(require,module,exports){
+},{"../DOTGraph":18,"../unDusp":173,"./renderAudioBuffer":177}],175:[function(require,module,exports){
 const AudioBuffer = require('audio-buffer')
 
 function channelDataToAudioBuffer(channelData) {
@@ -9885,7 +9705,7 @@ function channelDataToAudioBuffer(channelData) {
 }
 module.exports = channelDataToAudioBuffer
 
-},{"audio-buffer":9}],177:[function(require,module,exports){
+},{"audio-buffer":9}],176:[function(require,module,exports){
 const RenderStream = require("../RenderStream")
 const WritableWAA = require('web-audio-stream/writable')
 
@@ -9913,7 +9733,7 @@ function connectToWAA(outlet, destination) {
 }
 module.exports = connectToWAA
 
-},{"../RenderStream":25,"web-audio-stream/writable":253}],178:[function(require,module,exports){
+},{"../RenderStream":24,"web-audio-stream/writable":208}],177:[function(require,module,exports){
 const renderChannelData = require('../renderChannelData')
 const channelDataToAudioBuffer = require('./channelDataToAudioBuffer')
 
@@ -9923,4826 +9743,14 @@ async function renderAudioBuffer(outlet, duration, options={}) {
 }
 module.exports = renderAudioBuffer
 
-},{"../renderChannelData":173,"./channelDataToAudioBuffer":176}],179:[function(require,module,exports){
-const regOps = require('./util/regOps')
-const PredicateSet = require('./PredicateSet')
-const Sentence = require('./Sentence')
-const NounPhraseSentence = require('./NounPhraseSentence')
-const {getTenseType} = require('./util/conjugate/verbPhrase')
-const DescriptionContext = require("./DescriptionContext")
-const search = require('./search')
-
-class Declarer {
-  constructor(dictionary) {
-    this.entities = [] // an iterator of Entity objects
-    this.ctx = new DescriptionContext()
-    this.dictionary = dictionary
-  }
-
-  findOrSpawn(nounPhraseStr) {
-    let entity = this.findFirst(nounPhraseStr)
-    if(!entity)
-      entity = this.dictionary.spawnSingle(nounPhraseStr)
-
-    return entity
-  }
-
-  findFirst(matchStr) {
-    for(let entity of this.find(matchStr))
-      return entity
-  }
-
-  *find(matchStr, searchLimit=1000) {
-    let ctxMatch = this.ctx.parse(matchStr)
-    if(ctxMatch)
-      return ctxMatch
-
-    for(let match of search(matchStr, this.entities))
-      yield match
-    for(let match of search(matchStr, search.explore(this.entities)))
-      yield match
-  }
-
-  parseNounPhrase(str) {
-    // first check for a simple solution
-    let simple = this.findOrSpawn(str)
-    if(simple)
-      return simple
-
-    // otherwise parse it as a noun phrase using the predicates
-    let interpretations = this.predicates.parseNounPhrase(str)
-
-    // filter interpretations by tense
-    interpretations = interpretations.filter(I => I.tense == 'simple_present')
-
-    // try to find sub-nounPhrases for each possibility until a solution is found
-    for(let {args, predicate, paramIndex, tense} of interpretations) {
-      let solutionArgs = []
-      for(let i in args) {
-        if(predicate.params[i].literal)
-          // pass literal args straight through
-          solutionArgs[i] = args[i]
-        else
-          solutionArgs[i] = this.parseNounPhrase(args[i])
-      }
-
-      if(!solutionArgs.includes(null)) {
-        return new NounPhraseSentence(paramIndex, predicate, solutionArgs)
-      }
-    }
-
-
-    return null
-  }
-
-  declareNounPhrase(strOrSolution) {
-    // if passed a string, parse it first
-    let solution
-    if(strOrSolution.constructor == String)
-      solution = this.parseNounPhrase(strOrSolution)
-    else
-      solution = strOrSolution
-
-
-    // return null is failed to parse string or if passed null
-    if(!solution)
-      return null
-
-    if(solution.isNounPhraseSentence) {
-      let recursiveArgs = solution.recursiveEntityArgs
-      for(let arg of recursiveArgs)
-        this.addEntity(arg)
-
-      solution.start()
-
-      return solution.mainArgument
-    } else {
-      if(solution.isEntity)
-        this.addEntity(solution)
-      return solution
-    }
-
-    return null
-  }
-
-  addEntity(entity) {
-    // add a Entity to the entities
-    if(!entity.isEntity)
-      console.warn('adding a entity which is not a entity')
-
-    if(entity.isEntity && !this.entities.includes(entity)) {
-      this.entities.push(entity)
-      for(let fact of entity.facts)
-        for(let e of fact.entityArgs)
-          this.addEntity(e)
-    }
-
-    this.autoExpandDomain()
-  }
-
-  addEntities(...entities) {
-    for(let entity of entities)
-      this.addEntity(entity)
-  }
-
-  autoExpandDomain() {
-    this.entities = [...search.explore(this.entities)]
-  }
-
-  parse(declarationStr, tenses, forbidSpawn=false) {
-    let interpretations = this.predicates.parse(declarationStr, tenses)
-
-    for(let {args, predicate, tense} of interpretations) {
-      for(let i in args) {
-        let arg = args[i]
-        if(!predicate.params[i].literal) {
-          if(forbidSpawn)
-            args[i] = this.findFirst(arg)
-          else
-            args[i] = this.parseNounPhrase(arg)
-        }
-      }
-
-      if(args.includes(null) || args.includes(undefined))
-        continue
-      else {
-        let sentence = new Sentence(predicate, args)//{args, predicate, tense}
-        sentence.source = 'parsed'
-        sentence.parsed_tense = tense
-        return sentence
-      }
-    }
-
-    // if we get here, we have failed
-    return null
-  }
-
-  parseImperative(declarationStr, subject, forbidSpawn=false) {
-    let interpretations = this.predicates.parseImperative(declarationStr, subject)
-
-    for(let {args, predicate, tense} of interpretations) {
-      for(let i in args) {
-        let arg = args[i]
-        if(!predicate.params[i].literal) {
-          if(forbidSpawn)
-            args[i] = this.findFirst(arg)
-          else
-            args[i] = this.parseNounPhrase(arg)
-        }
-      }
-
-      if(args.includes(null) || args.includes(undefined))
-        continue
-      else {
-        let sentence = new Sentence(predicate, args)//{args, predicate, tense}
-        sentence.source = 'parsed'
-        sentence.parsed_tense = tense
-        return sentence
-      }
-    }
-
-    // if we get here, we have failed
-    return null
-  }
-
-  declare(...declarationStrings) {
-    for(let str of declarationStrings) {
-      this.declareSingle(str)
-    }
-
-    return this
-  }
-
-  declareSingle(str) {
-    let sentence = this.parse(str)
-
-    if(sentence) {
-      let tenseType = getTenseType(sentence.parsed_tense)
-
-      if(tenseType == 'present') {
-        let entitiesToAdd = sentence.recursiveEntityArgs
-        for(let entity of entitiesToAdd)
-          this.addEntity(entity)
-
-        sentence.start()
-        if(sentence.truthValue == 'failed')
-          console.warn('Declaration failed:', str)
-
-      } else if(tenseType == 'past') {
-        let entitiesToAdd = sentence.recursiveEntityArgs
-        for(let entity of entitiesToAdd)
-          this.addEntity(entity)
-
-        sentence.start()
-        sentence.stop()
-      } else {
-        console.warn('declaration with strange tense:', sentence.parsed_tense)
-      }
-
-      this.autoExpandDomain()
-
-      return
-    }
-
-    let imperative = this.parseImperative(str)
-    if(imperative) {
-      console.log('imperative', imperative.str())
-      this.addEntities(...imperative.entityArgs)
-      imperative.start()
-      return
-    }
-
-    let spawned = this.dictionary.spawnSingle(str, this.entities)
-    if(spawned) {
-      this.addEntity(spawned)
-      return spawned;
-    }
-
-    // otherwise
-    spawned = this.dictionary.spawn(str)
-    for(let e of spawned)
-      this.addEntity(e)
-
-  }
-
-  check(str) {
-    let sentence = this.parse(str, undefined, true)
-
-    if(!sentence) {
-      //console.warn("CHECK FAILED, couldn't parse:", str)
-      return false
-    }
-
-    let tenseType = getTenseType(sentence.parsed_tense)
-
-    if(tenseType == 'present')
-      return sentence.trueInPresent()
-    else if(tenseType == 'past')
-      return sentence.trueInPast()
-    else
-      return undefined
-
-  }
-
-  printEntityList() {
-    return this.entities.map(entity => entity.ref())
-  }
-  randomEntity() {
-    return this.entities[Math.floor(Math.random()*this.entities.length)]
-  }
-  randomFact() {
-    return this.randomEntity().randomFact()
-  }
-  randomSentence() {
-    return this.randomEntity().randomSentence()
-  }
-  randomPredicate() {
-    return this.predicates.random()
-  }
-
-  get predicates() {
-    return this.dictionary.predicates
-  }
-}
-module.exports = Declarer
-
-},{"./DescriptionContext":180,"./NounPhraseSentence":187,"./PredicateSet":189,"./Sentence":191,"./search":196,"./util/conjugate/verbPhrase":203,"./util/regOps":210}],180:[function(require,module,exports){
-const ordinal = require('integer-to-ordinal-english')
-
-/**
- * A class used to keep track of context specific terms and mention-histories
- * @class DescriptionContext
- * @constructor
- */
-
-class DescriptionContext {
-  constructor() {
-    /**
-     * list of recent noun-phrase references to objects.
-     * @property {Array} referenceHistory
-     */
-    this.referenceHistory = []
-    // Eg/ {entity: [Entity], str:'a cat'}
-
-    /**
-     * @property {Entity or null} me
-     * @default `null`
-     */
-    this.me = null // who is the first person
-
-    /**
-     * @property {Entity or null} you
-     * @default `null`
-     */
-    this.you = null // who is the second person
-  }
-
-  /**
-   * log a reference to the history
-   * @method log
-   * @param {Entity} entity
-   * @param {String} str
-   */
-  log(entity, str) {
-    this.referenceHistory.push({entity: entity, ref:str})
-
-    if(entity.is_a('person')) {
-      if(entity.pronoun == 'her')
-        this.her = (this.her && this.her != entity ? undefined : entity)
-      else if (entity.pronoun == 'them')
-        this.them = this.them && this.them != entity ? undefined : entity
-      else if (entity.pronoun == 'him')
-        this.him = (this.him && this.him != entity ? undefined : entity)
-    } else
-      this.it = this.it ? undefined : entity
-  }
-
-  /**
-   * get the pronoun of a given entity with respect to this context
-   * @method getPronounFor
-   * @param {Entity} entity
-   * @return {String} "it", "me", "you", "her", "them" or "him"
-   */
-  getPronounFor(entity) {
-    if(entity == this.it)
-      return 'it'
-    if(entity == this.me)
-      return 'me'
-    if(entity == this.you)
-      return 'you'
-    if(entity == this.her)
-      return 'her'
-    if(entity == this.them)
-      return 'them'
-    if(entity == this.him)
-      return 'him'
-  }
-
-  /**
-   * @method parse
-   * @param {String} str
-   * @return {Entity}
-   */
-  parse(str) {
-    switch(str) {
-      case 'me': return this.me;
-      case 'you': return this.you;
-      case 'it': return this.it;
-      case 'him': return this.him;
-      case 'he': return this.him;
-      case 'her': return this.her;
-      case 'she': return this.her;
-      case 'them': return this.them;
-      case 'they': return this.them;
-    }
-  }
-
-  latestMentionOf(entity) {
-    for(let i=this.referenceHistory.length-1; i>=0; i--)
-      if(this.referenceHistory[i].entity == entity)
-        return this.referenceHistory[i].ref
-
-    return null
-  }
-
-  lastNounPhraseletMatch(phraselet) {
-    for(let i=this.referenceHistory.length-1; i>=0; i--) {
-      let e = this.referenceHistory[i].entity
-      if(e.matchesPhraselet(phraselet))
-        return e
-    }
-
-    return null
-  }
-
-  nounPhraseletMatchIndex(e, phraselet) {
-    let alreadyseen = []
-    for(let {entity} of this.referenceHistory) {
-      if(alreadyseen.includes(entity))
-        continue
-      if(entity.matchesPhraselet(phraselet)) {
-        if(entity == e)
-          return alreadyseen.length
-        else
-          alreadyseen.push(entity)
-      }
-    }
-
-    return -1
-  }
-
-  nounPhraseletMatches(phraselet) {
-    let list = []
-    for(let {entity} of this.referenceHistory) {
-      if(list.includes(entity))
-        continue
-      else if(entity.matchesPhraselet(phraselet))
-        list.push(entity)
-    }
-
-    return list
-  }
-
-  getOrdinalAdjectives(entity, phraselet) {
-    let matches = this.nounPhraseletMatches(phraselet)
-    let n = matches.indexOf(entity)
-    if(n != -1 && matches.length > 1) {
-      return [ordinal(n+1).toLowerCase()]
-    } else
-      return null
-  }
-
-  getArticles(entity, phraselet) {
-    // if the entity has been mentioned before, use 'the'
-    if(this.latestMentionOf(entity)) {
-      /*if(this.lastNounPhraseletMatch(phraselet) == entity)
-        return ['this']
-      else*/
-      return ['the']
-    } else {
-      if(this.lastNounPhraseletMatch(phraselet))
-        return ['another']
-      else
-        return ['a']
-    }
-  }
-}
-module.exports = DescriptionContext
-
-},{"integer-to-ordinal-english":219}],181:[function(require,module,exports){
-const PredicateSet = require('./PredicateSet')
-
-const Declarer = require('./Declarer')
-const spawn = require('./spawn2')
-const spawnSingle = require('./spawn')
-const Entity = require('./Entity')
-const Noun = require('./Noun')
-const Sentence = require('./Sentence')
-const EntitySpawner = require('./EntitySpawner')
-const search = require('./search')
-
-/**
- * @class Dictionary
- */
-
-class Dictionary {
-  constructor({adjectives, nouns, predicates} = {}) {
-    this.adjectives = {} // {String:Function, String:Function, ...}
-    this.nouns = {} //{String:Function, String:Function, ...}
-    this.phrasalNouns = [] // [String, String, ...]
-    this.predicates = new PredicateSet
-    this.entitySpawners = []
-
-    if(adjectives)
-      this.addAdjectives(adjectives)
-    if(nouns)
-      this.addNouns(...nouns)
-    if(predicates)
-      this.addPredicates(...predicates)
-  }
-
-  /* Add an adjective to the dictionary */
-  addAdjective(adj, extendFunction) {
-    this.adjectives[adj] = extendFunction
-    return this
-  }
-
-  /* Add adjectives to the dictionary. */
-  addAdjectives(adjectives) {
-    for(let adj in adjectives)
-      this.addAdjective(adj, adjectives[adj])
-  }
-
-  /* Add a noun to the dictionary. */
-  addNoun(noun) {
-    if(noun.dictionary)
-      throw 'Dictionary conflict over noun: ' + noun.noun
-
-    if(!noun.isNoun)
-      noun = new Noun(noun)
-
-    noun.dictionary = this
-
-    this.nouns[noun.noun] = noun
-
-    if(noun.isPhrasal)
-      this.phrasalNouns.push(noun)
-
-    if(noun.spawners)
-      for(let spawner of noun.spawners)
-        this.addEntitySpawner(spawner)
-
-    return this
-  }
-
-  /* Add nouns to the dictionary */
-  addNouns(...nouns) {
-    for(let noun of nouns)
-      this.addNoun(noun)
-    return this
-  }
-
-  /* Add predicates to the dictionary */
-  addPredicates(...predicates) {
-    this.predicates.addPredicates(...predicates)
-    return this
-  }
-
-  addEntitySpawner(spawner) {
-    if(spawner.dictionary)
-      throw 'Dictionary conflict over entity spawner: '+spawner.template
-    if(!spawner.isEntitySpawner)
-      spawner = new EntitySpawner(spawner)
-    this.entitySpawners.push(spawner)
-    spawner.dictionary = this
-
-    return this // chainable
-  }
-
-  addEntitySpawners(...spawners) {
-    for(let spawner of spawners)
-      this.addEntitySpawner(spawner)
-  }
-
-
-  quickDeclare(...strings) {
-    let dec = new Declarer(this)
-
-    dec.declare(...strings)
-
-    return dec.entities
-  }
-
-  createEntity() {
-    return new Entity(this)
-  }
-
-  spawn(...strings) {
-    return spawn(this, ...strings)
-  }
-
-  spawnSingle(str, domain) { // domain is an Entity or an iterable of Entities
-    return spawnSingle(this, str, domain)
-  }
-
-  findOrSpawn(matchStr, domain) {
-    let result = null
-    if(domain)
-      result = search.first(matchStr, domain)
-    if(result)
-      return result
-    else
-      return this.spawnSingle(matchStr, domain)
-  }
-
-  S(predicate, ...args) {
-    if(predicate.constructor == String)
-      predicate = this.predicates.byName[predicate]
-
-    let sentence = new Sentence(predicate, args)
-    sentence = sentence.trueInPresent() || sentence
-    return sentence
-  }
-}
-module.exports = Dictionary
-
-},{"./Declarer":179,"./Entity":182,"./EntitySpawner":183,"./Noun":186,"./PredicateSet":189,"./Sentence":191,"./search":196,"./spawn":197,"./spawn2":198}],182:[function(require,module,exports){
-// Entity is the base class of all entities in EntityGame.
-const regOps = require('./util/regOps.js')
-const RandExp = require('randexp')
-const spellcheck = require('./util/spellcheck')
-//const {beA, be} = require('./predicates')
-const Sentence = require('./Sentence')
-
-const entityStr = require('./entityStr')
-const {toRegexs} = require('./util/specarr')
-
-//const consistsOfTree = require('./nouns/consistsOfTree')
-
-const EventEmitter = require('events')
-
-// MORE REQUIRES AT BOTTOM
-
-/**
- * Entity represents an object in the world. It is half derived from the word
- * 'noun', half from the word 'entityenon'. Though it fits the definition of
- * neither precisely.
- * @class Entity
- * @extends EventEmitter
- * @constructor
- */
-
- /**
-  * @event fact
-  * @param {Sentence} sentence The new fact.
-  */
-
-/**
- * Emitted whenever the object changes location.
- * @event move
- * @param {Entity} oldLocation
- * @param {Entity} newLocation
- * @param {String} oldLocationType
- * @param {String} newLocationType
- */
-/**
- * Emitter whenever a parent location of the object changes location
- * @event parentMove
- */
-/**
- * @event childEnter
- */
-/**
- * @event childExit
- */
-
-/**
- * @event exited
- * @param {Entity} location
- * @param {String} locationType
- */
-
-/**
- * @event entered
- * @param {Entity} location
- * @param {String} locationType
- */
-
-
-
-class Entity extends EventEmitter {
-  constructor(dictionary=null) {
-    super()
-
-    /**
-     * @property {Dictionary} dictionary
-     */
-    this.dictionary = dictionary
-
-    /**
-     * A list of noun-strings which describe the entity.
-     * @property {Array} nouns
-     */
-    this.nouns = []
-
-    /**
-     * A list of adjective strings which describe the entity.
-     * @property {Array} adjectives
-     */
-    this.adjectives = []
-
-    /**
-     * A special array (see src/util/specarr.js) detailing proper nouns that
-     * can be used to describe the Entity.
-     * @property {SpecialArray} properNouns
-     */
-    this.properNouns = [entity => entity.name]
-
-    /**
-     * A list of sentences which are true in the present tense and have the entity
-     * as one of their arguments.
-     * @property {Array} facts
-     */
-    this.facts = []
-
-    /**
-     * A list of sentences which are true in the past tense and have the entity as
-     * one of their arguments.
-     * @property {Array} history
-     */
-    this.history = []
-
-    /**
-     * An object describing the preposition clauses which the entity can be
-     * described with. The values of the object are SpecialArrays, indexed by
-     * the preposition.
-     * @property {Object} prepositionClauses
-     */
-    this.prepositionClauses = {}
-    // ^(each key is a preposition, each value a specarr)
-
-    // SOUND:
-    /*
-     * A list of Sound objects which have the entity as an origin
-     * @property {Array} nowPlayingSounds
-     */
-    //this.nowPlayingSounds = []
-    /*
-     * @property {SoundPlayer} soundPlayer
-     */
-    //this.soundPlayer = null
-  }
-
-  /**
-   * Attach an adjective to the entity.
-   * @method be
-   * @param {String} adjective The adjective to attach
-   * @param {Dictionary} [dictionary = this.dictionary]
-   * @chainable
-   * @throws {String} In the case that the adjective is not in the dictionary.
-   */
-  be(adjective, dictionary=this.dictionary) {
-    if(!dictionary)
-      throw 'Entity .be() needs a Dictionary'
-    // load an adjective extension
-    if(this.is(adjective))
-      return this
-
-    if(dictionary.adjectives[adjective]) {
-
-      dictionary.adjectives[adjective](this)
-      if(!this.adjectives.includes(adjective))
-        this.adjectives.push(adjective)
-
-      return this
-    } else
-      throw 'no such adjective: ' + adjective
-  }
-
-  /**
-   * Check whether a given adjective is attached to the entity
-   * @method is
-   * @param {String} adjective
-   * @return {Boolean}
-   */
-  is(adjective) {
-    return this.adjectives.includes(adjective)
-  }
-
-  /**
-   * Remove a given adjective from the entity.
-   * @method stopBeing
-   * @param {String} adj
-   */
-  stopBeing(adj) {
-    this.adjectives = this.adjectives.filter(a => a != adj)
-    let sentence = Sentence.S(be, this, adj)
-    for(let fact of this.facts) {
-      if(Sentence.compare(sentence, fact))
-        fact.stop()
-    }
-  }
-
-  /**
-   * Inherit properties from a given noun. This enables a non-hierachical
-   * inheritance structure for entities. The dictionary of nouns is defined in
-   * `src/nouns/index.js`.
-   * @method be_a
-   * @param {String} classname The noun to inherit properties from
-   * @param {Dictionary} [dictionary = this.dictionary]
-   * @chainable
-   * @throws {String} In the case that the noun-string is not in the dictionary.
-   */
-  be_a(classname, dictionary=this.dictionary) {
-    // load a noun extension
-    if(!dictionary)
-      throw '.be_a() needs a Dictionary'
-
-    // don't load the same extension twice
-    if(this.is_a(classname))
-      return this
-
-    let noun = dictionary.nouns[classname]
-    if(noun) {
-      // strings can be used as aliases to other classes
-      while(noun.alias) {
-        classname = dictionary.nouns[noun.alias]
-        noun = dictionary.nouns[classname]
-      }
-
-      if(noun.extend)
-        noun.extend(this)
-
-      if(!this.nouns.includes(classname))
-        this.nouns.push(classname)
-
-      // consistsOfTree
-      /*let parts = consistsOfTree[classname]
-      if(parts) {
-        // spawn parts
-        parts = spawn(dictionary, ...parts)
-        for(let part of parts)
-          part.setLocation(this, 'consist')
-      }*/
-
-      // start `beA` sentence
-      //new Sentence(beA, [this, classname]).start()
-
-      /**
-       * Emitted whenever the entity becomes a new noun.
-       * @event becomeNoun
-       * @param {String} classname
-       */
-      this.emit('becomeNoun', classname)
-
-      return this
-    } else
-      throw 'no such entityclass: ' + classname
-  }
-
-  /**
-   * Check whether the entity inherits from a given noun.
-   * @method is_a
-   * @param {String} classname The noun to check.
-   * @return {Boolean}
-   */
-  is_a(classname) {
-    return this.nouns.includes(classname)
-  }
-
-  /**
-   * Compiles a regex for all possible noun-phrase strings for the entity.
-   * @method reg
-   * @param {Number} [depth=1]
-   *  Limits the recursive depth for preposition phrases / embedded noun-phrases
-   * @return {RegExp}
-   */
-  reg(depth=1) {
-    let nounPhraseRegex = regOps.concatSpaced(
-      /a|an|the/,
-      this.nounPhraseletRegex(depth),
-    )
-
-    return regOps.or(
-      nounPhraseRegex,
-      ...toRegexs(this, this.properNouns, depth),
-    )
-  }
-
-  nounPhraseletRegex(depth=1) {
-    // Compile a regex for all possible noun-phraselet strings for this entity.
-    // A noun-phraselet is a noun-phrase without an article, or context
-    // specific adjectives.
-
-    let reg = regOps.or(...this.nouns)
-
-    let adjRegex = this.adjRegex()
-    if(adjRegex){
-      adjRegex = regOps.kleeneJoin(adjRegex, ',? ')
-      reg = regOps.concat(
-        regOps.optional(
-          regOps.concat(adjRegex, ' ')
-        ),
-        reg
-      )
-    }
-
-
-    depth--;
-    if(depth > 0) {
-      let clauseRegex = this.clauseRegex(depth)
-      if(clauseRegex)
-        reg = regOps.optionalConcatSpaced(
-          reg, clauseRegex
-        )
-    }
-
-    return reg
-  }
-
-  /**
-   * @method clauseRegex
-   * @param {Number} depth Limits the recursive depth for embedded noun-phrases
-   * @return {RegExp}
-   *  A regular expression for any preposition phrase that can be included in
-   *  a noun phrase for the entity. Or `null` if there are no prepositions
-   *  clauses.
-   */
-  clauseRegex(depth) {
-    let all = []
-    for(let prep in this.prepositionClauses) {
-      let clauses = this.prepositionClauses[prep]
-      let regexs = toRegexs(this, clauses, depth)
-      if(regexs.length)
-        all.push(regOps.concatSpaced(prep, regOps.or(...regexs)))
-    }
-
-    if(all.length)
-      return regOps.or(...all)
-    else
-      return null
-  }
-
-  /**
-   * Compile a regular expression for any adjective that can be used to
-   * describe this entity.
-   * @method adjRegex
-   * @return {RegExp or Null}
-   */
-  adjRegex() {
-    let regexs = toRegexs(this, this.adjectives)
-    if(regexs.length)
-      return regOps.or(...regexs)
-    else
-      return null
-  }
-
-  /**
-   * Test whether this entity matches a given noun-phrase string.
-   * @method matches
-   * @param {String} str
-   * @return {Boolean}
-   */
-  matches(str) {
-    // test this entity's regex against a string
-    return regOps.whole(this.reg(2)).test(str)
-  }
-
-  matchesPhraselet(str) {
-    // test this entity's noun phraselet regex againt a string
-    return regOps.whole(this.nounPhraseletRegex(2)).test(str)
-  }
-
-  /**
-   * Randomly generate a noun-phrase that describes this entity
-   * @method ref
-   * @deprecated use .str() instead
-   * @param ctx {DescriptionContext}
-   * @param {Object} options
-   * @return {String}
-   */
-  ref(ctx, options) {
-    // come up with a random noun phrase to represent this entity
-    return entityStr(this, ctx, options)
-  }
-
-  /**
-   * Randomly generate a noun-phrase that describes this entity
-   * @method str
-   * @param ctx {DescriptionContext}
-   * @param {Object} options
-   * @return {String}
-   */
-  str(ctx, options) {
-    return entityStr(this, ctx, options)
-  }
-
-  addNoun(noun) {
-    if(!this.nouns.includes(noun))
-      this.nouns.push(noun)
-  }
-
-  removeNoun(noun) {
-    let i = this.nouns.indexOf(noun)
-    if(i != -1)
-      this.nouns.splice(i, 1)
-    else
-      console.warn(
-        'tried to remove noun,', noun, ', that was not added to ', this.str()
-      )
-  }
-
-  addAdjective(adjective) {
-    if(!this.adjectives.includes(adjective))
-      this.adjectives.push(adjective)
-  }
-
-  removeAdjective(adjective) {
-    let i = this.adjectives.indexOf(adjective)
-    if(i != -1)
-      this.adjectives.splice(i, 1)
-    else
-      console.warn(
-        'tried to remove adjective,', adjective, ', that was not added to ',
-        this.str()
-      )
-  }
-
-  /**
-   * Attaches a preposition clause to the entity
-   * @method addClause
-   * @param {String} prep The preposition
-   * @param clause The clause following the preposition.
-   */
-  addClause(prep, clause) {
-    // add a preposition clause to this Entity
-    // the clause may be any unexpanded cell of a specarr
-    if(!this.prepositionClauses[prep])
-      this.prepositionClauses[prep] = [clause]
-    else
-      this.prepositionClauses[prep].push(clause)
-  }
-
-  /**
-   * Remove a given preposition clause from the entity
-   * @method removeClause
-   * @param {String} prep The preposition
-   * @param {String, Substitution, Function or Entity} clause
-      The clause following the preposition
-   */
-  removeClause(prep, clause) {
-    // remove a given preposition clause from this Entity
-    let list = this.prepositionClauses[prep]
-    if(list)
-      this.prepositionClauses[prep] = list.filter(cl => cl != clause)
-  }
-
-  /**
-   * Choose a random sentence which is presently true has this entity as an
-   * argument.
-   * @method randomFact
-   * @return {Sentence}
-   */
-  randomFact() {
-    return this.facts[Math.floor(Math.random() * this.facts.length)]
-  }
-
-  /**
-   * Choose a random sentence which is true in the past-tense and has this entity
-   * as an argument.
-   * @method randomHistoricFact
-   * @return {Sentence}
-   */
-  randomHistoricFact() {
-    return this.history[Math.floor(Math.random() * this.history.length)]
-  }
-
-  /**
-   * Choose a random sentence, true in the past or present tense, and has this
-   * entity as an argument.
-   * @method randomSentence
-   * @return {Sentence}
-   */
-  randomSentence() {
-    if(Math.random() * (this.facts.length + this.history.length) < this.facts.length)
-      return this.randomFact()
-    else
-      return this.randomHistoricFact()
-  }
-}
-Entity.prototype.isEntity = true
-module.exports = Entity
-
-
-const spawn = require('./spawn2')
-
-},{"./Sentence":191,"./entityStr":194,"./spawn2":198,"./util/regOps.js":210,"./util/specarr":212,"./util/spellcheck":213,"events":275,"randexp":239}],183:[function(require,module,exports){
-const Substitution = require('./util/Substitution')
-const getNounPhraselet = require('./util/getNounPhraselet')
-const regops = require('./util/regops')
-const search = require('./search')
-const parseList = require('./util/politeList').parse
-
-const placeholderRegex = /(?:@|#|L)?_/g
-/*
-  /(?:@|#|L)_/
-  @: literal
-  #: number
-  L: list
-*/
-
-/**
- * @class EntitySpawner
- * @constructor
- * @param options
- * @param {String} options.template
- *  The template string describing the syntax of the entity spawner.
- * @param {Function} construct
- *  A function which takes a list of arguments (parsed from a string) and
- *  returns an entity.
- * @param {} format
- *  The inverse of construct, takes an entity and returns an array of arguments.
- */
-class EntitySpawner {
-  constructor({template, construct, format, phraseletMode=true}) {
-    this.phraseletMode = phraseletMode
-
-    this.template = template
-    this.unboundRegex = new RegExp(
-      this.template.replace(placeholderRegex, '(.+)')
-    )
-    this.regex = regops.whole(this.unboundRegex)
-
-    let placeholders = this.template.match(placeholderRegex)
-    if(placeholders)
-      this.params = placeholders.map(ph => ({
-        entity: ph[0] == '_',
-        number: ph[0] == '#',
-        literal: ph[0] == '@',
-        list: ph[0] == 'L',
-      }))
-    else
-      this.params = []
-
-    this._construct = construct
-  }
-
-  parse(str, domain) {
-    if(this.phraseletMode)
-      str = getNounPhraselet(str).phraselet
-
-    let result = this.regex.exec(str)
-    if(result) {
-      let args = result.slice(1)
-      for(let i in args) {
-        if(this.params[i].literal)
-          continue
-        if(this.params[i].number) {
-          args[i] = parseFloat(args[i])
-          if(isNaN(args[i]))
-            return null
-        }
-      }
-
-      // parse entities last to reduce the risk of dropping a spawned entity
-      for(let i in args)
-        if(this.params[i].entity) {
-          args[i] = this.dictionary.findOrSpawn(args[i], domain)
-          if(!args[i])
-            return null
-        } else if(this.params[i].list) {
-          let list = parseList(args[i])
-          if(list)
-            for(let j in list) {
-              list[j] = this.dictionary.findOrSpawn(list[j], domain)
-              if(!list[j])
-                return null
-            }
-          args[i] = list
-        }
-      // BUG STILL EXISTS WAITIMG!! Need to delay spawner construction
-
-
-      return {
-        entitySpawner: this,
-        args: args,
-      }
-    } else
-      return null
-  }
-
-  compose(...args) {
-    return new Substitution(this.template, ...args)
-  }
-
-  str(args) {
-    return this.compose(...args).str()
-  }
-
-  construct(...args) {
-    if(this._construct)
-      return this._construct(...args)
-    else
-      throw "EntitySpawner's ._construct() is not defined: " + this.template
-  }
-}
-EntitySpawner.prototype.isEntitySpawner = true
-module.exports = EntitySpawner
-
-},{"./search":196,"./util/Substitution":199,"./util/getNounPhraselet":204,"./util/politeList":209,"./util/regops":211}],184:[function(require,module,exports){
-const {sub} = require('./util/Substitution')
-const specarr = require('./util/specarr')
-
-function entityStr(entity, ctx, options={}) {
-  // Convert a entity into a noun phrase string.
-
-  if(typeof options == 'number')
-    options = {maxDetails: options}
-
-
-  // max details default logic, yuck
-  if(options.maxDetails == undefined)
-    options.maxDetails = 0
-  if(options.maxAdjectives == undefined) {
-    if(options.maxPrepositionClauses == undefined) {
-      // both undefined, distribute at random
-      options.maxPrepositionClauses = Math.floor(Math.random() * (options.maxDetails+1))
-      options.maxAdjectives = options.maxDetails - options.maxPrepositionClauses
-    } else
-      // only maxAdjectives is undefined
-      options.maxAdjectives = options.maxDetails-options.maxPrepositionClauses
-  } else if(options.maxPrepositionClauses == undefined)
-    // only maxPrepositionClauses is undefined
-    options.maxPrepositionClauses = options.maxDetails-options.maxAdjectives
-
-  delete options.maxDetails
-
-  // destructure options and apply default values
-  let {
-    //maxDetails = undefined, // max number of details to give (including nested)
-    maxAdjectives = undefined,  // max number of adjectives to use (inc. nested)
-    maxPrepositionClauses=undefined,  // max number of preposition clauses to use (inc. nested)
-    nounSpecificness=1,     // scale 0-1, how specific should the noun be
-    //dontMention,          // list of entities not to mention
-    //recursionDepth=3,       // limit the number of recursive entityStr calls
-  } = options
-  delete options.article
-
-  // COMPOSE THE NOUN PHRASE
-
-  // choose a noun
-  let out = entity.nouns[Math.floor(nounSpecificness*(entity.nouns.length-0.5))]
-
-  // choose and apply preposition clauses
-  if(maxPrepositionClauses) {
-    let nClauses = Math.floor(Math.random() * (maxPrepositionClauses+1))
-    if(nClauses) {
-      // prepare list of all possible clauses
-      let allClauses = []
-      for(let prep in entity.prepositionClauses)
-        allClauses.push(...specarr.expand(entity, entity.prepositionClauses[prep]).map(
-          clause => sub('_ _', prep, clause)
-        ))
-
-      // chooses clauses to use
-      let clauses = []
-      for(let i=0; i<nClauses && allClauses.length; i++) {
-        clauses.push(
-          allClauses.splice(Math.floor(Math.random() * allClauses.length), 1)
-        )
-
-        // decrement maxPrepositionClauses in options (effects recursive calls/callers)
-        options.maxPrepositionClauses--
-      }
-
-      // append chosen clauses to output
-      if(clauses.length)
-        out = sub('_ _', out, clauses.sort(() => Math.random()*2-1))
-    }
-  }
-
-  // choose and apply adjectives
-  if(maxAdjectives) {
-    let nAdjs = Math.floor(Math.random() * (maxAdjectives+1)) + 1
-    if(nAdjs) {
-      let allAdjs = specarr.expand(entity, entity.adjectives)
-
-      // choose adjectives
-      let adjs = []
-      for(let i=0; allAdjs.length && i<nAdjs; i++) {
-        adjs.push(allAdjs.splice(Math.floor(Math.random() * allAdjs.length), 1))
-        options.maxAdjectives--
-      }
-
-      // prepend chosen adjectives to output
-      if(adjs.length)
-        out = sub('_ _', adjs.sort(() => Math.random()*2-1), out)
-    }
-  }
-
-  if(out.isSubstitution)
-    return out.str(ctx, options)
-  else if(out.constructor == String)
-    return out
-  else
-    throw 'strange output: '+str
-}
-module.exports = entityStr
-
-},{"./util/Substitution":199,"./util/specarr":212}],185:[function(require,module,exports){
-const EventEmitter = require('events')
-const Sentence = require('./Sentence')
-
-/**
-  The FactListener class is a convenient class for handling event listeners on
-  multiple Entitys at once.
-  @class FactListener
-  @constructor
-  @extends EventEmitter
-  @param {Entity} [...entities]
-    A list of member entities to add to the new fact listener.
-*/
-
-class FactListener extends EventEmitter {
-  constructor(...entities) {
-    // call superconstructor
-    super()
-
-    // list of member entities
-    this.entities = []
-
-    // last emitted fact (used to avoid duplicates)
-    this.lastFact = null
-
-    // function to be called by entity event listeners
-    this.callback = sentence => {
-      // if fact is not a duplicate, emit a fact event
-      if(!this.lastFact || !Sentence.compare(this.lastFact, sentence))
-        this.emit('fact', sentence)
-
-      this.lastFact = sentence
-    }
-
-    // add constructor arguments to member list
-    for(let entity of entities)
-      this.add(entity)
-  }
-
-  /**
-   * Adds a single entity member.
-   * @method add
-   * @param {Entity} entity The entity to be added.
-   * @return {null}
-   */
-  add(entity) {
-    // throw an error if argument is not a entity
-    if(!entity.isEntity)
-      throw 'FactListener add() expects a entity'
-    this.entities.push(entity)
-    entity.on('fact', this.callback)
-
-  }
-
-  /**
-    * Removes a single entity member.
-    * @method remove
-    * @param {Entity} entity The entity to be added.
-    * @return {null}
-    */
-  remove(entity) {
-    if(this.entities.includes(entity)) {
-      // remove event listener
-      entity.removeListener('fact', this.callback)
-
-      // remove entity from member list.
-      let i = this.entities.indexOf(entity)
-      this.entities.splice(i, 1)
-    } else
-      console.warn('attempt to remove entity from fact listener to which it is not a member')
-  }
-
-  /**
-    * Remove all entities members
-    * @method clear
-    * @return {null}
-    */
-  clear() {
-    for(let entity of this.entities)
-      this.remove(entity)
-  }
-}
-module.exports = FactListener
-
-
-// PROBLEMS:
-// - Eliminating duplicates.
-
-},{"./Sentence":191,"events":275}],186:[function(require,module,exports){
-/**
- * @class Noun
- * @constructor
- * @param {Object|String} options
- * @param {String} options.noun
- * @param {String|Array} options.inherits String or array of strings.
- * @param {Function} options.extendFunction
- * @param {Array} options.constructors
- */
-
-class Noun {
-  constructor(options) {
-    // handle strings
-    if(options.constructor == String)
-      options = {noun:options}
-
-    let {noun, inherits=[], extend, alias, spawners=[]} = options
-
-    this.noun = noun
-
-    if(inherits.constructor == String)
-      this.inherits = [inherits]
-    else if(inherits.constructor == Array)
-      this.inherits = inherits
-
-    if(extend)
-      this.extendFunction = extend
-
-    this.alias = alias
-
-    this.spawners = spawners.slice()
-
-    this.isPhrasal = / /.test(this.noun)
-  }
-
-  extend(entity) {
-    for(let base of this.inherits)
-      entity.be_a(base)
-
-    if(this.extendFunction)
-      this.extendFunction(entity)
-  }
-}
-module.exports = Noun
-
-},{}],187:[function(require,module,exports){
-/**
-  A subclass of Sentence. This class is used to represent a sentence (predicate
-  + arguments) in the form of a noun. For example, "the cigarette that he was
-  smoking".
-
-  A NounPhraseSentence can be used as an argument in another sentence.
-  @class NounPhraseSentence
-  @extends Sentence
-  @constructor
-  @param {Number} mainArgumentIndex
-  @param {Predicate} predicate
-  @param {Array} args
-*/
-
-const Sentence = require('./Sentence')
-
-class NounPhraseSentence extends Sentence {
-  constructor(mainArgumentIndex, predicate, args) {
-    super(predicate, args)
-    this.mainArgumentIndex = mainArgumentIndex
-  }
-
-  /**
-   * @attribute mainArgument
-   * @readOnly
-   */
-  get mainArgument() {
-    return this.args[this.mainArgumentIndex]
-  }
-}
-NounPhraseSentence.prototype.isNounPhraseSentence = true
-module.exports = NounPhraseSentence
-
-},{"./Sentence":191}],188:[function(require,module,exports){
-const PredicateSyntax = require('./PredicateSyntax')
-
-/**
-  @class Predicate
-  @constructor
-  @param {Object} [options] Options for constructing the predicate.
-  @param {String} [options.verb] The verb of the predicate.
-  @param {Array}  [options.params]
-  @param {Array}  [options.forms] Alternatively multiple syntaxes can be defined using an
-                         array of verb/params/constants objects.
-  @param {Function} [options.skipIf]
-  @param {Function} [options.replace]
-  @param {Function} [options.prepare]
-  @param {Function} [options.problem]
-  @param {Function} [options.check]
-  @param {Function} [options.begin]
-  @param {Function} [options.meanwhile]
-  @param {Function} [options.expand]
-  @param {Function} [options.until]
-  @param {Function} [options.afterwards]
-  @param {Boolean}  [options.banal=false]
-*/
-
-class Predicate {
-  constructor({
-    // syntax(s) description
-    verb, params=['subject'], // used if initialising with only one form
-    forms=[],
-    // semantic functions
-    begin, expand, check, until, afterwards, prepare, skipIf, replace, problem, meanwhile,
-    banal=false,
-  }) {
-    // if verb and params are given, initialise with one form
-    if(verb && params)
-      forms.unshift({verb: verb, params:params})
-
-    // initialise forms as PredicateSyntax objects
-    this.forms = forms.map(form => new PredicateSyntax(form))
-
-    // check that form parameters agree
-    this.params = this.forms[0].params.map(param => {
-      return {
-        literal: param.literal
-      }
-    })
-    for(let syntax of this.forms) {
-      if(syntax.params.length != this.params.length)
-        throw 'Predicate has incompatible forms'
-      for(let i in syntax.params)
-        if(syntax.params[i].literal != this.params[i].literal)
-          throw 'Predicate has incompatible forms'
-    }
-
-    // sort forms by specificness
-    this.forms = this.forms.sort((A, B) => B.specificness - A.specificness)
-    // overall specificness is the maximum specificness of the predicates forms
-    this.specificness = this.forms[this.forms.length-1].specificness
-
-    // semantic functions:
-    /**
-      `skipIf` is called as when starting a sentence. If it returns a truthy
-      value then the sentence will cancel starting and won't happen. Should
-      generally be used to check whether an action is unnecessary because its
-      outcome is already true.
-      @property {Function} skipIf
-    */
-    this.skipIf = skipIf
-
-    /**
-     * `replace` is called when starting a sentence. If it returns a truthy
-     * value then the sentence will cancel starting and won't happen. The
-     * returned sentences will be started instead. Should be used to correct
-     * lazy user input.
-     */
-    this.replace = replace
-
-    /**
-      `_prepare` is called before a sentence happens. If it returns a sentence
-      or list of sentences, these sentences will be executed consequetively
-      before the original sentence happens.
-      @property {Function} _prepare
-    */
-    this._prepare = prepare
-
-    /**
-     * Problem returns truthy if the sentence is illegal.
-     * @property {Function} problem
-     */
-    this.problem = problem
-
-    /**
-     `check` is called to decide whether it is necessary to call `_begin`.
-      If it returns truthy then `_begin` will be skipped, the start process
-      will not be cancelled however. Its secondary purpose is for answering
-      question sentences (true/false) when they have not been specifically
-      declared as sentences.
-      @property {Function} check
-    */
-    this.check = check
-
-    /**
-      * `_begin` is called directly after the sentence happens. So far, the
-      * return value is ignored.
-      * @property {Function} _begin
-      */
-    this._begin = begin
-
-    /**
-     * `meanwhile` is called directly after a sentence happens (after `_begin`)
-     * if it returns a sentence, or list of sentences, these will be started
-     * using the original sentence as a cause. In other words, they will be
-     * stopped as soon the original sentence finishes.
-     */
-    this.meanwhile = meanwhile
-
-    /**
-      * `_expand` works in a similar way to `_prepare` except it is called
-      * immediately after a sentence happens. If it returns a sentence, or an
-      * array of sentences, these will be executed consequetively and the main
-      * sentence will be stopped after the last one finishes.
-      * @property {Function} _expand
-      */
-    this._expand = expand
-
-    /**
-      * `until` is called immediately after a sentence happens (after
-      * `_expand`). It has an additional callback arguemnt (prepended) which,
-      * when called will stop the sentence.
-      * @property {Function} until
-      */
-    this.until = until
-
-    /**
-      * `_afterwards` is immediately after the sentence stops. If it returns a
-      * sentence or an array of sentences, these will be executed simultaneously
-      * @property {Function} _afterwards
-      */
-    this._afterwards = afterwards
-
-    /**
-     * If a predicate is marked banal, sentences using it will be ignored by
-     * certain processes to do with story telling.
-     * @property {Boolean} banal
-     * @default false
-     */
-     this.banal = banal
-  }
-
-  /**
-   * Checks whether a given list of arguments are of the right type to fit the
-   * parameters of a predicate.
-   * @method checkArgs
-   * @param {Array} args
-   * @return {Boolean}
-   */
-  checkArgs(args) {
-    if(this.params.length != args.length) {
-      console.warn('wrong number of arguments!')
-      return false // whoops, wrong number of arguments!
-    }
-
-    for(let i in args) {
-      let arg = args[i]
-      if(this.params[i].literal) {
-        // parameter is flagged literal so argument should be a string
-        if(arg.constructor == String)
-          continue
-        else {
-          return false
-        }
-
-      } else if(arg.isEntity)
-        // non-literal args must be a Entity or a NounPhraseSentence
-        continue
-      else if(arg.isNounPhraseSentence && arg.checkArgs())
-        continue
-    }
-
-    // we got to the end, so the arguments are legal
-    return true
-  }
-
-  /** Prase a string against a given list of tenses
-      @method parse
-      @param {String} str The String to parse
-      @param {Array} tenses List of tenses to parse the string against
-      @return {Sentence}
-        A sentence with string placeholders as arguments or null (if cannot be
-        parsed)
-  */
-  parse(str, tenses) {
-    for(let form=0; form<this.forms.length; form++) {
-      let syntax = this.forms[form]
-      let interpretation = syntax.parse(str, tenses)
-      if(interpretation) {
-        interpretation.predicate = this
-        interpretation.form = form
-        return interpretation
-      }
-    }
-    return null
-  }
-
-  /**
-      Parses a string using the imperative tense, for a given subject
-      @method parseImperative
-      @param {String} str The NL string to be parsed.
-      @param {Entity} subject The subject of the sentence.
-      @return {Sentence}
-        A sentence with string placeholders as arguments (except the subject)
-        or `null` in the case that the string cannot be parsed.
-  */
-  parseImperative(str, subject) {
-    for(let form=0; form<this.forms.length; form++) {
-      let syntax = this.forms[form]
-      let interpretation = syntax.parseImperative(str, subject)
-      if(interpretation) {
-        interpretation.predicate = this
-        interpretation.form = form
-        return interpretation
-      }
-    }
-    return null
-  }
-
-  /**
-   * Parses a string in noun phrase form, referring to one of the arguments.
-   * For example, "The cup that is on the table".
-   * @method parseNounPhrase
-   * @param {String} str The string to be parsed
-   * @return {Sentence} A sentence with string placeholders as arguments, or
-                        `null` in the case that the string cannot be parsed.
-   */
-  parseNounPhrase(str) {
-    for(let form=0; form<this.forms.length; form++) {
-      let syntax = this.forms[form]
-      let interpretation = syntax.parseNounPhrase(str)
-      if(interpretation) {
-        interpretation.predicate = this
-        interpretation.form = form
-        return interpretation
-      }
-    }
-  }
-
-  /**
-   * Generate an english string version of the predicate for a given set of
-   * arguments in a given tense.
-   * @method str
-   * @param {Object} details
-   * @param {Array} details.args
-   *  The list of arguments for the sentence.
-   * @param {String} [details.tense = "simple_present"]
-   *  The tense in which to compose the sentence. (see verbPhrase.js)
-   * @param {Number} [details.form = 0]
-   *  The index of the syntactic form to be used (for predicates with multiple
-   *  forms)
-   * @param {DescriptionContext} [ctx]
-   *  An object describing the context for which the string is being generated.
-   * @param {Object} [options]
-   *  The entityStr options, dictating preferences for how entity arguments should
-   *  be written.
-   * @return {String} The written sentence.
-   */
-  str({args, tense, form}, ctx, options) {
-    return this.compose({args:args, tense:tense, form:form}).str(ctx, options)
-  }
-
-  /**
-   * Prepare an english version of the predicate for a given set of
-   * arguments in a given tense.
-   * @method compose
-   * @param {Object} details
-   * @param {Array} details.args
-   *  The list of arguments for the sentence.
-   * @param {String} [details.tense = "simple_present"]
-   *  The tense in which to compose the sentence. (see verbPhrase.js)
-   * @param {Number} [details.form = 0]
-   *  The index of the syntactic form to be used (for predicates with multiple
-   *  forms)
-   * @param {Object} verbPhraseOptions
-   * @return {Substitution} A substitution ready to format the sentence.
-   */
-  compose({args, tense, form}, verbPhraseOptions) {
-    if(form == undefined)
-      form = Math.floor(Math.random()*this.forms.length)
-    return this.forms[form].compose(
-      {args:args, tense:tense},
-      verbPhraseOptions,
-    )
-  }
-
-  /**
-   * Generate a set of preposition clauses for a particular argument.
-   * @method presentPrepositionClausesFor
-   * @param {Number} argIndex
-   *  The index of of the argument to generate clauses for.
-   * @param {Array} args The complete list of arguments.
-   * @return {Array}
-   *  An array of preposition (string) clause (substitution) pairs.
-   */
-  presentPrepositionClausesFor(argIndex, args) {
-    let list = []
-    for(let syntax of this.forms)
-      list.push(...syntax.presentPrepositionClausesFor(argIndex, args))
-
-    return list
-  }
-
-  /**
-   * Generate a set of preposition clauses for a particular argument in the
-   * past tense.
-   * @method pastPrepositionClausesFor
-   * @param {Number} argIndex
-   *  The index of of the argument to generate clauses for.
-   * @param {Array} args The complete list of arguments.
-   * @return {Array}
-   *  An array of preposition (string) clause (substitution) pairs.
-   */
-  pastPrepositionClausesFor(argIndex, args) {
-    let list = []
-    for(let syntax of this.forms)
-      list.push(...syntax.pastPrepositionClausesFor(argIndex, args))
-
-    return list
-  }
-
-  get names() {
-    let list = []
-    for(let form of this.forms) {
-      list.push(form.camelCaseName)
-    }
-    return list
-  }
-}
-Predicate.prototype.isPredicate = true
-module.exports = Predicate
-
-},{"./PredicateSyntax":190}],189:[function(require,module,exports){
-const Predicate = require('./Predicate')
-
-/**
- * A class for handling multiple predicates at once.
- * @class PredicateSet
- * @constructor
- * @param {Predicate} [...predicates] Predicates to include in the set.
- */
-
-class PredicateSet {
-  constructor(...predicates) {
-    /**
-     * An array of predicates which are members of the set.
-     * @property predicates {Array}
-     */
-    this.predicates = []
-    /**
-     * The predicates of the set indexed by camel case name.
-     * @property byName {Object}
-     */
-    this.byName = {}
-
-    this.addPredicates(...predicates)
-  }
-
-  /**
-   * Adds predicates to the set.
-   * @method addPredicates
-   * @param {Predicate} ...predicates The predicates to be added.
-   */
-  addPredicates(...predicates) {
-    for(let p of predicates) {
-      if(p.constructor == Object)
-        p = new Predicate(p)
-
-      if(p.isPredicate) {
-        this.predicates.push(p)
-        for(let name of p.names)
-          this.byName[name] = p
-      }
-    }
-    this.sortPredicates()
-  }
-
-  /**
-   * Parse a sentence string against all the predicates in the set.
-   * @method parse
-   * @param {String} str The sentence string to parse
-   * @param {Array} tenses
-   *  An array of strings. The tenses to parse the stirng against.
-   * @return {Array}
-   *  An array of matches to the string as sentenses with
-   *  placeholder-string arguments.
-   */
-  parse(str, tenses) {
-    let interpretations = []
-    for(let p of this.predicates) {
-      let interpretation = p.parse(str, tenses)
-      if(interpretation)
-        interpretations.push(interpretation)
-    }
-
-    return interpretations
-  }
-
-  /**
-   * Parse a string in the imperative tense for a given subject. The subject
-   * will be copied to the subject argument of the resultant sentences
-   * @method parseImperative
-   * @param {String} str
-   * @param {Entity} subject The subject, either a entity or a string.
-   * @return {Array} An array sentence with placeholder-string arguments.
-   */
-  parseImperative(str, subject) {
-    let interpretations = []
-    for(let p of this.predicates) {
-      let interpretation = p.parseImperative(str, subject)
-      if(interpretation)
-        interpretations.push(interpretation)
-    }
-
-    return interpretations
-  }
-
-  /**
-   * Parse a sentence-string in noun-phrase form. Eg/ "the cup that is on the
-   * table".
-   * @method parseNounPhrase
-   * @param {String} str
-   * @return {Array} An array of sentences with string-placeholder arguments
-   */
-  parseNounPhrase(str) {
-    let interpretations = []
-    for(let p of this.predicates) {
-      let interpretation = p.parseNounPhrase(str)
-      if(interpretation)
-      interpretations.push(interpretation)
-    }
-
-    return interpretations
-  }
-
-  /**
-   * @method random
-   * @return {Predicate} A random predicate from the set.
-   */
-  random() {
-    return this.predicates[Math.floor(Math.random()*this.predicates.length)]
-  }
-
-  /**
-   * Sorts predicates in descending order of 'specificness'.
-   * @method sortPredicates
-   */
-  sortPredicates() {
-    this.predicates = this.predicates.sort(
-      (A, B) => B.specificness-A.specificness
-    )
-  }
-}
-module.exports = PredicateSet
-
-},{"./Predicate":188}],190:[function(require,module,exports){
-/**
-  A class for representing a single syntactic 'form' of a predicate.
-  @class PredicateSyntax
-  @constructor
-  @param {Object} options
-  @param {String} options.verb
-  @param {Array} options.params
-  @param {Array} options.constants
-  @param {Array} [options.presentTenses]
-  @param {Array} [options.pastTenses]
-*/
-
-const verbPhrase = require('./util/conjugate/verbPhrase')
-
-const usefulTenses = ['simple_present', 'simple_past']//verbPhrase.tenseList
-// ^ (must be in reverse order of specificness)
-
-
-class PredicateSyntax {
-  constructor({
-    verb, params=['subject'], constants={},
-    presentTenses=['simple_present'],
-    pastTenses=['simple_past'],
-  }) {
-    /**
-     * @property {String} verb
-     */
-    this.verb = verb
-
-    if(constants.subject) {
-      constants._subject = constants.subject
-      delete constants.subject
-    }
-    if(constants.object) {
-      constants._object = constants.object
-      delete constants.object
-    }
-    /**
-     * @property {Array} constants
-     */
-    this.constants = constants
-
-    /**
-     *  The params assign the syntactic function of the arguments.
-     * @property {Array} params
-     */
-    this.params = params.map((param, i) => {
-      if(param.constructor == String) {
-        let literal = false
-        if(param[0] == '@') {
-          literal = true
-          param = param.slice(1)
-        }
-
-        if(param == 'subject')
-          param = '_subject'
-        if(param == 'object')
-          param = '_object'
-
-        return {
-          name: param,
-          literal: literal,
-          index: i
-        }
-      }
-    })
-
-    /**
-     * The param objects indexed by name.
-     * @property {Object} paramsByName
-     */
-    this.paramsByName = {}
-    for(let param of this.params)
-      this.paramsByName[param.name] = param
-    /**
-     * @property {String} camelCaseName
-     */
-    // generate camel case name
-    let words = [
-      ...this.verb.split(/_| /)
-    ]
-    for(let param of this.params)
-      if(param.name[0] != '_')
-        words.push(...param.name.split(/_| /))
-
-    this.camelCaseName = words.map(word => word[0].toUpperCase()+word.slice(1)).join('')
-
-
-    // set-up regexs
-    this.regexs = {}
-    this.makeParamRegexs()
-    // calculate specificness
-    this.getSpecificness()
-
-    // tenses
-    this.presentTenses = presentTenses
-    this.pastTenses = pastTenses
-  }
-
-  /**
-   * Convert an associated arguments object (indexed by param-name) into an
-   * ordered argument list
-   * @method orderArgs
-   * @param {Object} associativeArgs
-   * @return {Array} Ordered args.
-   */
-  orderArgs(associativeArgs={}) {
-    let orderedArgs = []
-    for(let {name} of this.params)
-      orderedArgs.push(associativeArgs[name])
-    return orderedArgs
-  }
-
-  /**
-   * Convert an ordered list of arguments into an associated arguments object
-   * (indexed by param-name).
-   * @method associateArgs
-   * @param {Array} orderedArgs
-   * @return {Object}
-   */
-  associateArgs(orderedArgs) {
-    let associativeArgs = {}
-    for(let i in this.params)
-      associativeArgs[this.params[i].name] = orderedArgs[i]
-    return associativeArgs
-  }
-
-  /**
-   * @method makeRegex
-   * @param {String} tense
-   * @param {Object} options Options for verbPhrase
-   */
-  makeRegex(tense, options) {
-    if(!this.capturingAction){
-      let action = {_verb: this.verb}
-      for(let {name} of this.params) {
-        action[name] = '(?<'+name+'>.+)'
-      }
-      for(let name in this.constants) {
-        action[name] = this.constants[name]
-      }
-      this.capturingAction = action
-    }
-
-    let vp = verbPhrase(this.capturingAction, tense, options)
-
-    return new RegExp('^'+vp.str()+'$')
-  }
-
-  /**
-   * @method makeParamRegexs
-   */
-  makeParamRegexs() {
-    for(let param of this.params) {
-      let {name, literal} = param
-      if(literal)
-        continue
-      param.regexs = {}
-      for(let tense of usefulTenses) {
-        let reg = this.makeRegex(tense, {nounPhraseFor:name})
-        param.regexs[tense] = reg
-      }
-    }
-  }
-
-  /**
-   * @method parse
-   * @param {String} str
-   * @param {Array} [tenses]
-   * @return {Object}
-   */
-  parse(str, tenses=[...this.presentTenses, ...this.pastTenses]) {
-    for(let tense of tenses) {
-      if(!this.regexs[tense])
-        this.regexs[tense] = this.makeRegex(tense)
-      let reg = this.regexs[tense]
-      let result = reg.exec(str)
-      if(result)
-        return {
-          tense: tense,
-          args: this.orderArgs(result.groups),
-          predicate: this,
-        }
-    }
-
-    return null
-  }
-
-  /**
-   * @method parseImperative
-   * @param {String} str
-   * @param {Entity} subject
-   * @return {Object}
-   */
-  parseImperative(str, subject) {
-    // Parse an imperative string for a given subject
-
-    // call parse using imperative tense
-    let parsed = this.parse(str, ['imperative'])
-
-    // set the subject argument to the given subject
-    if(parsed && this.paramsByName._subject)
-      parsed.args[this.paramsByName._subject.index] = subject
-
-    return parsed
-  }
-
-  /**
-   * @method parseNounPhrase
-   * @param {String} str
-   * @return {Object}
-   */
-  parseNounPhrase(str) {
-    for(let param of this.params) {
-      for(let tense in param.regexs) {
-        let reg = param.regexs[tense]
-        let result = reg.exec(str)
-        if(result)
-          return {
-            tense: tense,
-            param: param.name,
-            paramIndex: param.index,
-            predicate: this,
-            args: this.orderArgs(result.groups)
-          }
-      }
-    }
-  }
-
-  /**
-   * @method str
-   * @param {Object} details
-   * @param {Array} details.args
-   * @param {String} details.tense
-   * @param {DescriptionContext} ctx
-   * @param {Object} options entityStr options
-   * @return {String}
-   */
-  str({args, tense}, ctx, options) {
-    return this.compose({args:args, tense:tense}).str(ctx, options)
-  }
-
-  /**
-   * @method compose
-   * @param {Object} details
-   * @param {Array} details.args
-   * @param {String} [tense = "simple_present"]
-   * @param {Object} options verbPhrase options
-   * @return {Substitution}
-   */
-  compose({args, tense='simple_present'}, options) {
-    let action = this.composeAction(args)
-    return verbPhrase(action, tense, options)
-  }
-
-  /**
-   * @method composeAction
-   * @param {Array} orderedArgs
-   * @return {Object}
-   */
-  composeAction(orderedArgs) {
-    let action = this.associateArgs(orderedArgs)
-    action._verb = this.verb
-    for(let name in this.constants)
-      action[name] = this.constants[name]
-    return action
-  }
-
-  /**
-   * @method composeSubjectNounPhrase
-   * @param {Object} details
-   * @param {Array} details.args
-   * @param {String} details.tense
-   * @return {Substitution}
-   */
-  composeSubjectNounPhrase({args, tense}) {
-    return this.compose({args:args, tense:tense}, {nounPhraseFor:'_subject'})
-  }
-
-  /**
-   * @method composePrepositionPhraseFor
-   * @param {Number} argIndex
-   * @param {Object} details
-   * @param {Array} details.args
-   * @param {String} details.tense
-   * @return {Object}
-   */
-  composePrepositionPhraseFor(argIndex, {args, tense}) {
-    return {
-      preposition:'that',
-      clause :this.compose(
-        {args:args, tense:tense},
-        {omit:this.params[argIndex].name}
-      ),
-      mainArgument: args[argIndex],
-    }
-  }
-
-  /**
-   * @method presentPrepositionClausesFor
-   * @param {Number} argIndex
-   * @param {Array} args
-   * @return {Array}
-   */
-  presentPrepositionClausesFor(argIndex, args) {
-    let list = []
-    for(let tense of this.presentTenses)
-      list.push(this.composePrepositionPhraseFor(
-        argIndex, {args:args, tense:tense})
-      )
-    return list
-  }
-
-  /**
-   * @method pastPrepositionClausesFor
-   * @param {Number} argIndex
-   * @param {Array} args
-   * @return {Array}
-   */
-  pastPrepositionClausesFor(argIndex, args) {
-    let list = []
-    for(let tense of this.pastTenses)
-      list.push(this.composePrepositionPhraseFor(
-        argIndex, {args:args, tense:tense})
-      )
-    return list
-  }
-
-  /**
-   *  Calculate a specificness score. Used to order predicates in PredicateSet.
-   *  Low specificness should be processed last when parsing to avoid using
-   *  problems.
-   *  Eg to avoid using '_ is _' when '_ is in _' could have been used.
-   *  @method getSpecificness
-   *  @return {Number}
-   */
-  getSpecificness() {
-    // Calculate a specificness score. Used to order predicates in PredicateSet.
-    // Low specificness should be processed last when parsing to avoid using
-    // problems.
-    // Eg to avoid using '_ is _' when '_ is in _' could have been used.
-
-    if(this.specificness)
-      return this.specificness
-
-    let score = this.verb.length
-    for(let param of this.params) {
-      if(param.name[0] != '_')
-        score += param.name.length * (param.literal ? 1 : 3)
-      //if(param.literal)
-        //score -= 10
-    }
-
-    this.specificness = score
-    return this.specificness
-  }
-}
-PredicateSyntax.prototype.isPredicateSyntax = true
-module.exports = PredicateSyntax
-
-},{"./util/conjugate/verbPhrase":203}],191:[function(require,module,exports){
-const EventEmitter = require('events')
-const SentenceQueue = require('./SentenceQueue')
-// ...more requires at bottom
-
-
-/**
- * @class Sentence
- * @extends EventEmitter
- * @constructor
- * @param {Predicate} predicate
- * @param {Array} args
- */
-class Sentence extends EventEmitter {
-  constructor(predicate=null, args=null) {
-    super()
-
-    if(!predicate)
-      console.warn('WARNING: Sentence created without predicate.')
-
-    /** A Predicate object defining the relationship between the
-     *  arguments
-     * @property {Predicate} predicate
-     */
-    this.predicate = predicate
-
-    /**
-     * an array of Entity/String arguments
-     * @property {Array} args
-     */
-    this.args = args // an array of Entity/String arguments
-
-    /**
-     * The truth value of the sentnece. May be `'true'`, `'planned'`,
-     * `'false'`, `'failed'`, `'past'`, `'hypothetical'` or `'superfluous'`
-     * @property {String} truthValue
-     * @default "hypothetical"
-     */
-    this.truthValue = 'hypothetical'
-
-    /**
-     * A list of sentences which cause this sentence.
-     * @property {Array} causes
-     * @default []
-     */
-    this.causes = []
-
-    /**
-     * A the number of causes.
-     * @property {Number} causeCount
-     */
-    this.causeCount = 0
-
-    /**
-     * a list keeping track of all currently active clause objects
-     * @property {Array} presentClauses
-     */
-    this.presentClauses = []
-    /**
-     * a list keeping track of all past tense clause objects
-     * @property {Array} pastClauses
-     */
-    this.pastClauses = []
-  }
-
-  /**
-   * Check to see if the arguments are compatible with the predicate in
-   * terms of their type.
-   * @method checkArgs
-   * @return {Boolean}
-   */
-  checkArgs() {
-    return this.predicate.checkArgs(this.args)
-  }
-
-  /**
-   * If this sentence already exists in the arguments' fact lists return
-   * the already existing version. Otherwise false.
-   * @method trueInPresent
-   * @return {Sentence|null}
-   */
-  trueInPresent() {
-    if(this.truthValue == 'true')
-      return this
-
-    if(this.truthValue == 'hypothetical') {
-      for(let arg of this.entityArgs) {
-        for(let fact of arg.facts)
-          if(Sentence.compare(fact, this)) {
-            this.truthValue = 'superfluous'
-            return fact
-          }
-      }
-      return null
-    }
-
-
-    // the present truth value for sentences without entity arguments is undefined
-    return undefined
-  }
-
-  /**
-   * Check whether the sentence was true in the past.
-   * @method trueInPast
-   * @return {Boolean}
-   */
-  trueInPast() {
-    if(this.truthValue == 'past')
-      return true
-
-    if(this.truthValue == 'hypothetical')
-      for(let arg of this.args)
-        if(arg.isEntity)
-          return arg.history.some(fact => Sentence.compare(fact, this))
-  }
-
-  /**
-   * Get a list of all arguments which are entities, including those from
-   * embedded sub-sentences.
-   * @attribute recursiveEntityArgs
-   * @readOnly
-   * @type {Array}
-   */
-  get recursiveEntityArgs() {
-    let all = []
-    for(let arg of this.args)
-      if(arg.isNounPhraseSentence)
-        all.push(...arg.recursiveEntityArgs)
-      else if(arg.isEntity)
-        all.push(arg)
-
-    return all
-  }
-
-  /**
-   * Attach facts and preposition clauses to the Entity arguments.
-   * @method addFactsAndClauses
-   * @return {null}
-   */
-  addFactsAndClauses() {
-    if(!this.predicate.dontObserve)
-      for(let i=0; i<this.args.length; i++) {
-        let arg = this.args[i]
-        if(arg.isEntity) {
-          // emit on('fact') event
-          arg.emit('fact', this)
-
-          // add sentence to argument's fact set
-          arg.facts.push(this)
-
-          for(let clause of this.predicate.presentPrepositionClausesFor(i, this.args)) {
-            arg.addClause(clause.preposition, clause.clause)
-
-            // rmb the clause so it can be removed later (when `stop` is called)
-            this.presentClauses.push(clause)
-          }
-        }
-      }
-  }
-
-  /**
-    * Starts a sentence.
-    * @method start
-    * @return Sentence or SentenceQueue (if postponed by prepare)
-    */
-  start() {
-    // throw an error if this.checkArgs() fails
-    if(!this.checkArgs()) {
-      console.log(this)
-      throw 'sentence has illegal args'
-    }
-
-    // exit early if predicate's skipIf returns truthy value
-    if(this.predicate.skipIf) {
-      let skip = this.predicate.skipIf(...this.args, this)
-      if(skip) {
-        this.truthValue = 'skipped'
-
-        return this
-      }
-    }
-
-    if(this.predicate.replace) {
-      let replacement = this.predicate.replace(...this.args, this)
-      if(replacement) {
-        this.truthValue = 'skipped'
-
-        if(replacement.isSentence)
-          replacement = [replacement]
-
-        for(let sentence of replacement)
-          sentence.start()
-
-        return this
-      }
-    }
-
-    // if prepare is defined in the predicate, queue the the preparation and
-    // reschedule this.start()
-    if(this.predicate._prepare && !this.preparationQueue) {
-      let preparationSentences = this.predicate._prepare(...this.args, this)
-      if(preparationSentences) {
-        // create a new queue of the preparation sentences
-        let queue = new SentenceQueue(...preparationSentences)
-        this.preparationQueue = queue
-
-        // reschedule this sentence start to after the queue
-        queue.once('stop', () => this.start())
-
-        // set truth value to planned
-        this.truthValue = 'planned'
-
-        // start the queue
-        queue.start()
-
-        // exit
-        return this
-      }
-    }
-
-    // skip declare if is already true according to this.predicate.check()
-    if(!(this.predicate.check && this.predicate.check(...this.args, this))) {
-
-      // exit early if there are problems according to this.predicate.problem()
-      if(this.predicate.problem) {
-        let problems = this.predicate.problem(...this.args, this)
-        if(problems) {
-          this.truthValue = 'failed'
-          this.failureReason = problems
-
-          /**
-           * Emitted when there is a predicate defined problem starting
-           * the sentence.
-           * @event problem
-           * @param failureReason
-           */
-          this.emit('problem', this.failureReason)
-          return this
-        }
-      }
-
-      // DECLARE: ie' make the sentence true by altering the entity structure
-      // execute nested NounPhraseSentences in arguments
-      let n = 0
-      for(let i in this.args) {
-        if(this.args[i].isNounPhraseSentence) {
-          this.args[i].start() // .start() in new implementation
-          this.args[i] = this.args[i].mainArgument
-          n++
-        }
-      }
-      // check arguments again
-      if(n && !this.checkArgs())
-        throw 'sentence has illegal args after executing nested sentences'
-
-      // execute the predicate on the args
-      if(this.predicate._begin)
-        this.predicate._begin(...this.args, this)
-    }
-
-    // skip observe if is already true according to this.trueInPresent()
-    let alreadyExistingVersion = this.trueInPresent()
-    if(alreadyExistingVersion) {
-      alreadyExistingVersion.once('stop', () => this.stop())
-      return alreadyExistingVersion
-    } else {
-      // OBSERVE:
-
-      // set truth value to true
-      this.truthValue = 'true'
-      this.causeCount++
-
-      // add facts and clauses
-      this.addFactsAndClauses()
-
-      if(this.predicate.meanwhile) {
-        let consequences = this.predicate.meanwhile(...this.args, this)
-        if(consequences) {
-          if(consequences.isSentence)
-            consequences = [consequences]
-          for(let consequence of consequences)
-            consequence.addCause(this)
-        }
-      }
-
-      if(this.predicate._expand) {
-        let expansion = this.predicate._expand(...this.args, this)
-        if(expansion) {
-          let queue = new SentenceQueue(...expansion)
-          queue.once('stop', () => this.stop())
-          queue.start()
-        }
-      }
-
-      // call the predicate's `until` function if it exists
-      if(this.predicate.until)
-        this.predicate.until(
-          () => this.stop(),
-          ...this.args, this,
-        )
-
-      /**
-       * Emitted when a sentence successfully starts
-       * @event start
-       * @deprecated
-       */
-      this.emit('start')
-
-      // return self
-      return this
-    }
-  }
-
-  /**
-   * Stops the sentence.
-   * @method stop
-   */
-  stop() {
-    // make the sentence no longer true
-
-    if(this.truthValue == 'superfluous') {
-      this.emit('stop')
-      return this
-    }
-
-    // exit early if sentence is not 'true'
-    if(this.truthValue != 'true' /*&& this.truthValue != 'planned'*/) {
-      /*console.warn(
-        'rejected sentence stop because truth value = ' + this.truthValue,
-        '('+this.str()+')'
-      )*/
-      return this
-    }
-
-    // set truth value to 'past'
-    this.truthValue = 'past'
-
-    // call _afterwards semantic function and handle consequences
-    if(this.predicate._afterwards) {
-      // call _afterwards. It may return any a Sentence or array of sentences as
-      // consequences.
-      let consequences = this.predicate._afterwards(...this.args, this)
-      if(consequences) {
-        // start a single-sentence consequence
-        if(consequences.isSentence)
-          consequences.start()
-        // start list of consequence sentences
-        else if(consequences.constructor == Array)
-          for(let sentence of consequences)
-            sentence.start()
-      }
-    }
-
-    // remove preposition clauses
-    for(let {mainArgument, preposition, clause} of this.presentClauses)
-      mainArgument.removeClause(preposition, clause)
-
-    // remove facts from arguments
-    for(let arg of this.entityArgs) {
-      //let arg = this.args[i]
-      arg.emit('factOff', this)
-      arg.facts.splice(arg.facts.indexOf(this), 1)
-    }
-
-    // call observe past
-    this.observePast()
-
-    /**
-     * Emitted when the sentence has successfully stopped.
-     * @event stop
-     */
-
-    // emit stop event
-    this.emit('stop')
-  }
-
-  /**
-   * Called when the sentence becomes past-tense
-   * @method observePast
-   */
-  observePast() {
-    // observe that this sentence is now in the past
-
-    for(let i in this.args) {
-      let arg = this.args[i]
-
-      // add fact to arguments history
-      if(arg.history
-      && !arg.history.some(fact => Sentence.compare(fact, this))) {
-
-        arg.history.push(this)
-
-        for(let clause of this.predicate.pastPrepositionClausesFor(i, this.args)) {
-          // attach clause to arg
-          arg.addClause(clause.preposition, clause.clause)
-
-          // remember the clause so it can be removed later
-          this.pastClauses.push(clause)
-        }
-      }
-    }
-  }
-
-  /**
-   * Generate a string version of the sentence.
-   * @method str
-   * @param {String} [tense = "simple_present"]
-   * @param {DescriptionContext} ctx
-   * @param {Object} entityStrOptions
-   * @return {String}
-   */
-  str(tense='simple_present', ctx, entityStrOptions) {
-    return this.predicate.str(
-      {args: this.args, tense:tense},
-      ctx, entityStrOptions
-    )
-  }
-
-  /**
-   * Check equality of two sentences
-   * @method compare
-   * @static
-   * @param {Sentence} P
-   * @param {Sentence} Q
-   * @return {Boolean}
-   */
-  static compare(P, Q) {
-    // Compare two sentences, P and Q.
-    // Return true if both the predicates and the arguments match.
-
-    if(P == Q) // if P and Q are the same object, they are equal
-      return true
-
-    // P and Q are inequal if they have diferent prediactes
-    if(P.predicate != Q.predicate) {
-      return false
-    }
-
-    // P and Q are inequal if any of the arguments don't agree
-    for(let i in P.args)
-      if(P.args[i] != Q.args[i]) {
-        return false
-      }
-
-    // if we reach this point without returning false, P and Q are equal!
-    return true
-  }
-
-  /**
-   * Quick constructor for sentence objects.
-   * @method S
-   * @static
-   * @param {Predicate/String} predicate
-   *  The predicate or a camel case name referencing a the predicate.
-   * @param {Entity/String} ...args
-   *  The arguments.
-   * @return {Sentence}
-   */
-  static S(predicate, ...args) {
-    if(!predicate.isPredicate) {
-      throw "Sentence.S expects a predicate as first argument." +
-            " Recieved: " + predicate
-    }
-    let sentence = new Sentence(predicate, args)
-    sentence = sentence.trueInPresent() || sentence
-    return sentence
-  }
-
-  /**
-   * @attribute entityArgs
-   * @readOnly
-   * @type {Array}
-   */
-  get entityArgs() {
-    return this.args.filter(arg => arg.isEntity)
-  }
-
-  /**
-   * @method randomEntityArg
-   * @return {Entity}
-   */
-  randomEntityArg() {
-    let entityArgs = this.args.filter(arg => arg.isEntity)
-    return entityArgs[Math.floor(Math.random()*entityArgs.length)]
-  }
-
-  // Causes:
-  addCause(sentence) {
-    let trueVersion = sentence.trueInPresent()
-
-    if(trueVersion) {
-      // cause is true, so add to list, start this sentence and listen for stop
-      this.causes.push(trueVersion)
-      trueVersion.once('stop', () => this.removeCause(trueVersion))
-
-      if(this.truthValue == 'hypothetical')
-        this.start()
-
-      else if(this.truthValue != 'true')
-        console.warning('strange cause behaviour')
-
-      else
-        this.causeCount++
-
-    } else
-      throw 'A sentence must be true for it to be a cause of another sentence.'
-
-  }
-
-  removeCause(sentence) {
-    let i = this.causes.findIndex(cause => Sentence.compare(sentence, cause))
-    if(i != -1) {
-      this.causes.splice(i, 1)
-      this.causeCount--
-
-      if(this.truthValue == 'true' && this.causeCount <= 0)
-        this.stop()
-    } else
-      console.warn('tried to remove a cause which doesn\'t exist')
-  }
-}
-Sentence.prototype.isSentence = true
-module.exports = Sentence
-
-},{"./SentenceQueue":192,"events":275}],192:[function(require,module,exports){
-// a list of sentence to be executed consequetively
-
-const EventEmitter = require('events')
-
-/**
- * @class SentenceQueue
- * @extends EventEmitter
- * @constructor
- * @param {Sentence} ...sentences
- */
-
-class SentenceQueue extends EventEmitter {
-  constructor(...sentences) {
-    super()
-
-    /**
-     * @property {Array} sentence
-     */
-    this.sentences = []
-    /**
-     * Index of the next sentence to start.
-     * @property {Number} i
-     */
-    this.i = 0
-
-    for(let sentence of sentences)
-      this.appendSentence(sentence)
-  }
-
-  /**
-   * Adds a sentence to the end of the queue.
-   * @method appendSentence
-   * @param {Sentence} sentence
-   */
-  appendSentence(sentence) {
-    if(sentence && sentence.truthValue == 'hypothetical') {
-      this.sentences.push(sentence)
-      sentence.truthValue = 'planned'
-    } else
-    throw "Can only append hypothetical sentence to queue."
-  }
-
-  /**
-   * Begin processing the queue.
-   * @method start
-   */
-  start() {
-    /**
-     * @event start
-     */
-    this.emit('start')
-    this.startNextSentence()
-  }
-
-  /**
-   * Start the next sentence in the queue and increment `i`, or emit `stop` (if
-   * reached the end).
-   * @method startNextSentence
-   */
-  startNextSentence() {
-    let sentence = this.sentences[this.i++]
-
-    if(sentence) {
-      //sentence.once('stop', () => this.startNextSentence())
-      sentence.on('problem', reasons => this.emit('problem', reasons))
-      let result = sentence.start()
-      switch(result.truthValue) {
-        case 'skipped': // sentence was skipped
-        case 'past': // sentence was instantaneously true
-          // start next sentence immediately
-          this.startNextSentence()
-          break;
-
-        case 'planned': // sentence start has been postponed to a later time
-        case 'true': // sentence started straight away
-          // wait for stop event, then start next sentence
-          result.once('stop', () => this.startNextSentence())
-          break
-
-        default:
-          // send a warning if truth value can't be handled
-          console.warn(
-            'SentenceQueue found sentence',
-            result,
-            'with unexpected truth value:',
-            result.truthValue,
-          )
-      }
-
-    } else {
-      /**
-       * @event stop
-       */
-      this.emit('stop')
-    }
-  }
-}
-module.exports = SentenceQueue
-
-},{"events":275}],193:[function(require,module,exports){
-/**
-  * A class for generating descriptions by following relationships between
-  * objects.
-  * @class WanderingDescriber
-  * @constructor
-  * @param {Sentence|Entity} ...toLog
-  */
-class WanderingDescriber {
-  constructor(...toLog) {
-    this.history = []
-    this.recentlyMentionedEntitys = []
-    this.maxLookback = 5
-
-    this.log(...toLog)
-  }
-
-  /**
-   * @method log
-   * @param {Sentence|Entity} ...args
-   */
-  log(...args) {
-    for(let arg of args) {
-      if(arg.isSentence) {
-        // handle Sentence
-        let sentence = arg
-        this.history.push(sentence)
-        this.recentlyMentionedEntitys.push(...sentence.entityArgs)
-        while(this.recentlyMentionedEntitys.length > this.maxLookback)
-          this.recentlyMentionedEntitys.shift()
-      } else if(arg.isEntity) {
-        // handle Entity
-        let entity = arg
-        this.recentlyMentionedEntitys.push(entity)
-        while(this.recentlyMentionedEntitys.length > this.maxLookback)
-          this.recentlyMentionedEntitys.shift()
-      }
-    }
-  }
-
-  /**
-   * @method next
-   * @return {Sentence|null}
-   */
-  next() {
-    let facts = this.allFactsShuffled()
-    for(let fact of facts) {
-      if(!fact.predicate.banal && !this.history.includes(fact)) {
-        this.log(fact)
-        return fact
-      }
-    }
-
-    return null
-  }
-
-  /**
-   * @method nextFew
-   * @param {Number} howMany
-   * @return {Array}
-   */
-  nextFew(howMany) {
-    let list = []
-    let facts = this.allFactsShuffled()
-    for(let fact of facts) {
-      if(!fact.predicate.banal && !this.history.includes(fact)) {
-        this.log(fact)
-        list.push(fact)
-        if(list.length >= howMany)
-          break
-      }
-    }
-
-    return list
-  }
-
-  /**
-   * @method allFactsShuffled
-   * @return {Array}
-   */
-  allFactsShuffled() {
-    let list = []
-    for(let entity of this.recentlyMentionedEntitys)
-      list.push(...entity.facts)
-    return list.sort(() => Math.random()*2-1)
-  }
-}
-module.exports = WanderingDescriber
-
-},{}],194:[function(require,module,exports){
-/*
-  entityStr()
-  Convert a entity into a string using a flexible set of parameters
-*/
-
-const {sub} = require('./util/Substitution')
-const specarr = require('./util/specarr')
-const entityPhraselet = require('./Entity_nounPhraseletStr')
-
-function entityStr(entity, ctx, options={}) {
-  // Convert a entity into a noun phrase string.
-
-  if(!ctx)
-    null//console.warn( "call to entityStr without a description context" )
-  else {
-    let pronoun = ctx.getPronounFor(entity)
-    if(pronoun) {
-      ctx.log(entity, pronoun)
-      return pronoun
-    }
-  }
-
-  let phraselet = entityPhraselet(entity, ctx, options)
-
-  // choose the article
-  let article = 'the'
-  let ordinalAdjective = null
-  if(ctx) {
-    let articles = ctx.getArticles(entity, phraselet)
-
-    article = articles[Math.floor(Math.random()*articles.length)]
-
-    // if using 'the', choose an ordinal adjective
-    if(article == 'the') {
-      let adjs = ctx.getOrdinalAdjectives(entity, phraselet)
-      if(adjs)
-        ordinalAdjective = adjs[Math.floor(Math.random()*adjs.length)]
-    }
-  }
-
-  if(ordinalAdjective)
-    phraselet = sub('_ _', ordinalAdjective, phraselet)
-
-
-  // compile and return final string
-  let str = sub('_ _', article, phraselet).str(ctx, options)
-  if(ctx)
-    ctx.log(entity, str)
-  return str
-}
-module.exports = entityStr
-
-},{"./Entity_nounPhraseletStr":184,"./util/Substitution":199,"./util/specarr":212}],195:[function(require,module,exports){
+},{"../renderChannelData":172,"./channelDataToAudioBuffer":175}],178:[function(require,module,exports){
 /**
  * @module entity-game
  */
 
-module.exports = {
-  Dictionary: require('./Dictionary'),
+module.exports = require('../../../../english-io/src')
 
-  PredicateSyntax: require('./PredicateSyntax'),
-  Predicate: require('./Predicate'),
-  //PredicateSet: require('./PredicateSet'),
-
-
-  Entity: require('./Entity'),
-  //parseImperative: require('./parseImperative'),
-  Sentence: require('./Sentence'),
-  //SentenceQueue: require('./SentenceQueue'),
-
-  DescriptionContext: require('./DescriptionContext'),
-  WanderingDescriber: require('./WanderingDescriber'),
-  FactListener: require('./FactListener'),
-
-  search: require('./search'),
-
-  sentencify: require('./util/spellcheck').sentencify,
-
-  EntitySpawner: require('./EntitySpawner'),
-
-  Declarer: require('./Declarer'),
-
-  //util: require('./util'),
-}
-
-},{"./Declarer":179,"./DescriptionContext":180,"./Dictionary":181,"./Entity":182,"./EntitySpawner":183,"./FactListener":185,"./Predicate":188,"./PredicateSyntax":190,"./Sentence":191,"./WanderingDescriber":193,"./search":196,"./util/spellcheck":213}],196:[function(require,module,exports){
-// search within a given iterator for a entity matching a given string.
-
-//const spawn = require('./spawn')
-
-function *searchForEntitys(matchStr, domain) {
-  // if domain is a entity, use this entity as a starting point for an explore search
-  if(domain.isEntity)
-    domain = explore([domain])
-
-  for(let entity of domain) {
-    if(entity.matches(matchStr))
-      yield entity
-  }
-}
-
-function findFirst(matchStr, domain) {
-  for(let entity of searchForEntitys(matchStr, domain))
-    return entity
-}
-
-/*function findOrSpawn(matchStr, domain) {
-  let result = findFirst(matchStr, domain)
-  if(result)
-    return result
-  else
-    return spawn(matchStr)
-}*/
-
-function* explore(startingPoint) {
-  let toSearch = startingPoint.slice()
-  for(let i=0; i<toSearch.length; i++) {
-    yield toSearch[i]
-    for(let entity of immediateRelations(toSearch[i]))
-      if(!toSearch.includes(entity))
-        toSearch.push(entity)
-  }
-}
-
-function immediateRelations(entity) {
-  let list = []
-  for(let fact of entity.facts)
-    for(let arg of fact.entityArgs)
-      if(!list.includes(arg))
-        list.push(arg)
-  for(let fact of entity.history)
-    for(let arg of fact.entityArgs)
-      if(!list.includes(arg))
-        list.push(arg)
-  return list
-}
-
-
-module.exports = searchForEntitys
-module.exports.explore = explore
-module.exports.first = findFirst
-//module.exports.orSpawn = findOrSpawn
-
-},{}],197:[function(require,module,exports){
-const articleReg = /the|a|an|another/
-const regOps = require('./util/regOps.js')
-const getNounPhraselet = require('./util/getNounPhraselet')
-
-const Entity = require('./Entity')
-
-function spawn(dictionary, str, domain) {
-  // spawn a new entity from a noun phrase string
-
-  let phraselet = getNounPhraselet(str)
-
-  // first check all nouns in vanilla form
-  for(let noun in dictionary.nouns) {
-    let formattedNoun = noun.replace(/_/g, ' ')
-    //let reg = new RegExp('^(?:'+articleReg.source + ' ' + noun+')$')
-    let reg = regOps.whole(regOps.concatSpaced(articleReg, formattedNoun))
-    if(reg.test(str))
-      return new Entity(dictionary).be_a(noun)
-  }
-
-  // then check the special entity spawners
-  for(let spawner of dictionary.entitySpawners) {
-    let parsed = spawner.parse(str, domain)
-    if(parsed) {
-      let e = spawner.construct(...parsed.args)
-      if(e)
-        return e
-    }
-  }
-
-
-}
-module.exports = spawn
-
-function randomSpawn(dictionary) {
-  let nounKeys = Object.keys(dictionary.nouns)
-  let noun = nounKeys[Math.floor(Math.random()*nounKeys.length)]
-  return new Entity(dictionary).be_a(noun)
-}
-module.exports.random = randomSpawn
-
-},{"./Entity":182,"./util/getNounPhraselet":204,"./util/regOps.js":210}],198:[function(require,module,exports){
-/** A more flexible version of spawn, allowing quanitifiers and adjectives */
-
-// REQUIRES AT BOTTOM!
-
-
-/**
- * Create new entities from noun-phrase-strings.
- * @method spawn
- * @param {Dictionary} dictionary
- * @param {String} [...strs] Noun strings
- * @return {Array} An array of entities
- * @throws If unable to parse one of the arguments.
- */
-function spawn(dictionary, ...strs) {
-  let list = []
-  for(let str of strs) {
-    let parsed = parseNounPhrase(str, dictionary)
-    if(!parsed)
-      throw "Unable to spawn: " + str
-
-    let {noun, adjectives, quantityRange} = parsed
-
-    let n = randomInRange(quantityRange)
-
-    for(let i=0; i<n; i++) {
-      let entity = new Entity(dictionary)
-      entity.be_a(noun)
-      for(let adj of adjectives)
-        entity.be(adj)
-
-      list.push(entity)
-    }
-  }
-
-  return list
-}
-module.exports = spawn
-
-
-function randomInRange({min, max}) {
-  if(max == Infinity) {
-    max = min
-    while(Math.random() < 0.75)
-      max++
-  }
-
-  return min + Math.floor(Math.random() * (max-min+1))
-}
-
-const parseNounPhrase = require('./util/parseNounPhrase')
-const Entity = require('./Entity')
-
-},{"./Entity":182,"./util/parseNounPhrase":205}],199:[function(require,module,exports){
-/*
-  Substitution is a class for formatting sentence involving zero or more
-  args. It can be used to avoid generating the noun phrases until the program
-  is sure that they will be needed. A quick function Substitution.substitution
-  can be used to format a one off string.
-*/
-
-const {randexp} = require("randexp")
-const placeholderRegex = /(?:S|O|#|@|L)?_(?:'s)?/g // o = object, s = subject
-const {autoBracket, kleenePoliteList} = require("./regOps")
-const politeList = require('./politeList')
-const toSubject = require('./toSubject')
-const toPossessiveAdjective = require('./toPossessiveAdjective')
-
-
-class Substitution { // sometimes abbreviated Sub
-  constructor(templateStr, ...args) {
-    this.template = templateStr
-    this.args = args
-
-    let placeholderMatches = this.template.match(placeholderRegex)
-    if(placeholderMatches)
-      this.placeholders = placeholderMatches.map(str => ({
-        str: str,
-        subject: str[0] == 'S',
-        object: str[0] == 'O',
-        number: str[0] == '#',
-        possessive: /'s$/.test(str),
-      }))
-    else
-      this.placeholders = []
-  }
-
-  getString(ctx, options) {
-    let toSubIn = this.args.map(o => {
-      if(o == null || o == undefined)
-        return null
-      else if(o.isEntity)
-        return o.str(ctx, options)
-      else if(o.constructor == String)
-        return o
-      else if(o.construtor == RegExp)
-        return randexp(o)
-      else if(o.constructor == Number)
-        return o.toString()
-      else if(o.isSubstitution)
-        return o.getString(ctx, options)
-      //else if(o.isAction) // not used in entity-game, only imaginary-city
-      //  return o.str()
-      else if(o.constructor == Array)
-        return o.length ? Substitution.politeList(o).str(ctx, options) : 'nothing'
-      else {
-        console.warn("Couldn't interpret substitution value:", o, this)
-        return "???"
-      }
-    })
-
-    if(toSubIn.includes(null))
-      return null
-
-    return this.subIn(...toSubIn)
-  }
-  str(ctx, options) {
-    // alias for getString
-    return this.getString(ctx, options)
-  }
-  regex(depth) {
-    // substitute regular expressions into the template for each arguments
-    let toSubIn = this.args.map(o => formatRegex(o, depth))
-
-    if(toSubIn.includes(null))
-      return null
-
-    toSubIn = toSubIn.map(autoBracket)
-    return new RegExp(this.subIn(...toSubIn))
-  }
-  getRegex(depth) {
-    // alias for backwards compatibility
-    return this.regex(depth)
-  }
-
-  subIn(...subs) {
-    // substitute strings into the template
-    for(let i in subs) {
-      let placeholder = this.placeholders[i]
-      if(placeholder.subject)
-        subs[i] = toSubject(subs[i])
-      if(placeholder.possessive)
-        subs[i] = toPossessiveAdjective(subs[i])
-    }
-
-    let bits = this.template.split(placeholderRegex)
-    let out = bits[0]
-    for(var i=1; i<bits.length; i++)
-      out += subs[i-1] + bits[i]
-    return out
-  }
-
-  static substitute(templateStr, ...args) {
-    let ctx
-    if(!args[args.length-1].isEntityenon)
-      ctx = args.pop()
-    else
-      ctx = {}
-
-    return new Substitution(templateStr, ...args).getString(ctx)
-  }
-
-  static politeList(items) {
-    let placeholders = items.map(item => '_')
-    let template = politeList(placeholders)
-    return new Substitution(template, ...items)
-  }
-
-  static concat(...toConcat) {
-    // concatenate many substitutions and strings into a new substitution
-    let strs = []
-    let args = []
-
-    for(let bit of toConcat) {
-      if(bit.constructor == String)
-        strs.push(bit)
-      if(bit.constructor == Substitution) {
-        strs.push(bit.template)
-        args = args.concat(bit.args)
-      }
-    }
-
-    let template = strs.join('')
-    return new Substitution(template, ...args)
-  }
-
-  static sub(...args) {
-    return new Substitution(...args)
-  }
-}
-
-Substitution.prototype.isSubstitution = true
-Substitution.placeholderRegex = placeholderRegex
-module.exports = Substitution
-
-const formatRegex = (o, depth) => {
-  if(o == null || o == undefined)
-    return o
-  else if(o.isEntity)
-    return o.reg(depth).source
-  else if(o.constructor == String)
-    return o
-  else if(o.constructor == RegExp)
-    return autoBracket(o.source)
-  else if(o.constructor == Number)
-    return o.toString()
-  else if(o.constructor == Array) {
-    //throw "cannot (yet) generate regex from substitution containing an array"
-    return kleenePoliteList(...o.map(formatRegex)).source
-  } else if(o.isSubstitution) {
-    let regex = o.getRegex()
-    if(regex && regex.constructor == RegExp)
-      return autoBracket(regex.source)
-    else return null
-  } else {
-    console.warn("Couldn't interpret substitution value:", o)
-    return "???"
-  }
-}
-
-},{"./politeList":209,"./regOps":210,"./toPossessiveAdjective":214,"./toSubject":215,"randexp":239}],200:[function(require,module,exports){
-/*
-  Given the infinitive form of a verb and a person/verbform number (0-8) return
-  the conjugated verb form.
-*/
-
-/*
-VERB FORMS DENOTED AS NUMBERS:
-  0.  infinitive
-  1.  first person singular
-  2.  second person singular
-  3.  third person singular
-  4.  first person plural
-  5.  second person plural
-  6.  third person plural
-  (7.  gerund/present-participle)
-  (8.  past-participle)
-  (9. past tense form)
-*/
-
-const regOp = require("../regOps")
-const irregular = require("./irregularConjugations")
-
-const endsWithShortConsonant = /[aeiou][tpdn]$/
-const endsWithE = /e$/
-const endsWithOOrX = /[oxzs]$/
-
-const FIRST_PERSON_SINGULAR = 1   // I
-const SECOND_PERSON_SINGULAR = 2  // you
-const THIRD_PERSON_SINGULAR = 3   // he/she/it
-const FIRST_PERSON_PLURAL = 4     // we
-const SECOND_PERSON_PLURAL = 5    // you
-const THIRD_PERSON_PLURAL = 6     // they
-const GERUND = 7
-const PAST_PARTICIPLE = 8
-const PAST_TENSE = 9
-const ALL_PERSON_REGEX = 10
-
-function conjugate(infinitive, form) {
-  let words = infinitive.split(' ')
-  infinitive = words[0]
-
-  let conjugated
-  if(form == ALL_PERSON_REGEX)
-    conjugated = anyPersonRegex(infinitive)
-  if(irregular[infinitive] && irregular[infinitive][form])
-    conjugated = irregular[infinitive][form]
-  else
-    conjugated = conjugateRegular(infinitive, form)
-
-  words[0] = conjugated
-  return words.join(' ')
-}
-
-function conjugateRegular(infinitive, form) {
-  switch(form) {
-    // third person singular
-    case THIRD_PERSON_SINGULAR:
-      if(endsWithOOrX.test(infinitive))
-        return infinitive+'es'
-      else
-        return infinitive+'s'
-
-    // gerund
-    case GERUND:
-      if(endsWithE.test(infinitive))
-        return infinitive.slice(0, infinitive.length-1)+'ing'
-      if(endsWithShortConsonant.test(infinitive))
-        return infinitive + infinitive[infinitive.length-1]+'ing'
-      return infinitive+'ing'
-
-    // past participle
-    case PAST_TENSE:
-    case PAST_PARTICIPLE:
-      if(endsWithShortConsonant.test(infinitive))
-        return infinitive + infinitive[infinitive.length-1]+'ed'
-      if(endsWithE.test(infinitive))
-        return infinitive+'d'
-      else
-        return infinitive+'ed';
-
-    default:
-      return infinitive
-  }
-}
-
-function anyPersonRegex(infinitive) {
-  let forms = []
-  for(let person=1; person<=6; ++person) {
-    let form = conjugate(infinitive, person)
-    if(!forms.includes(form))
-      forms.push(form)
-  }
-  return regOp.or(...forms)
-}
-
-
-module.exports = conjugate
-conjugate.anyPersonRegex
-
-},{"../regOps":210,"./irregularConjugations":202}],201:[function(require,module,exports){
-// Determine the numeric person of a given noun phrase
-
-/*
-VERB FORMS DENOTED AS NUMBERS:
-  0.  infinitive
-  1.  first person singular
-  2.  second person singular
-  3.  third person singular
-  4.  first person plural
-  5.  second person plural
-  6.  third person plural
-  (7. gerund/present-participle)
-  (8. past-participle)
-  (9. past tense form)
-*/
-
-const {placeholderRegex} = require("../Substitution")
-const placeholderTest = new RegExp('^'+placeholderRegex.source+'$', '')
-
-function getPerson(subject) {
-  // if subject is not a string, assume third person for now
-  if(subject && subject.constructor != String)
-    return 3
-
-  let lowerCaseSubject = subject.toLowerCase()
-
-  if(lowerCaseSubject == 'i')
-    return 1 // first person singular
-
-  else if(lowerCaseSubject == 'you')
-    return 2 // or 5 but never mind
-
-  else if((/^(he|she|it)$/i).test(subject))
-    return 3 // third person singular
-
-  else if(lowerCaseSubject == 'we')
-    return 4 // first person plural
-
-  else if(lowerCaseSubject == 'they')
-    return 6 // third person plural
-
-  else if(subject.constructor == RegExp || placeholderTest.test(subject))
-    return 10 // placeholder, get regex
-
-  else // otherwise assume third person
-    return 3
-
-  // TODO, what about third person plural non pronouns!
-}
-module.exports = getPerson
-
-},{"../Substitution":199}],202:[function(require,module,exports){
-// list of irregular verbs with their conjugations.
-// (indexed by infinitive)
-
-/*
-VERB FORMS DENOTED AS NUMBERS:
-  0.  infinitive
-  1.  first person singular
-  2.  second person singular
-  3.  third person singular
-  4.  first person plural
-  5.  second person plural
-  6.  third person plural
-  (7.  gerund/present-participle)
-  (8.  past-participle)
-  (9. past tense form)
-*/
-
-const FIRST_PERSON_SINGULAR = 1   // I
-const SECOND_PERSON_SINGULAR = 2  // you
-const THIRD_PERSON_SINGULAR = 3   // he/she/it
-const FIRST_PERSON_PLURAL = 4     // we
-const SECOND_PERSON_PLURAL = 5    // you
-const THIRD_PERSON_PLURAL = 6     // they
-const GERUND = 7
-const PAST_PARTICIPLE = 8
-const PAST_TENSE = 9
-const ALL_PERSON_REGEX = 10
-
-module.exports = {
-  // be IS THIS EVEN A VERB?
-  be: {
-    1: 'am', 2:'are', 3:'is', 4:'are', 5:'are', 6:'are', 7:'being', 8:'been',
-    9:'was',
-  },
-
-  say: {8:'said', 9:'said'},
-
-  make: {8: 'made', 9: 'made'},
-  go:   {8: 'gone', 9: 'went'},
-  take: {8: 'taken',9: 'took'},
-  come: {8: 'come', 9: 'came'},
-  see: {7: 'seeing', 8:'seen', 9:'saw'},
-  know: {8: 'known', 9:'knew'},
-  get: {8:'got', 9:'got'},
-  run: {8:'run', 9:'ran'},
-  were: {1:'was', 3:'was'}, // this is a cludge and i know it
-  have: {3:'has', 8:'had', 9:"had"},
-  eat: {7:'eating', 8:'eaten', 9:'ate'},
-  contain: {7:'containing', 8:'contained', 9:'contained'},
-  hold: {8:'held', 9:'held'},
-  put: {8:'put', 9:'put'},
-  poop: {7:'pooping', 8:'pooped', 9:'pooped'},
-  steal: {7:'stealing', 8:'stolen', 9:'stole'},
-  lead: {7:'leading', 8:'lead', 9:'lead'},
-  lie: {7:'lying', 8:'lay', 9:'lay'},
-  sleep: {7:'sleeping', 8:'slept', 9:'slept'}
-  // give
-  // find
-  // think
-  // tell
-  // become
-  // show
-  // leave
-  // feel
-  // bring
-  // begin
-  // keep
-  // write
-  // stand
-  // hear
-  // let
-  // mean
-  // set
-  // meet
-  // pay
-  // sit
-  // speak
-  // lie
-  // lead
-  // read
-  // grow
-  // lose
-  // fall
-  // send
-  // build
-  // understood
-  // draw
-  // break
-  // spend
-  // cut
-  // rise
-  // drive
-  // buy
-  // wear
-  // choose
-
-  // to shit
-
-}
-
-},{}],203:[function(require,module,exports){
-/*
-Tenses: [source ef.co.uk]
-  - Simple Present ("They walk home.")
-  - Present Continuous ("They are walking home.")
-  - Simple Past ("Peter lived in China in 1965")
-  - Past Continuous ("I was reading when she arrived.")
-  - Present Perfect ("I have lived here since 1987.")
-  - Present Perfect Continuous ("I have been living here for years.")
-  - Past Perfect ("We had been to see her several times before she visited us")
-  - Past Perfect continuous ("He had been watching her for some time when she
-    turned and smiled.")
-  - Future Perfect ("We will have arrived in the states by the time you get this
-    letter.")
-  - Future Perfect Continuous ("By the end of your course, you will have been
-    studying for five years")
-  - Simple Future ("They will go to Italy next week.")
-  - Future Continuous ("I will be travelling by train.")
-
-
-  (Maybe also include:
-  - Zero conditional ("If ice gets hot it melts.")
-  - Type 1 Conditional ("If he is late I will be angry.")
-  - Type 2 Conditional ("If he was in Australia he would be getting up now.")
-  - Type 3 Conditional ("She would have visited me if she had had time")
-  - Mixed Conditional ("I would be playing tennis if I hadn't broken my arm.")
-  - Gerund
-  - Present participle)
-*/
-
-const conjugate = require("./conjugate")
-const getPerson = require("./getPerson")
-const {sub} = require('../Substitution')
-//const Substitution = require("../Substitution")
-const regOps = require("../regOps")
-
-const GERUND = 7
-const PAST_PARTICIPLE = 8
-const PAST_TENSE = 9
-
-const actionReservedWords = ['_verb', '_object', '_subject']
-
-function verbPhrase(
-  action,
-  tense='simple_present',
-  {
-    omit=[],
-    nounPhraseFor=null,
-    prepositionClauseFor=null
-  } = {}
-) {
-  if(prepositionClauseFor)
-    return sub('that _', verbPhrase(
-      action, tense, {omit: [prepositionClauseFor]}
-    ))
-
-  if(nounPhraseFor) {
-    return sub(
-      '_ that _',
-      action[nounPhraseFor],
-      verbPhrase(action, tense, {omit: nounPhraseFor}))
-  }
-
-
-
-  let vp = tenses[tense](action)
-
-  if(action._object && omit != '_object')
-    vp = sub("_ O_", vp, action._object)
-
-  for(var prep in action) {
-    if(!actionReservedWords.includes(prep))
-      if(omit == prep)
-        vp = sub('_ _', vp, prep)
-      else
-        vp = sub('_ _ _', vp, prep, action[prep])
-  }
-
-  if(omit != '_subject' && tense != 'imperative')
-    vp = sub('S_ _', action._subject, vp)
-
-  return vp
-}
-
-function contractBySubject(actions, tense) {
-  // format a set of actions as a contracted phrases sharing the same subject
-
-  // first check that the subjects match
-  let subject = actions[0]._subject
-  for(let action of actions)
-    if(action._subject != subject)
-      throw "cannot perform contraction because the subjects do not match"
-
-  return sub(
-    '_ _', subject,
-    actions.map(action => verbPhrase(action, tense, {omit:['_subject']}))
-  )
-}
-
-function anyTenseRegex(verb) {
-  let action = {_verb:verb, _subject:'_subject'}
-  let forms = []
-  for(var i in tenses) {
-    let form = tenses[i](action)
-    if(form.isSubstitution)
-      form = form.getRegex()
-    forms.push(form)
-  }
-
-  return regOps.or(...forms)
-}
-
-const tenses = {
-  simple_present(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      "_",
-      conjugate(action._verb, person)
-    )
-  },
-
-  present_continuous(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      "_ _",
-      conjugate('be', person),
-      conjugate(action._verb, GERUND)
-    )
-  },
-
-  simple_past(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      '_',
-      conjugate(action._verb, PAST_TENSE)
-    )
-  },
-
-  past_continuous(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      '_ _',
-      conjugate('were', person),
-      conjugate(action._verb, GERUND)
-    )
-  },
-
-  present_perfect(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      '_ _',
-      conjugate('have', person),
-      conjugate(action._verb, PAST_PARTICIPLE)
-    )
-  },
-
-  present_perfect_continuous(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      '_ been _',
-      conjugate('have', person),
-      conjugate(action._verb, GERUND)
-    )
-  },
-
-  past_perfect(action) {
-    let person = getPerson(action._subject)
-    return sub(
-      '_ _',
-      conjugate('have', person),
-      conjugate(action._verb, PAST_PARTICIPLE)
-    )
-  },
-
-  past_perfect_continuous(action) {
-    return sub(
-      'had been _',
-      conjugate(action._verb, GERUND)
-    )
-  },
-
-  future_perfect(action) { // we will have verbed
-    return sub(
-      'will have _',
-      conjugate(action._verb, PAST_PARTICIPLE)
-    )
-  },
-
-  // Future Perfect Continuous ("you will have been studying for five years")
-  future_perfect_continuous(action) {
-    return sub(
-      'will have been _',
-      conjugate(action._verb, GERUND)
-    )
-  },
-
-  // Simple Future ("They will go to Italy next week.")
-  simple_future(action) {
-    return sub(
-      'will _',
-      action._verb,
-    )
-  },
-
-  // Future Continuous ("I will be travelling by train.")
-  future_continuous({_subject, _verb}) {
-    return sub(
-      'will be _',
-      conjugate(_verb, GERUND)
-    )
-  },
-
-  imperative({_verb}) {
-    return sub(_verb)
-  },
-
-  negative_possible_present({_subject, _verb}) {
-    return sub('cannot _', _verb)
-  },
-  negative_possible_past({_subject, _verb}) {
-    return sub('could not _', _verb)
-  },
-}
-
-function tenseType(tense) {
-  if(tense.includes('past'))
-    return 'past'
-  else if(tense.includes('present'))
-    return 'present'
-  else if(tense.includes('future'))
-    return 'future'
-  else
-    return undefined
-}
-
-module.exports = verbPhrase
-verbPhrase.contractBySubject = contractBySubject
-verbPhrase.tenses = tenses
-verbPhrase.tenseList = Object.keys(tenses).reverse() // in descending order of complexity
-verbPhrase.anyTenseRegex = anyTenseRegex
-verbPhrase.getTenseType = tenseType
-
-},{"../Substitution":199,"../regOps":210,"./conjugate":200,"./getPerson":201}],204:[function(require,module,exports){
-const ordinal = require('integer-to-ordinal-english')
-const regops = require('./regOps')
-
-
-const articleRegex = regops.capture(
-  /a|an|another|the/,
-  'article'
-)
-const ordinalRegex = regops.capture(
-  regops.or(
-    /[0-9]+(?:st|nd|rd|th)/,
-    /(?:\w+-)*(?:first|second|third|(?:\w+th))/),
-  'ordinal'
-)
-
-const nounPhraseRegex = regops.whole(regops.concatSpaced(
-  regops.optionalConcatSpaced(articleRegex, ordinalRegex),
-  /(?<phraselet>.+)/
-))
-
-
-function getNounPhraselet(str) {
-  let result = nounPhraseRegex.exec(str)
-  if(result)
-    return result.groups
-  else if(/^[A-Z]/)
-    return {
-      properNoun: str
-    }
-}
-module.exports = getNounPhraselet
-
-},{"./regOps":210,"integer-to-ordinal-english":219}],205:[function(require,module,exports){
-const Plur = require('./plural')
-const parseQuantifier = require('./parseQuantifier')
-
-/**
- * Parse a noun-phrase without embedded sentence clauses. Noun-phrases must be
- * in the form: [quantifier] + [...adjectives] + [noun].
- * @method
- */
-function parseNounPhrase(str, dictionary) {
-  let noun = null
-  let plural = undefined
-
-  // check phrasal nouns
-  let remainder
-  for(let nounObject of dictionary.phrasalNouns) {
-    let singularNoun = nounObject.noun
-    if(new RegExp(singularNoun+'$', 'i').test(str)) {
-      noun = singularNoun
-      plural = false
-      remainder = str.slice(0, -singularNoun.length).trim()
-      break;
-    }
-
-
-    let pluralNoun = Plur.toPlural(singularNoun)
-    if(new RegExp(pluralNoun+'$', 'i').test(str)) {
-      noun = singularNoun
-      plural = true
-      remainder = str.slice(0, -pluralNoun.length).trim()
-      break;
-    }
-  }
-
-  // Unless phrasal noun was successful, check the last word against regular
-  // nouns.
-  if(remainder == undefined) {
-    // parse last word as singular
-    let lastWord = str.slice((str.lastIndexOf(' ') + 1))
-    if(dictionary.nouns[lastWord]) {
-      noun = lastWord
-      plural = false
-      remainder = str.slice(0, -lastWord.length).trim()
-    } else{
-      // parse last word as a plural
-      let lastWordSingular = Plur.toSingular(lastWord)
-      if(lastWordSingular && dictionary.nouns[lastWordSingular]) {
-        noun = lastWordSingular
-        plural = true
-        remainder = str.slice(0, -lastWord.length).trim()
-      }
-    }
-  }
-
-  // exit early if failed to identify a noun
-  if(!noun)
-    return null
-
-  // parse quantifier/quantity
-  let quantity = plural ? {min:2, max:Infinity} : {min:1, max:1}
-  let quantifier = parseQuantifier(remainder)
-  if(quantifier) {
-    quantity = rangeOverlap(quantity, quantifier)
-    remainder = remainder.slice(quantifier.str.length).trim()
-  } else {
-    console.warn('expected quantifier')
-    return null
-  }
-
-  if(quantity.min > quantity.max)
-    return null
-
-  // treat the remaining words as adjectives
-  let adjectives = remainder.split(' ').filter(adj => adj.length)
-  if(!adjectives.every(adj => dictionary.adjectives[adj]))
-    return null
-
-  return {
-    noun: noun,
-    plural: plural,
-    quantityRange: quantity,
-    adjectives: adjectives,
-  }
-}
-module.exports = parseNounPhrase
-
-/**
- * Calculate a new range which is the intersection of two given ranges.
- * @method rangeOverlap
- * @param range1
- * @param range1.min
- * @param range1.max
- * @param range2.min
- * @param range2.max
- * @return {Object} A new range {Min, Max}
- */
-function rangeOverlap(range1, range2) {
-  return {
-    min: Math.max(range1.min, range2.min),
-    max: Math.min(range1.max, range2.max)
-  }
-}
-
-},{"./parseQuantifier":206,"./plural":208}],206:[function(require,module,exports){
-/**
- * Parse a quantifier word/phrase as a range of possible meanings
- * @method parseQuantifier
- * @param {String} str The quantifier
- * @return {Object} {min, max}
- */
-function parseQuantifier(str) {
-  let r // result, a temporary variable, reused many times
-
-  // a few
-  r = getWord(/a few|some/, str)
-  if(r)
-    return {min: 2, max:5, definite:false, str:r[0]}
-
-  // indefinite article
-  r = getWord(/a|an/, str)
-  if(r)
-    return {min:1, max:1, definite:false, str:r[0]}
-
-  // definite article
-  if(getWord(/the/, str))
-    return {min:1, max:Infinity, definite:true, str:'the'}
-
-  // number
-  r = getWord(/\d+/, str)
-  if(r) {
-    let n = parseInt(r[0])
-    if(!isNaN(n))
-      return {min: n, max:n, str:r[0]}
-  }
-
-  // approximate number
-  r = getWord(/(?:approximately|around|about) (?<n>\d+)/, str)
-  if(r) {
-    let n = parseInt(r[1])
-    if(!isNaN(n))
-      return {
-        min: Math.floor(0.75 * n),
-        max: Math.ceil(n / 0.75),
-        str: r[0]
-      }
-  }
-
-  return null
-}
-module.exports = parseQuantifier
-
-function getWord(wordReg, str) {
-  if(wordReg instanceof RegExp)
-    wordReg = wordReg.source
-  let reg = new RegExp('^(?:'+wordReg+')(?= |$)')
-  let result = reg.exec(str)
-  if(result) {
-    return result
-  } else
-    return null
-}
-
-},{}],207:[function(require,module,exports){
-/*
-  Borrowed from NULP, https://github.com/joelyjoel/Nulp/
-  Seperate words, punctuation and capitalisation. Form an array which is easier
-  to process.
-*/
-
-
-const wordCharRegex = /[\w'-]/;
-const punctuationCharRegex = /[.,"()!?-]/;
-
-module.exports = parseText = function(str) {
-    // seperates a string into a list of words and punctuation
-
-    str = removeFancyShit(str);
-
-    var parts = new Array();
-
-    var c, lastC;
-
-    var partType = undefined;
-    parts[0] = "";
-    for(var i=0; i<str.length; i++) {
-        //lastC = c;
-        c = str.charAt(i);
-
-        if(c == "_") {
-            if(partType == undefined)
-                partType = "q";
-            else if(partType == "punctuation") {
-                partType = "q";
-                parts.push("");
-            }
-        }
-        if(partType == "q") {
-            if(c == " " || c == "\n" || c == "\t") {
-                parts.push("");
-                partType = undefined;
-                continue;
-            } else {
-                parts[parts.length-1] += c;
-                continue;
-            }
-        }
-
-        if(c == "\n") {
-            if(partType == "punctuation")
-                parts[parts.length-1] += c;
-            else
-                parts.push(c);
-
-            parts.push("");
-            partType = undefined;
-            continue;
-        }
-
-        if(c == " " && parts[parts.length-1] != "") {
-            parts.push("");
-            partType = undefined
-            continue;
-        }
-
-        // special punctuation (hyphens and apostrophes)
-        if(c == "'") {
-            if(partType == "word" && (str.charAt(i+1).match(wordCharRegex) || str.charAt(i-1) == "s")) {
-                parts[parts.length-1] += c;
-                continue;
-            }
-        }
-
-        if(c == "-") {
-            if(str.charAt(i-1) == " " && str.charAt(i+1) == " ") {
-                parts[parts.length-1] += "~";
-                continue;
-            }
-        }
-
-        // word
-        if(c.match(wordCharRegex)) {
-            if(partType == undefined) {
-                partType = "word";
-            }
-            if(partType != "word") {
-                parts.push("");
-                partType = "word";
-            }
-            parts[parts.length-1] += c;
-            continue;
-        }
-
-        //if(c.match(punctuationCharRegex)) {
-        else {
-            /*if(partType == undefined) {
-                partType = "punctuation";
-            }
-            if(partType != "punctuation") {
-                parts.push("");
-                partType = "punctuation";
-            }
-            parts[parts.length-1] += c;*/
-            parts.push(c);
-            partType = "punctuation";
-            continue;
-        }
-
-        console.warn("Unrecognised character", c);
-    }
-    for(var i=0; i<parts.length; i++) {
-        if(parts[i] == "")
-            continue;
-        if(parts[i][0].match(/[A-Z]/) && parts[i].slice(1).match(/[a-z]/)) {
-            parts[i] = parts[i].toLowerCase();
-            parts.splice(i, 0, "^");
-            i++;
-        }
-    }
-
-    return parts;
-}
-
-function isWord(str) {
-  var c
-  for(var i in str) {
-    c = str[i]
-    if(!c.match(wordCharRegex))
-      return false
-  }
-  return true
-}
-module.exports.isWord = isWord
-
-function removeFancyShit(str) {
-    while(str.indexOf("’") != -1) {
-        str = str.replace("’", "\'")
-    }
-
-    return str;
-}
-
-function recombine(bits) {
-    var printedWords = []
-    var upper = false
-    for(var i in bits) {
-        let w = bits[i]
-        if(isWord(w)) {
-            if(upper) {
-                w = w[0].toUpperCase() + w.slice(1)
-                upper = false;
-            }
-            printedWords.push(w)
-        } else {
-            if(w == "^") {
-                upper = true;
-                continue;
-            }
-            printedWords[printedWords.length-1] += w;
-        }
-    }
-    return printedWords.join(" ")
-}
-module.exports.recombine = recombine
-
-},{}],208:[function(require,module,exports){
-/**
- * Convert english nouns between their singular and plural forms.
- * @class plural
- * @static
- */
-
-/**
- * Convert a singular noun to a plural.
- * @method toPlural
- * @param {String} singularNoun
- * @return {String}
- */
-function toPlural(singularNoun) {
-  // if irregular return the irregular plural
-  if(irregular[singularNoun])
-    return irregular[singularNoun]
-
-  // If the singular noun ends in -o, ‑s, -ss, -sh, -ch, -x, or -z, add ‑es
-  if(/(o|s|ss|sh|ch|x|z)$/i.test(singularNoun))
-    return singularNoun + 'es'
-
-  // If the noun ends with ‑f or ‑fe, the f is often changed to ‑ve before
-  // adding the -s to form the plural version.
-  // -- FOR NOW, TREATING THESE AS IRREGULAR.
-
-  // If a singular noun ends in ‑y and the letter before the -y is a consonant,
-  // change the ending to ‑ies to make the noun plural.
-  if(/[bcdfghjklmnpqrstvwxyz]y$/i.test(singularNoun))
-    return singularNoun.slice(0, -1) + 'ies'
-
-  // If the singular noun ends in ‑us, the plural ending is frequently ‑i.
-  if(/us$/.test(singularNoun))
-    return singularNoun.slice(0, -1) + 'i'
-
-  // If the singular noun ends in ‑is, the plural ending is ‑es.
-  // -- IGNORING BECAUSE HARD IT INTRODUCES AMBIGUITY IN INVERSION. TREATING
-  //    THESE WORDS AS IRREGULAR.
-
-  // If the singular noun ends in ‑on, the plural ending is ‑a.
-  if(/on$/.test(singularNoun))
-    return singularNoun.slice(0, -2) + 'a'
-
-  // otherwise add -s on the end
-  return singularNoun+'s'
-}
-
-/**
-  * Convert a plural noun to a singular
-  * @method toSingular
-  * @param {String} pluralNoun
-  * @return {String|null}
-  */
-function toSingular(pluralNoun) {
-  // If irregular, replace with the singular
-  if(irregularInverted[pluralNoun])
-    return irregularInverted[pluralNoun]
-
-  // If the plural noun ends -ies, replace with -y
-  if(/ies$/.test(pluralNoun))
-    return pluralNoun.slice(0, -3) + 'y'
-
-  // If the plural noun ends with a consonant followed by -les, remove -s
-  if(/[bcdfghjklmnpqrstvwxyz]les$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1)
-
-  // If the plural noun ends with a vowell followed by a consonant followed by
-  // -es, remove -s
-  if(/[aeiou][bcdfghjklmnpqrstvwxyz]es$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1)
-
-  // If the plural noun ends -es, remove -es
-  if(/es$/.test(pluralNoun))
-    return pluralNoun.slice(0, -2)
-
-  // If the plural noun ends -s, remove -s
-  if(/s$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1)
-
-  // If the plural noun ends -i, replace with -us
-  if(/i$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1) + 'us'
-
-  // If the plural noun ends -a, replace with -on
-  if(/a$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1) + 'on'
-
-  // If the plural noun ends -s, remove -s
-  if(/s$/.test(pluralNoun))
-    return pluralNoun.slice(0, -1)
-
-  // Otherwise return null, this is recognised as a plural noun
-  return null
-}
-
-module.exports = {
-  toPlural: toPlural,
-  toSingular: toSingular,
-}
-
-const irregular = {
-  // singular : plural,
-  sheep: 'sheep',
-  ice: 'ice',
-
-  goose: 'geese',
-  child: 'children',
-  woman: 'women',
-  man: 'men',
-  tooth: 'teeth',
-  foot: 'feet',
-  mouse: 'mice',
-  person: 'people',
-
-  toe: 'toes',
-
-  // phrasal nouns
-  'pair of trousers': 'pairs of trousers',
-}
-
-const irregularInverted = {}
-for(let singular in irregular) {
-  let plural = irregular[singular]
-  irregularInverted[plural] = singular
-}
-
-},{}],209:[function(require,module,exports){
-function politeList(list) {
-  if(list.length == 1)
-    return list[0]
-  else {
-    return list.slice(0, list.length-1).join(", ") + " and " + list[list.length-1]
-  }
-}
-module.exports = politeList
-
-function parsePoliteList(str) {
-  //result = /^([A-Z ]+)(?:(?:, (.+))* and (.+))$/i.exec(str)
-  result = /^(?:(?:(.+), )*(.+) and )(.+)$/.exec(str)
-
-  if(result)
-    return result.slice(1).filter(o=>o)
-}
-module.exports.parse = parsePoliteList
-
-},{}],210:[function(require,module,exports){
-function sourcify(list) {
-  return list
-    .filter(item => item)
-    .map(item => item.constructor == RegExp ? item.source : item)
-}
-
-function bracket(str) {
-  return "(?:" + str + ")"
-}
-function autoBracket(str) {
-  if(/^[\w, ]*$/.test(str))
-    return str
-  else
-    return bracket(str)
-}
-
-function concat(...operands) {
-  return new RegExp(
-    sourcify(operands)
-      .map(autoBracket)
-      .join("")
-  )
-}
-function concatSpaced(...operands) {
-  return new RegExp(
-    sourcify(operands)
-      .map(autoBracket)
-      .join(" ")
-  )
-}
-function or(...operands) {
-  return new RegExp(
-    sourcify(operands)
-      .map(autoBracket)
-      .join("|")
-  )
-}
-function optional(operand) {
-  operand = new RegExp(operand).source
-  operand = bracket(operand)
-  return operand + "?"
-}
-function kleene(operand) {
-  operand = new RegExp(operand).source
-  operand = bracket(operand)
-  return operand + "*"
-}
-
-function kleeneSpaced(operand) {
-  return kleeneJoin(operand, ' ')
-}
-
-function kleeneJoin(operand, seperator) {
-  operand = new RegExp(operand).source
-  seperator = new RegExp(seperator).source
-  return concat(operand, kleene(concat(seperator, operand)))
-}
-
-function kleenePoliteList(...operands) {
-  operand = or(...operands)
-  return concat(
-    optional(concat(kleeneJoin(operand,', '), ',? and ')),
-    operand
-  )
-}
-
-function optionalConcatSpaced(stem, ...optionalAppendages) {
-  stem = autoBracket(new RegExp(stem).source)
-  optionalAppendages = sourcify(optionalAppendages)
-    .map(a => autoBracket(a))
-    .map(a => optional(" " + a))
-  return concat(stem, ...optionalAppendages)
-}
-
-function kleeneConcatSpaced(stem, ...optionalAppendages) {
-  stem = autoBracket(new RegExp(stem).source)
-  optionalAppendages = sourcify(optionalAppendages)
-
-  let toConcat = kleene(concat(' ', or(...optionalAppendages).source))
-  return concat(stem, toConcat)
-}
-
-function whole(operand) {
-  operand = autoBracket(new RegExp(operand).source)
-  return new RegExp('^'+operand+'$')
-}
-
-function capture(operand, groupName) {
-  if(operand.constructor == RegExp)
-    operand = operand.source
-
-  let name = groupName ? '?<'+groupName+'>' : ''
-
-  return new RegExp('(' + name + operand + ')')
-}
-
-module.exports = {
-  concat: concat,
-  concatSpaced: concatSpaced,
-  or: or,
-  optional: optional,
-  kleene: kleene,
-  kleeneJoin: kleeneJoin,
-  kleeneSpaced: kleeneSpaced,
-  kleenePoliteList: kleenePoliteList,
-  kleeneConcatSpaced: kleeneConcatSpaced,
-  optionalConcatSpaced: optionalConcatSpaced,
-  autoBracket: autoBracket,
-  whole: whole,
-  capture: capture,
-}
-
-},{}],211:[function(require,module,exports){
-arguments[4][210][0].apply(exports,arguments)
-},{"dup":210}],212:[function(require,module,exports){
-/*
-  A set of tools for using the so-called 'special array', or 'specarr'.
-
-  Special Arrays consist of:
-  [
-    - null values to ignore
-    - strings
-    - Regexs
-    - Entityena
-    - substitutions
-    - functions returning:
-      - null values to ignore
-      - strings
-      - regexs
-      - entityena
-      - substitutions
-      - special arrays for recursion
-  ]
-
-  Fully expanded special arrays consist of:
-  [
-    - strings,
-    - regexs,
-    - entityena,
-    - substitutions
-    - NO FUNCTIONS AND NO NULL VALUES
-  ]
-
-  Note: I in the function names in this file I am using an underscore to mean
-        'to'. Eg/ specarr_regexs means "Special array to regular expressions"
-*/
-
-const {randexp} = require("randexp")
-
-function specarr_regexs(target, specialArr, depth) { // special array to regexps
-  // convert a 'special array' into an array of strings and regular expressions
-  if(!target || (!target.isEntityenon && !target.isEntity))
-    throw "expects target to be a Entityenon. "+target
-  if(!specialArr || specialArr.constructor != Array)
-    throw "expects specialArr to be an array."
-
-  var out = [] // the output array
-  for(var i in specialArr) {
-    let item = specialArr[i]
-
-    if(!item) // skip null values
-      continue
-
-    else if(item.constructor == String) // accept strings as regexs
-      out.push(new RegExp(item))
-
-    else if(item.constructor == RegExp) // accept regular expressions
-      out.push(item)
-
-    else if(item.isEntityenon)
-      out.push(item.refRegex())
-    else if(item.isEntity)
-      out.push(item.reg(depth))
-
-    // if substitution, interpret the substitution as a regex and add
-    else if(item.isSubstitution) {
-      //console.warn("Very odd, a substitution that is not returned by a function")
-      let subbed = item.getRegex(depth)
-      if(subbed)
-        out.push(subbed)
-    }
-
-    else if(item.constructor == Function) {
-      // call function on the target
-      let result = item(target)
-
-      // if result is null, skip.
-      if(!result)
-        continue;
-      // accept result if RegExp
-      else if(result.constructor == RegExp)
-        out.push(result)
-      // if string cast as RegExp and accept
-      else if(result.constructor == String)
-        out.push(new RegExp(result))
-      // if substitution, interpret the substitution as a regex and add
-      else if(result.isSubstitution) {
-        let subbed = result.getRegex(depth)
-        if(subbed)
-          out.push(subbed)
-      }
-      // if entityenon, return its regex
-      else if(result.isEntityenon)
-        out.push(result.refRegex())
-      else if(result.isEntity)
-        out.push(result.reg(depth))
-      // if array, recursively interpret and concatenate the result
-      else if(result.constructor == Array)
-        out = out.concat(specarr_regexs(target, result))
-      else
-        console.warn("Uninterpretted value from function:", result)
-    } else
-      console.warn("Uninterpretted value from list:", item)
-  }
-
-  // perhaps remove duplicates?
-  for(var i in out) {
-    if(out[i].constructor != RegExp)
-      console.warn("specarr_regexs returned item which is not a regex:", out[i])
-  }
-
-  return out
-}
-
-function expand(target, specialArr) {
-  /* Return the list of strings, regexs, objects and substitutions implied by
-      the special array. */
-  if(!target || !(target.isEntityenon || target.isEntity))
-    throw "expects target to be a Entityenon."
-  if(!specialArr || specialArr.constructor != Array)
-    throw "expects specialArr to be an array."
-
-  let out = []
-  for(var i in specialArr) {
-    let item = specialArr[i]
-    if(!item) // skip null values
-      continue
-
-    else if(item.constructor == String) // accept strings
-      out.push(item)
-
-    else if(item.constructor == RegExp) // accept regular expressions
-      out.push(item)
-
-    else if(item.isSubstitution) // accept substitutions
-      out.push(item)
-
-    else if(item.isEntityenon || item.isEntity) // accept entityenon
-      out.push(item)
-
-    else if(item.isAction) // accept actions
-      out.push(item)
-
-    else if(typeof item == 'object' && item._verb) // accept rough actions
-      out.push(item)
-
-    // execute functions
-    else if(item.constructor == Function) {
-      let result = item(target)
-
-      if(!result) // skip null function returns
-        continue
-
-      else if(result.constructor == RegExp) // accept regex function returns
-        out.push(result)
-
-      else if(result.constructor == String) // accept strings
-        out.push(result)
-
-      else if(result.isSubstitution) // accept substitutions
-        out.push(result)
-
-      else if(result.isEntityenon || item.isEntity) // accept entityena
-        out.push(result)
-
-      else if(result.isAction) // accept actions
-        out.push(result)
-
-      else if(typeof result == 'object' && result._verb) // accept rough actions
-        out.push(result)
-
-      else if(result.constructor == Array)
-        out = out.concat(expand(target, result))
-      else
-        console.warn("Uninterpretted value from function:", result)
-    } else
-      console.warn("Uninterpretted value from list:", item)
-  }
-
-  return out
-}
-
-function cellToString(cell, descriptionCtx) { // "special array cell to string"
-  // get a finalised string for an expanded special arr cell
-
-  // if null or function, throw an error
-  if(!cell || cell.constructor == Function)
-    throw "illegal special cell."
-
-  // if string, return as is
-  if(cell.constructor == String)
-    return cell
-  // if regex, return using randexp
-  if(cell.constructor == RegExp)
-    return randexp(cell)
-  // if entityenon, get its ref
-  if(cell.isEntityenon)
-    return cell.ref(descriptionCtx)
-  if(cell.isEntity)
-    return cell.ref()
-  // if substitution, get its string
-  if(cell.isSubstitution)
-    return cell.getString(descriptionCtx)
-}
-
-// TODO: cellToRegex
-
-function randomString(target, arr, ctx) {
-  let expanded = expand(target, arr).sort(() => Math.random()*2-1)
-  for(var i=0; i<expanded.length; i++) {
-    let str = cellToString(expanded[i], ctx)
-    if(str)
-      return str
-  }
-  return null
-}
-
-function randomStrings(target, arr, ctx, n=1) {
-  let expanded = expand(target, arr).sort(() => Math.random()*2-1)
-  let list = []
-  for(var i=0; i<expanded.length && list.length < n; i++) {
-    let str = cellToString(expanded[i], ctx)
-    if(str)
-      list.push(str)
-  }
-  return list
-}
-
-function random(target, arr) {
-  let expanded = expand(target, arr)
-  return expanded[Math.floor(Math.random()*expanded.length)]
-}
-
-
-module.exports = {
-  toRegexs: specarr_regexs,
-  expand: expand,
-  cellToString: cellToString,
-  randomString: randomString,
-  randomStrings: randomStrings,
-  random: random,
-}
-
-},{"randexp":239}],213:[function(require,module,exports){
-const parseText = require("./parseText")
-
-function spellcheck(str) {
-  // correct the indefinite articles
-  let reg = /(?<=^| )a?(?= [aeiou])/ig
-  let reg2 = /(?<=^| )(?:an)?(?= [^aeiou])/ig
-  return str.replace(reg, 'an').replace(reg2, 'a')
-}
-module.exports = spellcheck
-
-function sentencify(str) {
-  // check and correct spelling of indefinite articles
-  str = spellcheck(str)
-
-  // auto capitalise first letter of first word
-  if(!/^[A-Z]/.test(str))
-    str = str[0].toUpperCase() + str.slice(1)
-
-  // add full-stop if does not exist
-  str = str.trim()
-  if(!/[!.?,:;]$/.test(str))
-    str += '.'
-
-  return str
-}
-module.exports.sentencify = sentencify
-
-},{"./parseText":207}],214:[function(require,module,exports){
-
-/* Convert a noun-phrase, proper-noun or pronoun to a possessive adjective. */
-function toPossessiveAdjective(nounPhrase) {
-  // handle special cases:
-  switch(nounPhrase.toLowerCase()) {
-    case 'i':
-    case 'me':
-      return 'my';
-
-    case 'you':
-      return 'your';
-
-    case 'he':
-    case 'him':
-      return 'his';
-
-    case 'she':
-    case 'her':
-      return 'her';
-
-    case 'it':
-      return 'its'
-
-    case 'we':
-      return 'our';
-
-    case 'they':
-    case 'them':
-      return 'their';
-  }
-
-  // regular cases
-  let lastWord = nounPhrase.slice(nounPhrase.lastIndexOf(' ')+1)
-  if(lastWord[lastWord.length-1] == 's') {
-    // Assume that words beginning with a capital letter are proper nouns
-    if(/^[A-Z]/.test(lastWord))
-      return nounPhrase + "\'s"
-    else
-      return nounPhrase + "\'"
-  } else {
-    return nounPhrase + "\'s"
-  }
-}
-module.exports = toPossessiveAdjective
-
-},{}],215:[function(require,module,exports){
-// get the subject-form of a pronoun
-
-const subjectForms = {
-  'him': 'he',
-  'her': 'she',
-  'them': 'they',
-  'me': 'I',
-}
-
-function toSubject(str) {
-  if(subjectForms[str])
-    return subjectForms[str]
-  else
-    return str
-}
-module.exports = toSubject
-
-},{}],216:[function(require,module,exports){
+},{"../../../../english-io/src":251}],179:[function(require,module,exports){
 'use strict';
 
 function FFT(size) {
@@ -15251,7 +10259,7 @@ FFT.prototype._singleRealTransform4 = function _singleRealTransform4(outOff,
   out[outOff + 7] = FDi;
 };
 
-},{}],217:[function(require,module,exports){
+},{}],180:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -15276,214 +10284,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],218:[function(require,module,exports){
-"use strict";
-
-const CARDINALS = [
-  null,
-  "One",
-  "Two",
-  "Three",
-  "Four",
-  "Five",
-  "Six",
-  "Seven",
-  "Eight",
-  "Nine",
-  "Ten",
-  "Eleven",
-  "Twelve",
-  "Thirteen",
-  "Fourteen",
-  "Fifteen",
-  "Sixteen",
-  "Seventeen",
-  "Eighteen",
-  "Nineteen"
-]
-
-const CARDINALS_1 = [
-  null,
-  null,
-  "Twenty",
-  "Thirty",
-  "Forty",
-  "Fifty",
-  "Sixty",
-  "Seventy",
-  "Eighty",
-  "Ninety"
-]
-
-const CARDINAL_EXPONENTS = [
-  null,
-  null,
-  "Hundred",
-  "Thousand",
-  null,
-  null,
-  "Million",
-  null,
-  null,
-  "Billion",
-  null,
-  null,
-  "Trillion",
-  null,
-  null
-]
-
-const isnotempty = function (possibly_empty) {
-  return possibly_empty !== null && possibly_empty !== "";
-}
-
-const digit_meta = function(n) {
-  var meta = {
-    power: 0,
-    exponent: 0,
-    digit: 0,
-  }
-  if (n === 0) { return meta; }
-
-  meta.power = Math.floor(n).toString().length - 1;
-  meta.exponent = Math.pow(10, meta.power);
-  meta.digit = Math.floor(n / meta.exponent);
-
-  return meta;
-}
-
-const digit_cardinal = function(digit, cardinal_array) {
-  return cardinal_array[digit];
-}
-
-const cardinalize = function(n) {
-  var greater_than_ninety_nine = n > 99;
-  var cardinals = [];
-  var meta = "";
-  var cardinal = "";
-
-  if (n === 0) {
-    return null;
-  }
-
-  if (greater_than_ninety_nine) {
-    meta = digit_meta(n);
-    cardinal = digit_cardinal(meta.digit, CARDINALS);
-    cardinals.push(cardinal);
-    cardinals.push("Hundred");
-    n -= meta.digit * meta.exponent;
-  }
-
-  if (n === 0) {
-    return cardinals.join(" ");
-  }
-
-  if (greater_than_ninety_nine) {
-    cardinals.push("and");
-  }
-
-  if (n < CARDINALS.length) {
-    cardinals.push(CARDINALS[n]);
-  } else {
-    meta = digit_meta(n);
-    var cardinal_teen = digit_cardinal(meta.digit, CARDINALS_1);
-
-    n -= meta.digit * meta.exponent;
-
-    meta = digit_meta(n);
-    var cardinal_unit = digit_cardinal(meta.digit, CARDINALS);
-
-    cardinals.push([cardinal_teen, cardinal_unit].filter(isnotempty).join("-"));
-  }
-
-  return cardinals.join(" ");
-}
-
-const decimal_to_cardinal = function (n) {
-  if (n === 0) return "Zero";
-  var meta = digit_meta(n);
-  var nameable_powers = Math.floor(meta.power / 3);
-  var cardinals = [];
-
-
-  for (var nameable_power = 0; nameable_power <= nameable_powers * 3; nameable_power += 3) {
-    var nameable_unit = n;
-
-
-    // Remove high digits
-    while (meta.power >= nameable_power + 3) {
-      nameable_unit -= meta.digit * meta.exponent;
-      meta = digit_meta(nameable_unit);
-    }
-
-    // Remove low digits
-    if (nameable_unit > 999) {
-      nameable_unit = Math.floor(nameable_unit / Math.pow(10, nameable_power));
-    }
-
-    cardinals.unshift([cardinalize(nameable_unit), CARDINAL_EXPONENTS[nameable_power]].filter(isnotempty).join(" "));
-
-    // Determine whether to prepend "and"
-    if (nameable_unit !== 0 && (nameable_unit % 100 === 0 || nameable_unit < 100) && nameable_power === 0 && nameable_powers > 0) {
-      cardinals[0] = "and " + cardinals[0];
-    }
-  }
-
-  return cardinals.filter(isnotempty).join(", ");
-};
-
-module.exports = decimal_to_cardinal;
-
-},{}],219:[function(require,module,exports){
-"use strict";
-
-const english = require("integer-to-cardinal-english");
-
-const irregulars = {
-  "One": "First",
-  "Two": "Second",
-  "Three": "Third",
-  "Five": "Fifth",
-  "Eight": "Eighth",
-  "Nine": "Ninth",
-  "Twelve": "Twelfth",
-}
-
-function ordinal(input) {
-  switch(typeof(input)) {
-    case "number":
-      var cardinal = english(input);
-      break;
-    case "string":
-      // Assume that the string is already a cardinal
-      var cardinal = input;
-      break;
-    default:
-      throw new Error("Arguments must either be an integer or a cardinal string");
-  }
-
-  var words = cardinal.split(" ");
-  var last_word = words.pop();
-  var compounds = last_word.split("-");
-  var last_compound = compounds.pop();
-
-  if (last_compound in irregulars) {
-    compounds.push(irregulars[last_compound]) // Dictionary lookup of ordinals
-  } else {
-    if (last_compound[last_compound.length - 1] === "y") {
-      compounds.push(last_compound.slice(0, -1) + "ieth"); // Eighty --> Eightieth
-    } else {
-      compounds.push(last_compound + "th");  // "Regular" ordinalization
-    }
-  }
-
-  words.push(compounds.join("-"));
-  return words.join(" ");
-}
-
-module.exports = ordinal;
-
-},{"integer-to-cardinal-english":218}],220:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 /**
  * @module  is-audio-buffer
  */
@@ -15500,9 +10301,9 @@ module.exports = function isAudioBuffer (buffer) {
 	&& typeof buffer.duration === 'number'
 };
 
-},{}],221:[function(require,module,exports){
+},{}],182:[function(require,module,exports){
 module.exports = true;
-},{}],222:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -15525,7 +10326,7 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],223:[function(require,module,exports){
+},{}],184:[function(require,module,exports){
 'use strict';
 
 var re = require('data-uri-regex');
@@ -15534,7 +10335,7 @@ module.exports = function (data) {
 	return (data && re().test(data)) === true;
 };
 
-},{"data-uri-regex":15}],224:[function(require,module,exports){
+},{"data-uri-regex":15}],185:[function(require,module,exports){
 'use strict';
 var toString = Object.prototype.toString;
 
@@ -15543,7 +10344,7 @@ module.exports = function (x) {
 	return toString.call(x) === '[object Object]' && (prototype = Object.getPrototypeOf(x), prototype === null || prototype === Object.getPrototypeOf({}));
 };
 
-},{}],225:[function(require,module,exports){
+},{}],186:[function(require,module,exports){
 module.exports = function (args, opts) {
     if (!opts) opts = {};
     
@@ -15781,7 +10582,7 @@ function isNumber (x) {
 }
 
 
-},{}],226:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 /** @module negative-index */
 var isNeg = require('negative-zero');
 
@@ -15789,11 +10590,11 @@ module.exports = function negIdx (idx, length) {
 	return idx == null ? 0 : isNeg(idx) ? length : idx <= -length ? 0 : idx < 0 ? (length + (idx % length)) : Math.min(length, idx);
 }
 
-},{"negative-zero":227}],227:[function(require,module,exports){
+},{"negative-zero":188}],188:[function(require,module,exports){
 'use strict';
 module.exports = x => Object.is(x, -0);
 
-},{}],228:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -15885,7 +10686,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],229:[function(require,module,exports){
+},{}],190:[function(require,module,exports){
 (function (Buffer){
 /**
  * @module  pcm-util
@@ -16316,14 +11117,14 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"audio-buffer":230,"buffer":273,"is-audio-buffer":220,"os":280,"to-array-buffer":245}],230:[function(require,module,exports){
+},{"audio-buffer":191,"buffer":275,"is-audio-buffer":181,"os":282,"to-array-buffer":200}],191:[function(require,module,exports){
 arguments[4][6][0].apply(exports,arguments)
-},{"audio-context":10,"buffer-to-arraybuffer":11,"dup":6,"is-audio-buffer":220,"is-browser":221,"is-buffer":222,"is-plain-obj":224}],231:[function(require,module,exports){
+},{"audio-context":10,"buffer-to-arraybuffer":11,"dup":6,"is-audio-buffer":181,"is-browser":182,"is-buffer":183,"is-plain-obj":185}],192:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib')
 
-},{"./lib":236}],232:[function(require,module,exports){
+},{"./lib":197}],193:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap/raw');
@@ -16538,7 +11339,7 @@ function doResolve(fn, promise) {
   }
 }
 
-},{"asap/raw":3}],233:[function(require,module,exports){
+},{"asap/raw":3}],194:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -16553,7 +11354,7 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
   });
 };
 
-},{"./core.js":232}],234:[function(require,module,exports){
+},{"./core.js":193}],195:[function(require,module,exports){
 'use strict';
 
 //This file contains the ES6 extensions to the core Promises/A+ API
@@ -16662,7 +11463,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 };
 
-},{"./core.js":232}],235:[function(require,module,exports){
+},{"./core.js":193}],196:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -16680,7 +11481,7 @@ Promise.prototype.finally = function (f) {
   });
 };
 
-},{"./core.js":232}],236:[function(require,module,exports){
+},{"./core.js":193}],197:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./core.js');
@@ -16690,7 +11491,7 @@ require('./es6-extensions.js');
 require('./node-extensions.js');
 require('./synchronous.js');
 
-},{"./core.js":232,"./done.js":233,"./es6-extensions.js":234,"./finally.js":235,"./node-extensions.js":237,"./synchronous.js":238}],237:[function(require,module,exports){
+},{"./core.js":193,"./done.js":194,"./es6-extensions.js":195,"./finally.js":196,"./node-extensions.js":198,"./synchronous.js":199}],198:[function(require,module,exports){
 'use strict';
 
 // This file contains then/promise specific extensions that are only useful
@@ -16822,7 +11623,7 @@ Promise.prototype.nodeify = function (callback, ctx) {
   });
 };
 
-},{"./core.js":232,"asap":2}],238:[function(require,module,exports){
+},{"./core.js":193,"asap":2}],199:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -16886,734 +11687,7 @@ Promise.disableSynchronous = function() {
   Promise.prototype.getState = undefined;
 };
 
-},{"./core.js":232}],239:[function(require,module,exports){
-const ret    = require('ret');
-const DRange = require('drange');
-const types  = ret.types;
-
-
-module.exports = class RandExp {
-  /**
-   * @constructor
-   * @param {RegExp|String} regexp
-   * @param {String} m
-   */
-  constructor(regexp, m) {
-    this._setDefaults(regexp);
-    if (regexp instanceof RegExp) {
-      this.ignoreCase = regexp.ignoreCase;
-      this.multiline = regexp.multiline;
-      regexp = regexp.source;
-
-    } else if (typeof regexp === 'string') {
-      this.ignoreCase = m && m.indexOf('i') !== -1;
-      this.multiline = m && m.indexOf('m') !== -1;
-    } else {
-      throw new Error('Expected a regexp or string');
-    }
-
-    this.tokens = ret(regexp);
-  }
-
-
-  /**
-   * Checks if some custom properties have been set for this regexp.
-   *
-   * @param {RandExp} randexp
-   * @param {RegExp} regexp
-   */
-  _setDefaults(regexp) {
-    // When a repetitional token has its max set to Infinite,
-    // randexp won't actually generate a random amount between min and Infinite
-    // instead it will see Infinite as min + 100.
-    this.max = regexp.max != null ? regexp.max :
-      RandExp.prototype.max != null ? RandExp.prototype.max : 100;
-
-    // This allows expanding to include additional characters
-    // for instance: RandExp.defaultRange.add(0, 65535);
-    this.defaultRange = regexp.defaultRange ?
-      regexp.defaultRange : this.defaultRange.clone();
-
-    if (regexp.randInt) {
-      this.randInt = regexp.randInt;
-    }
-  }
-
-
-  /**
-   * Generates the random string.
-   *
-   * @return {String}
-   */
-  gen() {
-    return this._gen(this.tokens, []);
-  }
-
-
-  /**
-   * Generate random string modeled after given tokens.
-   *
-   * @param {Object} token
-   * @param {Array.<String>} groups
-   * @return {String}
-   */
-  _gen(token, groups) {
-    var stack, str, n, i, l;
-
-    switch (token.type) {
-      case types.ROOT:
-      case types.GROUP:
-        // Ignore lookaheads for now.
-        if (token.followedBy || token.notFollowedBy) { return ''; }
-
-        // Insert placeholder until group string is generated.
-        if (token.remember && token.groupNumber === undefined) {
-          token.groupNumber = groups.push(null) - 1;
-        }
-
-        stack = token.options ?
-          this._randSelect(token.options) : token.stack;
-
-        str = '';
-        for (i = 0, l = stack.length; i < l; i++) {
-          str += this._gen(stack[i], groups);
-        }
-
-        if (token.remember) {
-          groups[token.groupNumber] = str;
-        }
-        return str;
-
-      case types.POSITION:
-        // Do nothing for now.
-        return '';
-
-      case types.SET:
-        var expandedSet = this._expand(token);
-        if (!expandedSet.length) { return ''; }
-        return String.fromCharCode(this._randSelect(expandedSet));
-
-      case types.REPETITION:
-        // Randomly generate number between min and max.
-        n = this.randInt(token.min,
-          token.max === Infinity ? token.min + this.max : token.max);
-
-        str = '';
-        for (i = 0; i < n; i++) {
-          str += this._gen(token.value, groups);
-        }
-
-        return str;
-
-      case types.REFERENCE:
-        return groups[token.value - 1] || '';
-
-      case types.CHAR:
-        var code = this.ignoreCase && this._randBool() ?
-          this._toOtherCase(token.value) : token.value;
-        return String.fromCharCode(code);
-    }
-  }
-
-
-  /**
-   * If code is alphabetic, converts to other case.
-   * If not alphabetic, returns back code.
-   *
-   * @param {Number} code
-   * @return {Number}
-   */
-  _toOtherCase(code) {
-    return code + (97 <= code && code <= 122 ? -32 :
-      65 <= code && code <= 90  ?  32 : 0);
-  }
-
-
-  /**
-   * Randomly returns a true or false value.
-   *
-   * @return {Boolean}
-   */
-  _randBool() {
-    return !this.randInt(0, 1);
-  }
-
-
-  /**
-   * Randomly selects and returns a value from the array.
-   *
-   * @param {Array.<Object>} arr
-   * @return {Object}
-   */
-  _randSelect(arr) {
-    if (arr instanceof DRange) {
-      return arr.index(this.randInt(0, arr.length - 1));
-    }
-    return arr[this.randInt(0, arr.length - 1)];
-  }
-
-
-  /**
-   * expands a token to a DiscontinuousRange of characters which has a
-   * length and an index function (for random selecting)
-   *
-   * @param {Object} token
-   * @return {DiscontinuousRange}
-   */
-  _expand(token) {
-    if (token.type === ret.types.CHAR) {
-      return new DRange(token.value);
-    } else if (token.type === ret.types.RANGE) {
-      return new DRange(token.from, token.to);
-    } else {
-      let drange = new DRange();
-      for (let i = 0; i < token.set.length; i++) {
-        let subrange = this._expand(token.set[i]);
-        drange.add(subrange);
-        if (this.ignoreCase) {
-          for (let j = 0; j < subrange.length; j++) {
-            let code = subrange.index(j);
-            let otherCaseCode = this._toOtherCase(code);
-            if (code !== otherCaseCode) {
-              drange.add(otherCaseCode);
-            }
-          }
-        }
-      }
-      if (token.not) {
-        return this.defaultRange.clone().subtract(drange);
-      } else {
-        return this.defaultRange.clone().intersect(drange);
-      }
-    }
-  }
-
-
-  /**
-   * Randomly generates and returns a number between a and b (inclusive).
-   *
-   * @param {Number} a
-   * @param {Number} b
-   * @return {Number}
-   */
-  randInt(a, b) {
-    return a + Math.floor(Math.random() * (1 + b - a));
-  }
-
-
-  /**
-   * Default range of characters to generate from.
-   */
-  get defaultRange() {
-    return this._range = this._range || new DRange(32, 126);
-  }
-
-  set defaultRange(range) {
-    this._range = range;
-  }
-
-
-  /**
-   *
-   * Enables use of randexp with a shorter call.
-   *
-   * @param {RegExp|String| regexp}
-   * @param {String} m
-   * @return {String}
-   */
-  static randexp(regexp, m) {
-    var randexp;
-    if(typeof regexp === 'string') {
-      regexp = new RegExp(regexp, m);
-    }
-
-    if (regexp._randexp === undefined) {
-      randexp = new RandExp(regexp, m);
-      regexp._randexp = randexp;
-    } else {
-      randexp = regexp._randexp;
-      randexp._setDefaults(regexp);
-    }
-    return randexp.gen();
-  }
-
-
-  /**
-   * Enables sugary /regexp/.gen syntax.
-   */
-  static sugar() {
-    /* eshint freeze:false */
-    RegExp.prototype.gen = function() {
-      return RandExp.randexp(this);
-    };
-  }
-};
-
-},{"drange":16,"ret":240}],240:[function(require,module,exports){
-const util      = require('./util');
-const types     = require('./types');
-const sets      = require('./sets');
-const positions = require('./positions');
-
-
-module.exports = (regexpStr) => {
-  var i = 0, l, c,
-    start = { type: types.ROOT, stack: []},
-
-    // Keep track of last clause/group and stack.
-    lastGroup = start,
-    last = start.stack,
-    groupStack = [];
-
-
-  var repeatErr = (i) => {
-    util.error(regexpStr, `Nothing to repeat at column ${i - 1}`);
-  };
-
-  // Decode a few escaped characters.
-  var str = util.strToChars(regexpStr);
-  l = str.length;
-
-  // Iterate through each character in string.
-  while (i < l) {
-    c = str[i++];
-
-    switch (c) {
-      // Handle escaped characters, inclues a few sets.
-      case '\\':
-        c = str[i++];
-
-        switch (c) {
-          case 'b':
-            last.push(positions.wordBoundary());
-            break;
-
-          case 'B':
-            last.push(positions.nonWordBoundary());
-            break;
-
-          case 'w':
-            last.push(sets.words());
-            break;
-
-          case 'W':
-            last.push(sets.notWords());
-            break;
-
-          case 'd':
-            last.push(sets.ints());
-            break;
-
-          case 'D':
-            last.push(sets.notInts());
-            break;
-
-          case 's':
-            last.push(sets.whitespace());
-            break;
-
-          case 'S':
-            last.push(sets.notWhitespace());
-            break;
-
-          default:
-            // Check if c is integer.
-            // In which case it's a reference.
-            if (/\d/.test(c)) {
-              last.push({ type: types.REFERENCE, value: parseInt(c, 10) });
-
-            // Escaped character.
-            } else {
-              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
-            }
-        }
-
-        break;
-
-
-      // Positionals.
-      case '^':
-        last.push(positions.begin());
-        break;
-
-      case '$':
-        last.push(positions.end());
-        break;
-
-
-      // Handle custom sets.
-      case '[':
-        // Check if this class is 'anti' i.e. [^abc].
-        var not;
-        if (str[i] === '^') {
-          not = true;
-          i++;
-        } else {
-          not = false;
-        }
-
-        // Get all the characters in class.
-        var classTokens = util.tokenizeClass(str.slice(i), regexpStr);
-
-        // Increase index by length of class.
-        i += classTokens[1];
-        last.push({
-          type: types.SET,
-          set: classTokens[0],
-          not,
-        });
-
-        break;
-
-
-      // Class of any character except \n.
-      case '.':
-        last.push(sets.anyChar());
-        break;
-
-
-      // Push group onto stack.
-      case '(':
-        // Create group.
-        var group = {
-          type: types.GROUP,
-          stack: [],
-          remember: true,
-        };
-
-        c = str[i];
-
-        // If if this is a special kind of group.
-        if (c === '?') {
-          c = str[i + 1];
-          i += 2;
-
-          // Match if followed by.
-          if (c === '=') {
-            group.followedBy = true;
-
-          // Match if not followed by.
-          } else if (c === '!') {
-            group.notFollowedBy = true;
-
-          } else if (c !== ':') {
-            util.error(regexpStr,
-              `Invalid group, character '${c}'` +
-              ` after '?' at column ${i - 1}`);
-          }
-
-          group.remember = false;
-        }
-
-        // Insert subgroup into current group stack.
-        last.push(group);
-
-        // Remember the current group for when the group closes.
-        groupStack.push(lastGroup);
-
-        // Make this new group the current group.
-        lastGroup = group;
-        last = group.stack;
-        break;
-
-
-      // Pop group out of stack.
-      case ')':
-        if (groupStack.length === 0) {
-          util.error(regexpStr, `Unmatched ) at column ${i - 1}`);
-        }
-        lastGroup = groupStack.pop();
-
-        // Check if this group has a PIPE.
-        // To get back the correct last stack.
-        last = lastGroup.options ?
-          lastGroup.options[lastGroup.options.length - 1] : lastGroup.stack;
-        break;
-
-
-      // Use pipe character to give more choices.
-      case '|':
-        // Create array where options are if this is the first PIPE
-        // in this clause.
-        if (!lastGroup.options) {
-          lastGroup.options = [lastGroup.stack];
-          delete lastGroup.stack;
-        }
-
-        // Create a new stack and add to options for rest of clause.
-        var stack = [];
-        lastGroup.options.push(stack);
-        last = stack;
-        break;
-
-
-      // Repetition.
-      // For every repetition, remove last element from last stack
-      // then insert back a RANGE object.
-      // This design is chosen because there could be more than
-      // one repetition symbols in a regex i.e. `a?+{2,3}`.
-      case '{':
-        var rs = /^(\d+)(,(\d+)?)?\}/.exec(str.slice(i)), min, max;
-        if (rs !== null) {
-          if (last.length === 0) {
-            repeatErr(i);
-          }
-          min = parseInt(rs[1], 10);
-          max = rs[2] ? rs[3] ? parseInt(rs[3], 10) : Infinity : min;
-          i += rs[0].length;
-
-          last.push({
-            type: types.REPETITION,
-            min,
-            max,
-            value: last.pop(),
-          });
-        } else {
-          last.push({
-            type: types.CHAR,
-            value: 123,
-          });
-        }
-        break;
-
-      case '?':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 0,
-          max: 1,
-          value: last.pop(),
-        });
-        break;
-
-      case '+':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 1,
-          max: Infinity,
-          value: last.pop(),
-        });
-        break;
-
-      case '*':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 0,
-          max: Infinity,
-          value: last.pop(),
-        });
-        break;
-
-
-      // Default is a character that is not `\[](){}?+*^$`.
-      default:
-        last.push({
-          type: types.CHAR,
-          value: c.charCodeAt(0),
-        });
-    }
-
-  }
-
-  // Check if any groups have not been closed.
-  if (groupStack.length !== 0) {
-    util.error(regexpStr, 'Unterminated group');
-  }
-
-  return start;
-};
-
-module.exports.types = types;
-
-},{"./positions":241,"./sets":242,"./types":243,"./util":244}],241:[function(require,module,exports){
-const types = require('./types');
-exports.wordBoundary = () => ({ type: types.POSITION, value: 'b' });
-exports.nonWordBoundary = () => ({ type: types.POSITION, value: 'B' });
-exports.begin = () => ({ type: types.POSITION, value: '^' });
-exports.end = () => ({ type: types.POSITION, value: '$' });
-
-},{"./types":243}],242:[function(require,module,exports){
-const types = require('./types');
-
-const INTS = () => [{ type: types.RANGE , from: 48, to: 57 }];
-
-const WORDS = () => {
-  return [
-    { type: types.CHAR, value: 95 },
-    { type: types.RANGE, from: 97, to: 122 },
-    { type: types.RANGE, from: 65, to: 90 }
-  ].concat(INTS());
-};
-
-const WHITESPACE = () => {
-  return [
-    { type: types.CHAR, value: 9 },
-    { type: types.CHAR, value: 10 },
-    { type: types.CHAR, value: 11 },
-    { type: types.CHAR, value: 12 },
-    { type: types.CHAR, value: 13 },
-    { type: types.CHAR, value: 32 },
-    { type: types.CHAR, value: 160 },
-    { type: types.CHAR, value: 5760 },
-    { type: types.RANGE, from: 8192, to: 8202 },
-    { type: types.CHAR, value: 8232 },
-    { type: types.CHAR, value: 8233 },
-    { type: types.CHAR, value: 8239 },
-    { type: types.CHAR, value: 8287 },
-    { type: types.CHAR, value: 12288 },
-    { type: types.CHAR, value: 65279 }
-  ];
-};
-
-const NOTANYCHAR = () => {
-  return [
-    { type: types.CHAR, value: 10 },
-    { type: types.CHAR, value: 13 },
-    { type: types.CHAR, value: 8232 },
-    { type: types.CHAR, value: 8233 },
-  ];
-};
-
-// Predefined class objects.
-exports.words = () => ({ type: types.SET, set: WORDS(), not: false });
-exports.notWords = () => ({ type: types.SET, set: WORDS(), not: true });
-exports.ints = () => ({ type: types.SET, set: INTS(), not: false });
-exports.notInts = () => ({ type: types.SET, set: INTS(), not: true });
-exports.whitespace = () => ({ type: types.SET, set: WHITESPACE(), not: false });
-exports.notWhitespace = () => ({ type: types.SET, set: WHITESPACE(), not: true });
-exports.anyChar = () => ({ type: types.SET, set: NOTANYCHAR(), not: true });
-
-},{"./types":243}],243:[function(require,module,exports){
-module.exports = {
-  ROOT       : 0,
-  GROUP      : 1,
-  POSITION   : 2,
-  SET        : 3,
-  RANGE      : 4,
-  REPETITION : 5,
-  REFERENCE  : 6,
-  CHAR       : 7,
-};
-
-},{}],244:[function(require,module,exports){
-const types = require('./types');
-const sets  = require('./sets');
-
-
-const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
-const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
-
-/**
- * Finds character representations in str and convert all to
- * their respective characters
- *
- * @param {String} str
- * @return {String}
- */
-exports.strToChars = function(str) {
-  /* jshint maxlen: false */
-  var chars_regex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|(0?[0-7]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
-  str = str.replace(chars_regex, function(s, b, lbs, a16, b16, c8, dctrl, eslsh) {
-    if (lbs) {
-      return s;
-    }
-
-    var code = b ? 8 :
-      a16   ? parseInt(a16, 16) :
-      b16   ? parseInt(b16, 16) :
-      c8    ? parseInt(c8,   8) :
-      dctrl ? CTRL.indexOf(dctrl) :
-      SLSH[eslsh];
-
-    var c = String.fromCharCode(code);
-
-    // Escape special regex characters.
-    if (/[[\]{}^$.|?*+()]/.test(c)) {
-      c = '\\' + c;
-    }
-
-    return c;
-  });
-
-  return str;
-};
-
-
-/**
- * turns class into tokens
- * reads str until it encounters a ] not preceeded by a \
- *
- * @param {String} str
- * @param {String} regexpStr
- * @return {Array.<Array.<Object>, Number>}
- */
-exports.tokenizeClass = (str, regexpStr) => {
-  /* jshint maxlen: false */
-  var tokens = [];
-  var regexp = /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(?:\\)?([^\]]))|(\])|(?:\\)?([^])/g;
-  var rs, c;
-
-
-  while ((rs = regexp.exec(str)) != null) {
-    if (rs[1]) {
-      tokens.push(sets.words());
-
-    } else if (rs[2]) {
-      tokens.push(sets.ints());
-
-    } else if (rs[3]) {
-      tokens.push(sets.whitespace());
-
-    } else if (rs[4]) {
-      tokens.push(sets.notWords());
-
-    } else if (rs[5]) {
-      tokens.push(sets.notInts());
-
-    } else if (rs[6]) {
-      tokens.push(sets.notWhitespace());
-
-    } else if (rs[7]) {
-      tokens.push({
-        type: types.RANGE,
-        from: (rs[8] || rs[9]).charCodeAt(0),
-        to: rs[10].charCodeAt(0),
-      });
-
-    } else if ((c = rs[12])) {
-      tokens.push({
-        type: types.CHAR,
-        value: c.charCodeAt(0),
-      });
-
-    } else {
-      return [tokens, regexp.lastIndex];
-    }
-  }
-
-  exports.error(regexpStr, 'Unterminated character class');
-};
-
-
-/**
- * Shortcut to throw errors.
- *
- * @param {String} regexp
- * @param {String} msg
- */
-exports.error = (regexp, msg) => {
-  throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
-};
-
-},{"./sets":242,"./types":243}],245:[function(require,module,exports){
+},{"./core.js":193}],200:[function(require,module,exports){
 /**
  * @module  to-array-buffer
  */
@@ -17680,7 +11754,7 @@ module.exports = function toArrayBuffer (arg, clone) {
 	return (new Uint8Array(arg.length != null ? arg : [arg])).buffer;
 }
 
-},{"atob-lite":4,"is-audio-buffer":220,"is-data-uri":223}],246:[function(require,module,exports){
+},{"atob-lite":4,"is-audio-buffer":181,"is-data-uri":184}],201:[function(require,module,exports){
 
 /**
  * @module typedarray-polyfill
@@ -17748,7 +11822,7 @@ if (typeof TypedArray !== 'undefined') {
         if (!TypedArray.prototype[method]) TypedArray.prototype[method] = Array.prototype[method];
     }
 }
-},{}],247:[function(require,module,exports){
+},{}],202:[function(require,module,exports){
 'use strict';
 
 /**
@@ -17766,7 +11840,7 @@ function isArray( value ) {
 
 module.exports = Array.isArray || isArray;
 
-},{}],248:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 /**
 *
 *	VALIDATE: function
@@ -17813,7 +11887,7 @@ function isFunction( value ) {
 
 module.exports = isFunction;
 
-},{}],249:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 /**
 *
 *	VALIDATE: integer-array
@@ -17881,7 +11955,7 @@ function isIntegerArray( value ) {
 
 module.exports = isIntegerArray;
 
-},{"validate.io-array":247,"validate.io-integer":250}],250:[function(require,module,exports){
+},{"validate.io-array":202,"validate.io-integer":205}],205:[function(require,module,exports){
 /**
 *
 *	VALIDATE: integer
@@ -17935,7 +12009,7 @@ function isInteger( value ) {
 
 module.exports = isInteger;
 
-},{"validate.io-number":251}],251:[function(require,module,exports){
+},{"validate.io-number":206}],206:[function(require,module,exports){
 /**
 *
 *	VALIDATE: number
@@ -17982,7 +12056,7 @@ function isNumber( value ) {
 
 module.exports = isNumber;
 
-},{}],252:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 /**
  * vis.js
  * https://github.com/almende/vis
@@ -77919,7 +71993,7 @@ exports["default"] = FloydWarshall;
 /***/ })
 /******/ ]);
 });
-},{}],253:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 /**
  * @module  web-audio-stream/writable
  *
@@ -78030,7 +72104,7 @@ WAAWritable.prototype.end = function () {
 	return this;
 };
 
-},{"./write":254,"inherits":217,"stream":297}],254:[function(require,module,exports){
+},{"./write":209,"inherits":180,"stream":299}],209:[function(require,module,exports){
 /**
  * @module  web-audio-stream/write
  *
@@ -78263,7 +72337,7 @@ function WAAWriter (target, options) {
 	}
 }
 
-},{"audio-buffer-list":5,"audio-buffer-utils":7,"is-audio-buffer":220,"object-assign":228,"pcm-util":229}],255:[function(require,module,exports){
+},{"audio-buffer-list":5,"audio-buffer-utils":7,"is-audio-buffer":181,"object-assign":189,"pcm-util":190}],210:[function(require,module,exports){
 const {Circuit, dusp} = require('dusp')
 const {Declarer} = require('english-io')
 const d = require('./dictionary')
@@ -78356,7 +72430,7 @@ class EnglishDuspInterface {
 }
 module.exports = EnglishDuspInterface
 
-},{"./dictionary":259,"./modifiers":269,"dusp":107,"english-io":195}],256:[function(require,module,exports){
+},{"./dictionary":214,"./modifiers":224,"dusp":106,"english-io":178}],211:[function(require,module,exports){
 const EnglishDuspInterface = require('./EnglishDuspInterface')
 const {renderAudioBuffer, dusp} = require('dusp')
 const getSentences = require('./getSentences')
@@ -78447,7 +72521,7 @@ class HTMLPlayer {
 }
 module.exports = HTMLPlayer
 
-},{"./EnglishDuspInterface":255,"./getSentences":268,"dusp":107}],257:[function(require,module,exports){
+},{"./EnglishDuspInterface":210,"./getSentences":223,"dusp":106}],212:[function(require,module,exports){
 const placeholderRegex = /#_/g
 
 class SentenceModifier {
@@ -78537,7 +72611,7 @@ class SentenceModifier {
 SentenceModifier.prototype.isModifier = true
 module.exports = SentenceModifier
 
-},{}],258:[function(require,module,exports){
+},{}],213:[function(require,module,exports){
 const SentenceModifier = require('./SentenceModifier')
 
 class SentenceModifierSet {
@@ -78577,7 +72651,7 @@ class SentenceModifierSet {
 }
 module.exports = SentenceModifierSet
 
-},{"./SentenceModifier":257}],259:[function(require,module,exports){
+},{"./SentenceModifier":212}],214:[function(require,module,exports){
 const {Dictionary} = require('english-io')
 
 const d = new Dictionary
@@ -78587,7 +72661,7 @@ d.addNouns(...require('./nouns'))
 d.addPredicates(...Object.values(require('./predicates')))
 d.addEntitySpawners(...require('./spawners'))
 
-},{"./nouns":260,"./predicates":264,"./spawners":266,"english-io":195}],260:[function(require,module,exports){
+},{"./nouns":215,"./predicates":219,"./spawners":221,"english-io":178}],215:[function(require,module,exports){
 const {
   Osc,
   Sum,
@@ -78762,7 +72836,7 @@ module.exports = [
   'maximum',
 ]
 
-},{"../entify":267,"dusp":107}],261:[function(require,module,exports){
+},{"../entify":222,"dusp":106}],216:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 const {Shape} = require('dusp').components
@@ -78857,7 +72931,7 @@ const SlideToIn = new Predicate({
 })
 module.exports.SlideToIn = SlideToIn
 
-},{"../../entify":267,"dusp":107,"english-io":195}],262:[function(require,module,exports){
+},{"../../entify":222,"dusp":106,"english-io":178}],217:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 const entify = require('../../entify')
@@ -78871,7 +72945,7 @@ const BeAnInletOf = new Predicate({
     return !inlet.is_a('inlet')
   },
   begin(inlet, unit) {
-    inlet.addClause('of', unit)
+    //inlet.addClause('of', unit)
   },
   permanent: true,
 })
@@ -78883,7 +72957,7 @@ const BeAnOutletOf = new Predicate({
     return !outlet.is_a('outlet')
   },
   begin(outlet, unit) {
-    outlet.addClause('of', unit)
+    //outlet.addClause('of', unit)
   },
   permanent: true,
 })
@@ -78995,7 +73069,7 @@ Object.assign(module.exports, {
   BeTheRenderingOutlet: BeTheRenderingOutlet,
 })
 
-},{"../../entify":267,"english-io":195}],263:[function(require,module,exports){
+},{"../../entify":222,"english-io":178}],218:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const S = Sentence.S
 
@@ -79065,13 +73139,13 @@ module.exports.MultiplyBy = new ImperativePredicate({
   }
 })
 
-},{"./core.js":262,"./more":265,"english-io":195}],264:[function(require,module,exports){
+},{"./core.js":217,"./more":220,"english-io":178}],219:[function(require,module,exports){
 Object.assign(module.exports, require('./core'))
 Object.assign(module.exports, require('./more'))
 Object.assign(module.exports, require('./imperative'))
 Object.assign(module.exports, require('./automation'))
 
-},{"./automation":261,"./core":262,"./imperative":263,"./more":265}],265:[function(require,module,exports){
+},{"./automation":216,"./core":217,"./imperative":218,"./more":220}],220:[function(require,module,exports){
 const {Predicate, Sentence} = require('english-io')
 const {quick} = require('dusp')
 const S = Sentence.S
@@ -79271,8 +73345,8 @@ const Retrigger = new Predicate({
 })
 module.exports.Retrigger = Retrigger
 
-},{"../../entify":267,"dusp":107,"english-io":195}],266:[function(require,module,exports){
-const {EntitySpawner} = require('english-io')
+},{"../../entify":222,"dusp":106,"english-io":178}],221:[function(require,module,exports){
+const {EntitySpawner, search} = require('english-io')
 const dusp = require('dusp')
 
 const entify = require('../entify')
@@ -79351,11 +73425,26 @@ const SecondDecayEnvelope = new EntitySpawner({
   }
 })
 const SecondAttackEnvelope = new EntitySpawner({
-  template: '#_(?:s| second) decay envelope',
+  template: '#_(?:s| second) attack envelope',
   construct(duration) {
     let shape = new dusp.components.Shape('attack', duration)
     shape.trigger()
     return entify(shape)
+  }
+})
+
+const Of = new EntitySpawner({
+  template: '@_ of _', phraseletMode:false,
+  construct(str, unit) {
+    //console.log("parsed Of spawner", str, unit)
+    if(!unit.is_a('unit'))
+      return null
+
+    let piglets = [...unit.unit.inletsOrdered, ...unit.unit.outletsOrdered]
+      .map(piglet => entify(piglet))
+
+  //  console.log(str, piglets)
+    return search.first(str, piglets)
   }
 })
 
@@ -79364,10 +73453,10 @@ module.exports = [
   SumOfAnd, MultipliedBy,
   HzSineWave, HzSquareWave, HzSawWave, HzTriangleWave,
   RandomSineWave,
-  SecondDecayEnvelope, SecondAttackEnvelope,
+  SecondDecayEnvelope, SecondAttackEnvelope, Of
 ]
 
-},{"../entify":267,"dusp":107,"english-io":195}],267:[function(require,module,exports){
+},{"../entify":222,"dusp":106,"english-io":178}],222:[function(require,module,exports){
 const D = require('./dictionary')
 
 const unitConstructorNouns = require('./nounsByDuspConstructor.js')
@@ -79507,7 +73596,7 @@ function entifyOutlet(outlet, e) {
   return e
 }
 
-},{"./dictionary":259,"./nounsByDuspConstructor.js":270}],268:[function(require,module,exports){
+},{"./dictionary":214,"./nounsByDuspConstructor.js":225}],223:[function(require,module,exports){
 function getSentences(str) {
   let lines = str.split('\n')
 
@@ -79526,7 +73615,7 @@ function getSentences(str) {
 }
 module.exports = getSentences
 
-},{}],269:[function(require,module,exports){
+},{}],224:[function(require,module,exports){
 const SentenceModifier = require('./SentenceModifier')
 const SentenceModifierSet = require('./SentenceModifierSet')
 
@@ -79562,7 +73651,7 @@ module.exports = new SentenceModifierSet(
   ),
 )
 
-},{"./SentenceModifier":257,"./SentenceModifierSet":258}],270:[function(require,module,exports){
+},{"./SentenceModifier":212,"./SentenceModifierSet":213}],225:[function(require,module,exports){
 module.exports = {
   Osc: unit => {
     if(unit.waveform == 'sin')
@@ -79592,7 +73681,5977 @@ module.exports = {
   Pan: 'panner',
 }
 
-},{}],271:[function(require,module,exports){
+},{}],226:[function(require,module,exports){
+'use strict';
+/* eslint indent: 4 */
+
+
+// Private helper class
+class SubRange {
+    constructor(low, high) {
+        this.low = low;
+        this.high = high;
+        this.length = 1 + high - low;
+    }
+
+    overlaps(range) {
+        return !(this.high < range.low || this.low > range.high);
+    }
+
+    touches(range) {
+        return !(this.high + 1 < range.low || this.low - 1 > range.high);
+    }
+
+    // Returns inclusive combination of SubRanges as a SubRange.
+    add(range) {
+        return new SubRange(
+            Math.min(this.low, range.low),
+            Math.max(this.high, range.high)
+        );
+    }
+
+    // Returns subtraction of SubRanges as an array of SubRanges.
+    // (There's a case where subtraction divides it in 2)
+    subtract(range) {
+        if (range.low <= this.low && range.high >= this.high) {
+            return [];
+        } else if (range.low > this.low && range.high < this.high) {
+            return [
+                new SubRange(this.low, range.low - 1),
+                new SubRange(range.high + 1, this.high)
+            ];
+        } else if (range.low <= this.low) {
+            return [new SubRange(range.high + 1, this.high)];
+        } else {
+            return [new SubRange(this.low, range.low - 1)];
+        }
+    }
+
+    toString() {
+        return this.low == this.high ?
+            this.low.toString() : this.low + '-' + this.high;
+    }
+}
+
+
+class DRange {
+    constructor(a, b) {
+        this.ranges = [];
+        this.length = 0;
+        if (a != null) this.add(a, b);
+    }
+
+    _update_length() {
+        this.length = this.ranges.reduce((previous, range) => {
+            return previous + range.length;
+        }, 0);
+    }
+
+    add(a, b) {
+        var _add = (subrange) => {
+            var i = 0;
+            while (i < this.ranges.length && !subrange.touches(this.ranges[i])) {
+                i++;
+            }
+            var newRanges = this.ranges.slice(0, i);
+            while (i < this.ranges.length && subrange.touches(this.ranges[i])) {
+                subrange = subrange.add(this.ranges[i]);
+                i++;
+            }
+            newRanges.push(subrange);
+            this.ranges = newRanges.concat(this.ranges.slice(i));
+            this._update_length();
+        }
+
+        if (a instanceof DRange) {
+            a.ranges.forEach(_add);
+        } else {
+            if (b == null) b = a;
+            _add(new SubRange(a, b));
+        }
+        return this;
+    }
+
+    subtract(a, b) {
+        var _subtract = (subrange) => {
+            var i = 0;
+            while (i < this.ranges.length && !subrange.overlaps(this.ranges[i])) {
+                i++;
+            }
+            var newRanges = this.ranges.slice(0, i);
+            while (i < this.ranges.length && subrange.overlaps(this.ranges[i])) {
+                newRanges = newRanges.concat(this.ranges[i].subtract(subrange));
+                i++;
+            }
+            this.ranges = newRanges.concat(this.ranges.slice(i));
+            this._update_length();
+        };
+
+        if (a instanceof DRange) {
+            a.ranges.forEach(_subtract);
+        } else {
+            if (b == null) b = a;
+            _subtract(new SubRange(a, b));
+        }
+        return this;
+    }
+
+    intersect(a, b) {
+        var newRanges = [];
+        var _intersect = (subrange) => {
+            var i = 0;
+            while (i < this.ranges.length && !subrange.overlaps(this.ranges[i])) {
+                i++;
+            }
+            while (i < this.ranges.length && subrange.overlaps(this.ranges[i])) {
+                var low = Math.max(this.ranges[i].low, subrange.low);
+                var high = Math.min(this.ranges[i].high, subrange.high);
+                newRanges.push(new SubRange(low, high));
+                i++;
+            }
+        };
+
+        if (a instanceof DRange) {
+            a.ranges.forEach(_intersect);
+        } else {
+            if (b == null) b = a;
+            _intersect(new SubRange(a, b));
+        }
+        this.ranges = newRanges;
+        this._update_length();
+        return this;
+    }
+
+    index(index) {
+        var i = 0;
+        while (i < this.ranges.length && this.ranges[i].length <= index) {
+            index -= this.ranges[i].length;
+            i++;
+        }
+        return this.ranges[i].low + index;
+    }
+
+    toString() {
+        return '[ ' + this.ranges.join(', ') + ' ]';
+    }
+
+    clone() {
+        return new DRange(this);
+    }
+
+    numbers() {
+        return this.ranges.reduce((result, subrange) => {
+            var i = subrange.low;
+            while (i <= subrange.high) {
+                result.push(i);
+                i++;
+            }
+            return result;
+        }, []);
+    }
+
+    subranges() {
+        return this.ranges.map((subrange) => ({
+            low: subrange.low,
+            high: subrange.high,
+            length: 1 + subrange.high - subrange.low
+        }));
+    }
+}
+
+module.exports = DRange;
+
+},{}],227:[function(require,module,exports){
+"use strict";
+
+const CARDINALS = [
+  null,
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
+  "Thirteen",
+  "Fourteen",
+  "Fifteen",
+  "Sixteen",
+  "Seventeen",
+  "Eighteen",
+  "Nineteen"
+]
+
+const CARDINALS_1 = [
+  null,
+  null,
+  "Twenty",
+  "Thirty",
+  "Forty",
+  "Fifty",
+  "Sixty",
+  "Seventy",
+  "Eighty",
+  "Ninety"
+]
+
+const CARDINAL_EXPONENTS = [
+  null,
+  null,
+  "Hundred",
+  "Thousand",
+  null,
+  null,
+  "Million",
+  null,
+  null,
+  "Billion",
+  null,
+  null,
+  "Trillion",
+  null,
+  null
+]
+
+const isnotempty = function (possibly_empty) {
+  return possibly_empty !== null && possibly_empty !== "";
+}
+
+const digit_meta = function(n) {
+  var meta = {
+    power: 0,
+    exponent: 0,
+    digit: 0,
+  }
+  if (n === 0) { return meta; }
+
+  meta.power = Math.floor(n).toString().length - 1;
+  meta.exponent = Math.pow(10, meta.power);
+  meta.digit = Math.floor(n / meta.exponent);
+
+  return meta;
+}
+
+const digit_cardinal = function(digit, cardinal_array) {
+  return cardinal_array[digit];
+}
+
+const cardinalize = function(n) {
+  var greater_than_ninety_nine = n > 99;
+  var cardinals = [];
+  var meta = "";
+  var cardinal = "";
+
+  if (n === 0) {
+    return null;
+  }
+
+  if (greater_than_ninety_nine) {
+    meta = digit_meta(n);
+    cardinal = digit_cardinal(meta.digit, CARDINALS);
+    cardinals.push(cardinal);
+    cardinals.push("Hundred");
+    n -= meta.digit * meta.exponent;
+  }
+
+  if (n === 0) {
+    return cardinals.join(" ");
+  }
+
+  if (greater_than_ninety_nine) {
+    cardinals.push("and");
+  }
+
+  if (n < CARDINALS.length) {
+    cardinals.push(CARDINALS[n]);
+  } else {
+    meta = digit_meta(n);
+    var cardinal_teen = digit_cardinal(meta.digit, CARDINALS_1);
+
+    n -= meta.digit * meta.exponent;
+
+    meta = digit_meta(n);
+    var cardinal_unit = digit_cardinal(meta.digit, CARDINALS);
+
+    cardinals.push([cardinal_teen, cardinal_unit].filter(isnotempty).join("-"));
+  }
+
+  return cardinals.join(" ");
+}
+
+const decimal_to_cardinal = function (n) {
+  if (n === 0) return "Zero";
+  var meta = digit_meta(n);
+  var nameable_powers = Math.floor(meta.power / 3);
+  var cardinals = [];
+
+
+  for (var nameable_power = 0; nameable_power <= nameable_powers * 3; nameable_power += 3) {
+    var nameable_unit = n;
+
+
+    // Remove high digits
+    while (meta.power >= nameable_power + 3) {
+      nameable_unit -= meta.digit * meta.exponent;
+      meta = digit_meta(nameable_unit);
+    }
+
+    // Remove low digits
+    if (nameable_unit > 999) {
+      nameable_unit = Math.floor(nameable_unit / Math.pow(10, nameable_power));
+    }
+
+    cardinals.unshift([cardinalize(nameable_unit), CARDINAL_EXPONENTS[nameable_power]].filter(isnotempty).join(" "));
+
+    // Determine whether to prepend "and"
+    if (nameable_unit !== 0 && (nameable_unit % 100 === 0 || nameable_unit < 100) && nameable_power === 0 && nameable_powers > 0) {
+      cardinals[0] = "and " + cardinals[0];
+    }
+  }
+
+  return cardinals.filter(isnotempty).join(", ");
+};
+
+module.exports = decimal_to_cardinal;
+
+},{}],228:[function(require,module,exports){
+"use strict";
+
+const english = require("integer-to-cardinal-english");
+
+const irregulars = {
+  "One": "First",
+  "Two": "Second",
+  "Three": "Third",
+  "Five": "Fifth",
+  "Eight": "Eighth",
+  "Nine": "Ninth",
+  "Twelve": "Twelfth",
+}
+
+function ordinal(input) {
+  switch(typeof(input)) {
+    case "number":
+      var cardinal = english(input);
+      break;
+    case "string":
+      // Assume that the string is already a cardinal
+      var cardinal = input;
+      break;
+    default:
+      throw new Error("Arguments must either be an integer or a cardinal string");
+  }
+
+  var words = cardinal.split(" ");
+  var last_word = words.pop();
+  var compounds = last_word.split("-");
+  var last_compound = compounds.pop();
+
+  if (last_compound in irregulars) {
+    compounds.push(irregulars[last_compound]) // Dictionary lookup of ordinals
+  } else {
+    if (last_compound[last_compound.length - 1] === "y") {
+      compounds.push(last_compound.slice(0, -1) + "ieth"); // Eighty --> Eightieth
+    } else {
+      compounds.push(last_compound + "th");  // "Regular" ordinalization
+    }
+  }
+
+  words.push(compounds.join("-"));
+  return words.join(" ");
+}
+
+module.exports = ordinal;
+
+},{"integer-to-cardinal-english":227}],229:[function(require,module,exports){
+const ret    = require('ret');
+const DRange = require('drange');
+const types  = ret.types;
+
+
+module.exports = class RandExp {
+  /**
+   * @constructor
+   * @param {RegExp|String} regexp
+   * @param {String} m
+   */
+  constructor(regexp, m) {
+    this._setDefaults(regexp);
+    if (regexp instanceof RegExp) {
+      this.ignoreCase = regexp.ignoreCase;
+      this.multiline = regexp.multiline;
+      regexp = regexp.source;
+
+    } else if (typeof regexp === 'string') {
+      this.ignoreCase = m && m.indexOf('i') !== -1;
+      this.multiline = m && m.indexOf('m') !== -1;
+    } else {
+      throw new Error('Expected a regexp or string');
+    }
+
+    this.tokens = ret(regexp);
+  }
+
+
+  /**
+   * Checks if some custom properties have been set for this regexp.
+   *
+   * @param {RandExp} randexp
+   * @param {RegExp} regexp
+   */
+  _setDefaults(regexp) {
+    // When a repetitional token has its max set to Infinite,
+    // randexp won't actually generate a random amount between min and Infinite
+    // instead it will see Infinite as min + 100.
+    this.max = regexp.max != null ? regexp.max :
+      RandExp.prototype.max != null ? RandExp.prototype.max : 100;
+
+    // This allows expanding to include additional characters
+    // for instance: RandExp.defaultRange.add(0, 65535);
+    this.defaultRange = regexp.defaultRange ?
+      regexp.defaultRange : this.defaultRange.clone();
+
+    if (regexp.randInt) {
+      this.randInt = regexp.randInt;
+    }
+  }
+
+
+  /**
+   * Generates the random string.
+   *
+   * @return {String}
+   */
+  gen() {
+    return this._gen(this.tokens, []);
+  }
+
+
+  /**
+   * Generate random string modeled after given tokens.
+   *
+   * @param {Object} token
+   * @param {Array.<String>} groups
+   * @return {String}
+   */
+  _gen(token, groups) {
+    var stack, str, n, i, l;
+
+    switch (token.type) {
+      case types.ROOT:
+      case types.GROUP:
+        // Ignore lookaheads for now.
+        if (token.followedBy || token.notFollowedBy) { return ''; }
+
+        // Insert placeholder until group string is generated.
+        if (token.remember && token.groupNumber === undefined) {
+          token.groupNumber = groups.push(null) - 1;
+        }
+
+        stack = token.options ?
+          this._randSelect(token.options) : token.stack;
+
+        str = '';
+        for (i = 0, l = stack.length; i < l; i++) {
+          str += this._gen(stack[i], groups);
+        }
+
+        if (token.remember) {
+          groups[token.groupNumber] = str;
+        }
+        return str;
+
+      case types.POSITION:
+        // Do nothing for now.
+        return '';
+
+      case types.SET:
+        var expandedSet = this._expand(token);
+        if (!expandedSet.length) { return ''; }
+        return String.fromCharCode(this._randSelect(expandedSet));
+
+      case types.REPETITION:
+        // Randomly generate number between min and max.
+        n = this.randInt(token.min,
+          token.max === Infinity ? token.min + this.max : token.max);
+
+        str = '';
+        for (i = 0; i < n; i++) {
+          str += this._gen(token.value, groups);
+        }
+
+        return str;
+
+      case types.REFERENCE:
+        return groups[token.value - 1] || '';
+
+      case types.CHAR:
+        var code = this.ignoreCase && this._randBool() ?
+          this._toOtherCase(token.value) : token.value;
+        return String.fromCharCode(code);
+    }
+  }
+
+
+  /**
+   * If code is alphabetic, converts to other case.
+   * If not alphabetic, returns back code.
+   *
+   * @param {Number} code
+   * @return {Number}
+   */
+  _toOtherCase(code) {
+    return code + (97 <= code && code <= 122 ? -32 :
+      65 <= code && code <= 90  ?  32 : 0);
+  }
+
+
+  /**
+   * Randomly returns a true or false value.
+   *
+   * @return {Boolean}
+   */
+  _randBool() {
+    return !this.randInt(0, 1);
+  }
+
+
+  /**
+   * Randomly selects and returns a value from the array.
+   *
+   * @param {Array.<Object>} arr
+   * @return {Object}
+   */
+  _randSelect(arr) {
+    if (arr instanceof DRange) {
+      return arr.index(this.randInt(0, arr.length - 1));
+    }
+    return arr[this.randInt(0, arr.length - 1)];
+  }
+
+
+  /**
+   * expands a token to a DiscontinuousRange of characters which has a
+   * length and an index function (for random selecting)
+   *
+   * @param {Object} token
+   * @return {DiscontinuousRange}
+   */
+  _expand(token) {
+    if (token.type === ret.types.CHAR) {
+      return new DRange(token.value);
+    } else if (token.type === ret.types.RANGE) {
+      return new DRange(token.from, token.to);
+    } else {
+      let drange = new DRange();
+      for (let i = 0; i < token.set.length; i++) {
+        let subrange = this._expand(token.set[i]);
+        drange.add(subrange);
+        if (this.ignoreCase) {
+          for (let j = 0; j < subrange.length; j++) {
+            let code = subrange.index(j);
+            let otherCaseCode = this._toOtherCase(code);
+            if (code !== otherCaseCode) {
+              drange.add(otherCaseCode);
+            }
+          }
+        }
+      }
+      if (token.not) {
+        return this.defaultRange.clone().subtract(drange);
+      } else {
+        return this.defaultRange.clone().intersect(drange);
+      }
+    }
+  }
+
+
+  /**
+   * Randomly generates and returns a number between a and b (inclusive).
+   *
+   * @param {Number} a
+   * @param {Number} b
+   * @return {Number}
+   */
+  randInt(a, b) {
+    return a + Math.floor(Math.random() * (1 + b - a));
+  }
+
+
+  /**
+   * Default range of characters to generate from.
+   */
+  get defaultRange() {
+    return this._range = this._range || new DRange(32, 126);
+  }
+
+  set defaultRange(range) {
+    this._range = range;
+  }
+
+
+  /**
+   *
+   * Enables use of randexp with a shorter call.
+   *
+   * @param {RegExp|String| regexp}
+   * @param {String} m
+   * @return {String}
+   */
+  static randexp(regexp, m) {
+    var randexp;
+    if(typeof regexp === 'string') {
+      regexp = new RegExp(regexp, m);
+    }
+
+    if (regexp._randexp === undefined) {
+      randexp = new RandExp(regexp, m);
+      regexp._randexp = randexp;
+    } else {
+      randexp = regexp._randexp;
+      randexp._setDefaults(regexp);
+    }
+    return randexp.gen();
+  }
+
+
+  /**
+   * Enables sugary /regexp/.gen syntax.
+   */
+  static sugar() {
+    /* eshint freeze:false */
+    RegExp.prototype.gen = function() {
+      return RandExp.randexp(this);
+    };
+  }
+};
+
+},{"drange":226,"ret":230}],230:[function(require,module,exports){
+const util      = require('./util');
+const types     = require('./types');
+const sets      = require('./sets');
+const positions = require('./positions');
+
+
+module.exports = (regexpStr) => {
+  var i = 0, l, c,
+    start = { type: types.ROOT, stack: []},
+
+    // Keep track of last clause/group and stack.
+    lastGroup = start,
+    last = start.stack,
+    groupStack = [];
+
+
+  var repeatErr = (i) => {
+    util.error(regexpStr, `Nothing to repeat at column ${i - 1}`);
+  };
+
+  // Decode a few escaped characters.
+  var str = util.strToChars(regexpStr);
+  l = str.length;
+
+  // Iterate through each character in string.
+  while (i < l) {
+    c = str[i++];
+
+    switch (c) {
+      // Handle escaped characters, inclues a few sets.
+      case '\\':
+        c = str[i++];
+
+        switch (c) {
+          case 'b':
+            last.push(positions.wordBoundary());
+            break;
+
+          case 'B':
+            last.push(positions.nonWordBoundary());
+            break;
+
+          case 'w':
+            last.push(sets.words());
+            break;
+
+          case 'W':
+            last.push(sets.notWords());
+            break;
+
+          case 'd':
+            last.push(sets.ints());
+            break;
+
+          case 'D':
+            last.push(sets.notInts());
+            break;
+
+          case 's':
+            last.push(sets.whitespace());
+            break;
+
+          case 'S':
+            last.push(sets.notWhitespace());
+            break;
+
+          default:
+            // Check if c is integer.
+            // In which case it's a reference.
+            if (/\d/.test(c)) {
+              last.push({ type: types.REFERENCE, value: parseInt(c, 10) });
+
+            // Escaped character.
+            } else {
+              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
+            }
+        }
+
+        break;
+
+
+      // Positionals.
+      case '^':
+        last.push(positions.begin());
+        break;
+
+      case '$':
+        last.push(positions.end());
+        break;
+
+
+      // Handle custom sets.
+      case '[':
+        // Check if this class is 'anti' i.e. [^abc].
+        var not;
+        if (str[i] === '^') {
+          not = true;
+          i++;
+        } else {
+          not = false;
+        }
+
+        // Get all the characters in class.
+        var classTokens = util.tokenizeClass(str.slice(i), regexpStr);
+
+        // Increase index by length of class.
+        i += classTokens[1];
+        last.push({
+          type: types.SET,
+          set: classTokens[0],
+          not,
+        });
+
+        break;
+
+
+      // Class of any character except \n.
+      case '.':
+        last.push(sets.anyChar());
+        break;
+
+
+      // Push group onto stack.
+      case '(':
+        // Create group.
+        var group = {
+          type: types.GROUP,
+          stack: [],
+          remember: true,
+        };
+
+        c = str[i];
+
+        // If if this is a special kind of group.
+        if (c === '?') {
+          c = str[i + 1];
+          i += 2;
+
+          // Match if followed by.
+          if (c === '=') {
+            group.followedBy = true;
+
+          // Match if not followed by.
+          } else if (c === '!') {
+            group.notFollowedBy = true;
+
+          } else if (c !== ':') {
+            util.error(regexpStr,
+              `Invalid group, character '${c}'` +
+              ` after '?' at column ${i - 1}`);
+          }
+
+          group.remember = false;
+        }
+
+        // Insert subgroup into current group stack.
+        last.push(group);
+
+        // Remember the current group for when the group closes.
+        groupStack.push(lastGroup);
+
+        // Make this new group the current group.
+        lastGroup = group;
+        last = group.stack;
+        break;
+
+
+      // Pop group out of stack.
+      case ')':
+        if (groupStack.length === 0) {
+          util.error(regexpStr, `Unmatched ) at column ${i - 1}`);
+        }
+        lastGroup = groupStack.pop();
+
+        // Check if this group has a PIPE.
+        // To get back the correct last stack.
+        last = lastGroup.options ?
+          lastGroup.options[lastGroup.options.length - 1] : lastGroup.stack;
+        break;
+
+
+      // Use pipe character to give more choices.
+      case '|':
+        // Create array where options are if this is the first PIPE
+        // in this clause.
+        if (!lastGroup.options) {
+          lastGroup.options = [lastGroup.stack];
+          delete lastGroup.stack;
+        }
+
+        // Create a new stack and add to options for rest of clause.
+        var stack = [];
+        lastGroup.options.push(stack);
+        last = stack;
+        break;
+
+
+      // Repetition.
+      // For every repetition, remove last element from last stack
+      // then insert back a RANGE object.
+      // This design is chosen because there could be more than
+      // one repetition symbols in a regex i.e. `a?+{2,3}`.
+      case '{':
+        var rs = /^(\d+)(,(\d+)?)?\}/.exec(str.slice(i)), min, max;
+        if (rs !== null) {
+          if (last.length === 0) {
+            repeatErr(i);
+          }
+          min = parseInt(rs[1], 10);
+          max = rs[2] ? rs[3] ? parseInt(rs[3], 10) : Infinity : min;
+          i += rs[0].length;
+
+          last.push({
+            type: types.REPETITION,
+            min,
+            max,
+            value: last.pop(),
+          });
+        } else {
+          last.push({
+            type: types.CHAR,
+            value: 123,
+          });
+        }
+        break;
+
+      case '?':
+        if (last.length === 0) {
+          repeatErr(i);
+        }
+        last.push({
+          type: types.REPETITION,
+          min: 0,
+          max: 1,
+          value: last.pop(),
+        });
+        break;
+
+      case '+':
+        if (last.length === 0) {
+          repeatErr(i);
+        }
+        last.push({
+          type: types.REPETITION,
+          min: 1,
+          max: Infinity,
+          value: last.pop(),
+        });
+        break;
+
+      case '*':
+        if (last.length === 0) {
+          repeatErr(i);
+        }
+        last.push({
+          type: types.REPETITION,
+          min: 0,
+          max: Infinity,
+          value: last.pop(),
+        });
+        break;
+
+
+      // Default is a character that is not `\[](){}?+*^$`.
+      default:
+        last.push({
+          type: types.CHAR,
+          value: c.charCodeAt(0),
+        });
+    }
+
+  }
+
+  // Check if any groups have not been closed.
+  if (groupStack.length !== 0) {
+    util.error(regexpStr, 'Unterminated group');
+  }
+
+  return start;
+};
+
+module.exports.types = types;
+
+},{"./positions":231,"./sets":232,"./types":233,"./util":234}],231:[function(require,module,exports){
+const types = require('./types');
+exports.wordBoundary = () => ({ type: types.POSITION, value: 'b' });
+exports.nonWordBoundary = () => ({ type: types.POSITION, value: 'B' });
+exports.begin = () => ({ type: types.POSITION, value: '^' });
+exports.end = () => ({ type: types.POSITION, value: '$' });
+
+},{"./types":233}],232:[function(require,module,exports){
+const types = require('./types');
+
+const INTS = () => [{ type: types.RANGE , from: 48, to: 57 }];
+
+const WORDS = () => {
+  return [
+    { type: types.CHAR, value: 95 },
+    { type: types.RANGE, from: 97, to: 122 },
+    { type: types.RANGE, from: 65, to: 90 }
+  ].concat(INTS());
+};
+
+const WHITESPACE = () => {
+  return [
+    { type: types.CHAR, value: 9 },
+    { type: types.CHAR, value: 10 },
+    { type: types.CHAR, value: 11 },
+    { type: types.CHAR, value: 12 },
+    { type: types.CHAR, value: 13 },
+    { type: types.CHAR, value: 32 },
+    { type: types.CHAR, value: 160 },
+    { type: types.CHAR, value: 5760 },
+    { type: types.RANGE, from: 8192, to: 8202 },
+    { type: types.CHAR, value: 8232 },
+    { type: types.CHAR, value: 8233 },
+    { type: types.CHAR, value: 8239 },
+    { type: types.CHAR, value: 8287 },
+    { type: types.CHAR, value: 12288 },
+    { type: types.CHAR, value: 65279 }
+  ];
+};
+
+const NOTANYCHAR = () => {
+  return [
+    { type: types.CHAR, value: 10 },
+    { type: types.CHAR, value: 13 },
+    { type: types.CHAR, value: 8232 },
+    { type: types.CHAR, value: 8233 },
+  ];
+};
+
+// Predefined class objects.
+exports.words = () => ({ type: types.SET, set: WORDS(), not: false });
+exports.notWords = () => ({ type: types.SET, set: WORDS(), not: true });
+exports.ints = () => ({ type: types.SET, set: INTS(), not: false });
+exports.notInts = () => ({ type: types.SET, set: INTS(), not: true });
+exports.whitespace = () => ({ type: types.SET, set: WHITESPACE(), not: false });
+exports.notWhitespace = () => ({ type: types.SET, set: WHITESPACE(), not: true });
+exports.anyChar = () => ({ type: types.SET, set: NOTANYCHAR(), not: true });
+
+},{"./types":233}],233:[function(require,module,exports){
+module.exports = {
+  ROOT       : 0,
+  GROUP      : 1,
+  POSITION   : 2,
+  SET        : 3,
+  RANGE      : 4,
+  REPETITION : 5,
+  REFERENCE  : 6,
+  CHAR       : 7,
+};
+
+},{}],234:[function(require,module,exports){
+const types = require('./types');
+const sets  = require('./sets');
+
+
+const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
+const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
+
+/**
+ * Finds character representations in str and convert all to
+ * their respective characters
+ *
+ * @param {String} str
+ * @return {String}
+ */
+exports.strToChars = function(str) {
+  /* jshint maxlen: false */
+  var chars_regex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|(0?[0-7]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
+  str = str.replace(chars_regex, function(s, b, lbs, a16, b16, c8, dctrl, eslsh) {
+    if (lbs) {
+      return s;
+    }
+
+    var code = b ? 8 :
+      a16   ? parseInt(a16, 16) :
+      b16   ? parseInt(b16, 16) :
+      c8    ? parseInt(c8,   8) :
+      dctrl ? CTRL.indexOf(dctrl) :
+      SLSH[eslsh];
+
+    var c = String.fromCharCode(code);
+
+    // Escape special regex characters.
+    if (/[[\]{}^$.|?*+()]/.test(c)) {
+      c = '\\' + c;
+    }
+
+    return c;
+  });
+
+  return str;
+};
+
+
+/**
+ * turns class into tokens
+ * reads str until it encounters a ] not preceeded by a \
+ *
+ * @param {String} str
+ * @param {String} regexpStr
+ * @return {Array.<Array.<Object>, Number>}
+ */
+exports.tokenizeClass = (str, regexpStr) => {
+  /* jshint maxlen: false */
+  var tokens = [];
+  var regexp = /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(?:\\)?([^\]]))|(\])|(?:\\)?([^])/g;
+  var rs, c;
+
+
+  while ((rs = regexp.exec(str)) != null) {
+    if (rs[1]) {
+      tokens.push(sets.words());
+
+    } else if (rs[2]) {
+      tokens.push(sets.ints());
+
+    } else if (rs[3]) {
+      tokens.push(sets.whitespace());
+
+    } else if (rs[4]) {
+      tokens.push(sets.notWords());
+
+    } else if (rs[5]) {
+      tokens.push(sets.notInts());
+
+    } else if (rs[6]) {
+      tokens.push(sets.notWhitespace());
+
+    } else if (rs[7]) {
+      tokens.push({
+        type: types.RANGE,
+        from: (rs[8] || rs[9]).charCodeAt(0),
+        to: rs[10].charCodeAt(0),
+      });
+
+    } else if ((c = rs[12])) {
+      tokens.push({
+        type: types.CHAR,
+        value: c.charCodeAt(0),
+      });
+
+    } else {
+      return [tokens, regexp.lastIndex];
+    }
+  }
+
+  exports.error(regexpStr, 'Unterminated character class');
+};
+
+
+/**
+ * Shortcut to throw errors.
+ *
+ * @param {String} regexp
+ * @param {String} msg
+ */
+exports.error = (regexp, msg) => {
+  throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
+};
+
+},{"./sets":232,"./types":233}],235:[function(require,module,exports){
+const regOps = require('./util/regOps')
+const PredicateSet = require('./PredicateSet')
+const Sentence = require('./Sentence')
+const NounPhraseSentence = require('./NounPhraseSentence')
+const {getTenseType} = require('./util/conjugate/verbPhrase')
+const DescriptionContext = require("./DescriptionContext")
+const search = require('./search')
+
+class Declarer {
+  constructor(dictionary) {
+    this.entities = [] // an iterator of Entity objects
+    this.ctx = new DescriptionContext()
+    this.dictionary = dictionary
+  }
+
+  findOrSpawn(nounPhraseStr) {
+    let entity = this.findFirst(nounPhraseStr)
+    if(!entity)
+      entity = this.dictionary.spawnSingle(nounPhraseStr)
+
+    return entity
+  }
+
+  findFirst(matchStr) {
+    for(let entity of this.find(matchStr))
+      return entity
+  }
+
+  *find(matchStr, searchLimit=1000) {
+    let ctxMatch = this.ctx.parse(matchStr)
+    if(ctxMatch)
+      return ctxMatch
+
+    for(let match of search(matchStr, this.entities))
+      yield match
+    for(let match of search(matchStr, search.explore(this.entities)))
+      yield match
+  }
+
+  parseNounPhrase(str) {
+    // first check for a simple solution
+    let simple = this.findOrSpawn(str)
+    if(simple)
+      return simple
+
+    // otherwise parse it as a noun phrase using the predicates
+    let interpretations = this.predicates.parseNounPhrase(str)
+
+    // filter interpretations by tense
+    interpretations = interpretations.filter(I => I.tense == 'simple_present')
+
+    // try to find sub-nounPhrases for each possibility until a solution is found
+    for(let {args, predicate, paramIndex, tense} of interpretations) {
+      let solutionArgs = []
+      for(let i in args) {
+        if(predicate.params[i].literal)
+          // pass literal args straight through
+          solutionArgs[i] = args[i]
+        else
+          solutionArgs[i] = this.parseNounPhrase(args[i])
+      }
+
+      if(!solutionArgs.includes(null)) {
+        return new NounPhraseSentence(paramIndex, predicate, solutionArgs)
+      }
+    }
+
+
+    return null
+  }
+
+  declareNounPhrase(strOrSolution) {
+    // if passed a string, parse it first
+    let solution
+    if(strOrSolution.constructor == String)
+      solution = this.parseNounPhrase(strOrSolution)
+    else
+      solution = strOrSolution
+
+
+    // return null is failed to parse string or if passed null
+    if(!solution)
+      return null
+
+    if(solution.isNounPhraseSentence) {
+      let recursiveArgs = solution.recursiveEntityArgs
+      for(let arg of recursiveArgs)
+        this.addEntity(arg)
+
+      solution.start()
+
+      return solution.mainArgument
+    } else {
+      if(solution.isEntity)
+        this.addEntity(solution)
+      return solution
+    }
+
+    return null
+  }
+
+  addEntity(entity) {
+    // add a Entity to the entities
+    if(!entity.isEntity)
+      console.warn('adding a entity which is not a entity')
+
+    if(entity.isEntity && !this.entities.includes(entity)) {
+      this.entities.push(entity)
+      for(let fact of entity.facts)
+        for(let e of fact.entityArgs)
+          this.addEntity(e)
+    }
+
+    this.autoExpandDomain()
+  }
+
+  addEntities(...entities) {
+    for(let entity of entities)
+      this.addEntity(entity)
+  }
+
+  autoExpandDomain() {
+    this.entities = [...search.explore(this.entities)]
+  }
+
+  parse(declarationStr, tenses, forbidSpawn=false) {
+    let interpretations = this.predicates.parse(declarationStr, tenses)
+
+    for(let {args, predicate, tense} of interpretations) {
+      for(let i in args) {
+        let arg = args[i]
+        if(!predicate.params[i].literal) {
+          if(forbidSpawn)
+            args[i] = this.findFirst(arg)
+          else
+            args[i] = this.parseNounPhrase(arg)
+        }
+      }
+
+      if(args.includes(null) || args.includes(undefined))
+        continue
+      else {
+        let sentence = new Sentence(predicate, args)//{args, predicate, tense}
+        sentence.source = 'parsed'
+        sentence.parsed_tense = tense
+        return sentence
+      }
+    }
+
+    // if we get here, we have failed
+    return null
+  }
+
+  parseImperative(declarationStr, subject, forbidSpawn=false) {
+    let interpretations = this.predicates.parseImperative(declarationStr, subject)
+
+    for(let {args, predicate, tense} of interpretations) {
+      for(let i in args) {
+        let arg = args[i]
+        if(!predicate.params[i].literal) {
+          if(forbidSpawn)
+            args[i] = this.findFirst(arg)
+          else
+            args[i] = this.parseNounPhrase(arg)
+        }
+      }
+
+      if(args.includes(null) || args.includes(undefined))
+        continue
+      else {
+        let sentence = new Sentence(predicate, args)//{args, predicate, tense}
+        sentence.source = 'parsed'
+        sentence.parsed_tense = tense
+        return sentence
+      }
+    }
+
+    // if we get here, we have failed
+    return null
+  }
+
+  declare(...declarationStrings) {
+    for(let str of declarationStrings) {
+      this.declareSingle(str)
+    }
+
+    return this
+  }
+
+  declareSingle(str) {
+    let sentence = this.parse(str)
+
+    if(sentence) {
+      let tenseType = getTenseType(sentence.parsed_tense)
+
+      if(tenseType == 'present') {
+        let entitiesToAdd = sentence.recursiveEntityArgs
+        for(let entity of entitiesToAdd)
+          this.addEntity(entity)
+
+        sentence.start()
+        if(sentence.truthValue == 'failed')
+          console.warn('Declaration failed:', str)
+
+      } else if(tenseType == 'past') {
+        let entitiesToAdd = sentence.recursiveEntityArgs
+        for(let entity of entitiesToAdd)
+          this.addEntity(entity)
+
+        sentence.start()
+        sentence.stop()
+      } else {
+        console.warn('declaration with strange tense:', sentence.parsed_tense)
+      }
+
+      this.autoExpandDomain()
+
+      return
+    }
+
+    let imperative = this.parseImperative(str)
+    if(imperative) {
+      console.log('imperative', imperative.str())
+      this.addEntities(...imperative.entityArgs)
+      imperative.start()
+      return
+    }
+
+    let spawned = this.dictionary.spawnSingle(str, this.entities)
+    if(spawned) {
+      this.addEntity(spawned)
+      return spawned;
+    }
+
+    // otherwise
+    spawned = this.dictionary.spawn(str)
+    for(let e of spawned)
+      this.addEntity(e)
+
+  }
+
+  check(str) {
+    let sentence = this.parse(str, undefined, true)
+
+    if(!sentence) {
+      //console.warn("CHECK FAILED, couldn't parse:", str)
+      return false
+    }
+
+    let tenseType = getTenseType(sentence.parsed_tense)
+
+    if(tenseType == 'present')
+      return sentence.trueInPresent()
+    else if(tenseType == 'past')
+      return sentence.trueInPast()
+    else
+      return undefined
+
+  }
+
+  printEntityList() {
+    return this.entities.map(entity => entity.ref())
+  }
+  randomEntity() {
+    return this.entities[Math.floor(Math.random()*this.entities.length)]
+  }
+  randomFact() {
+    return this.randomEntity().randomFact()
+  }
+  randomSentence() {
+    return this.randomEntity().randomSentence()
+  }
+  randomPredicate() {
+    return this.predicates.random()
+  }
+
+  get predicates() {
+    return this.dictionary.predicates
+  }
+}
+module.exports = Declarer
+
+},{"./DescriptionContext":236,"./NounPhraseSentence":243,"./PredicateSet":245,"./Sentence":247,"./search":252,"./util/conjugate/verbPhrase":259,"./util/regOps":267}],236:[function(require,module,exports){
+const ordinal = require('integer-to-ordinal-english')
+
+/**
+ * A class used to keep track of context specific terms and mention-histories
+ * @class DescriptionContext
+ * @constructor
+ */
+
+class DescriptionContext {
+  constructor() {
+    /**
+     * list of recent noun-phrase references to objects.
+     * @property {Array} referenceHistory
+     */
+    this.referenceHistory = []
+    // Eg/ {entity: [Entity], str:'a cat'}
+
+    /**
+     * @property {Entity or null} me
+     * @default `null`
+     */
+    this.me = null // who is the first person
+
+    /**
+     * @property {Entity or null} you
+     * @default `null`
+     */
+    this.you = null // who is the second person
+  }
+
+  /**
+   * log a reference to the history
+   * @method log
+   * @param {Entity} entity
+   * @param {String} str
+   */
+  log(entity, str) {
+    this.referenceHistory.push({entity: entity, ref:str})
+
+    if(entity.is_a('person')) {
+      if(entity.pronoun == 'her')
+        this.her = (this.her && this.her != entity ? undefined : entity)
+      else if (entity.pronoun == 'them')
+        this.them = this.them && this.them != entity ? undefined : entity
+      else if (entity.pronoun == 'him')
+        this.him = (this.him && this.him != entity ? undefined : entity)
+    } else
+      this.it = this.it ? undefined : entity
+  }
+
+  /**
+   * get the pronoun of a given entity with respect to this context
+   * @method getPronounFor
+   * @param {Entity} entity
+   * @return {String} "it", "me", "you", "her", "them" or "him"
+   */
+  getPronounFor(entity) {
+    if(entity == this.it)
+      return 'it'
+    if(entity == this.me)
+      return 'me'
+    if(entity == this.you)
+      return 'you'
+    if(entity == this.her)
+      return 'her'
+    if(entity == this.them)
+      return 'them'
+    if(entity == this.him)
+      return 'him'
+  }
+
+  /**
+   * @method parse
+   * @param {String} str
+   * @return {Entity}
+   */
+  parse(str) {
+    switch(str) {
+      case 'me': return this.me;
+      case 'you': return this.you;
+      case 'it': return this.it;
+      case 'him': return this.him;
+      case 'he': return this.him;
+      case 'her': return this.her;
+      case 'she': return this.her;
+      case 'them': return this.them;
+      case 'they': return this.them;
+    }
+  }
+
+  latestMentionOf(entity) {
+    for(let i=this.referenceHistory.length-1; i>=0; i--)
+      if(this.referenceHistory[i].entity == entity)
+        return this.referenceHistory[i].ref
+
+    return null
+  }
+
+  lastNounPhraseletMatch(phraselet) {
+    for(let i=this.referenceHistory.length-1; i>=0; i--) {
+      let e = this.referenceHistory[i].entity
+      if(e.matchesPhraselet(phraselet))
+        return e
+    }
+
+    return null
+  }
+
+  nounPhraseletMatchIndex(e, phraselet) {
+    let alreadyseen = []
+    for(let {entity} of this.referenceHistory) {
+      if(alreadyseen.includes(entity))
+        continue
+      if(entity.matchesPhraselet(phraselet)) {
+        if(entity == e)
+          return alreadyseen.length
+        else
+          alreadyseen.push(entity)
+      }
+    }
+
+    return -1
+  }
+
+  nounPhraseletMatches(phraselet) {
+    let list = []
+    for(let {entity} of this.referenceHistory) {
+      if(list.includes(entity))
+        continue
+      else if(entity.matchesPhraselet(phraselet))
+        list.push(entity)
+    }
+
+    return list
+  }
+
+  getOrdinalAdjectives(entity, phraselet) {
+    let matches = this.nounPhraseletMatches(phraselet)
+    let n = matches.indexOf(entity)
+    if(n != -1 && matches.length > 1) {
+      return [ordinal(n+1).toLowerCase()]
+    } else
+      return null
+  }
+
+  getArticles(entity, phraselet) {
+    // if the entity has been mentioned before, use 'the'
+    if(this.latestMentionOf(entity)) {
+      /*if(this.lastNounPhraseletMatch(phraselet) == entity)
+        return ['this']
+      else*/
+      return ['the']
+    } else {
+      if(this.lastNounPhraseletMatch(phraselet))
+        return ['another']
+      else
+        return ['a']
+    }
+  }
+}
+module.exports = DescriptionContext
+
+},{"integer-to-ordinal-english":228}],237:[function(require,module,exports){
+const PredicateSet = require('./PredicateSet')
+
+const Declarer = require('./Declarer')
+const spawn = require('./spawn2')
+const spawnSingle = require('./spawn')
+const Entity = require('./Entity')
+const Noun = require('./Noun')
+const Sentence = require('./Sentence')
+const EntitySpawner = require('./EntitySpawner')
+const search = require('./search')
+
+/**
+ * @class Dictionary
+ */
+
+class Dictionary {
+  constructor({adjectives, nouns, predicates} = {}) {
+    this.adjectives = {} // {String:Function, String:Function, ...}
+    this.nouns = {} //{String:Function, String:Function, ...}
+    this.phrasalNouns = [] // [String, String, ...]
+    this.predicates = new PredicateSet
+    this.entitySpawners = []
+
+    if(adjectives)
+      this.addAdjectives(adjectives)
+    if(nouns)
+      this.addNouns(...nouns)
+    if(predicates)
+      this.addPredicates(...predicates)
+  }
+
+  /* Add an adjective to the dictionary */
+  addAdjective(adj, extendFunction) {
+    this.adjectives[adj] = extendFunction
+    return this
+  }
+
+  /* Add adjectives to the dictionary. */
+  addAdjectives(adjectives) {
+    for(let adj in adjectives)
+      this.addAdjective(adj, adjectives[adj])
+  }
+
+  /* Add a noun to the dictionary. */
+  addNoun(noun) {
+    if(noun.dictionary)
+      throw 'Dictionary conflict over noun: ' + noun.noun
+
+    if(!noun.isNoun)
+      noun = new Noun(noun)
+
+    noun.dictionary = this
+
+    this.nouns[noun.noun] = noun
+
+    if(noun.isPhrasal)
+      this.phrasalNouns.push(noun)
+
+    if(noun.spawners)
+      for(let spawner of noun.spawners)
+        this.addEntitySpawner(spawner)
+
+    return this
+  }
+
+  /* Add nouns to the dictionary */
+  addNouns(...nouns) {
+    for(let noun of nouns)
+      this.addNoun(noun)
+    return this
+  }
+
+  /* Add predicates to the dictionary */
+  addPredicates(...predicates) {
+    this.predicates.addPredicates(...predicates)
+    return this
+  }
+
+  addEntitySpawner(spawner) {
+    if(spawner.dictionary)
+      throw 'Dictionary conflict over entity spawner: '+spawner.template
+    if(!spawner.isEntitySpawner)
+      spawner = new EntitySpawner(spawner)
+    this.entitySpawners.push(spawner)
+    spawner.dictionary = this
+
+    return this // chainable
+  }
+
+  addEntitySpawners(...spawners) {
+    for(let spawner of spawners)
+      this.addEntitySpawner(spawner)
+  }
+
+
+  quickDeclare(...strings) {
+    let dec = new Declarer(this)
+
+    dec.declare(...strings)
+
+    return dec.entities
+  }
+
+  createEntity() {
+    return new Entity(this)
+  }
+
+  spawn(...strings) {
+    return spawn(this, ...strings)
+  }
+
+  spawnSingle(str, domain) { // domain is an Entity or an iterable of Entities
+    return spawnSingle(this, str, domain)
+  }
+
+  findOrSpawn(matchStr, domain) {
+    let result = null
+    if(domain)
+      result = search.first(matchStr, domain)
+    if(result)
+      return result
+    else
+      return this.spawnSingle(matchStr, domain)
+  }
+
+  S(predicate, ...args) {
+    if(predicate.constructor == String)
+      predicate = this.predicates.byName[predicate]
+
+    let sentence = new Sentence(predicate, args)
+    sentence = sentence.trueInPresent() || sentence
+    return sentence
+  }
+}
+module.exports = Dictionary
+
+},{"./Declarer":235,"./Entity":238,"./EntitySpawner":239,"./Noun":242,"./PredicateSet":245,"./Sentence":247,"./search":252,"./spawn":253,"./spawn2":254}],238:[function(require,module,exports){
+// Entity is the base class of all entities in EntityGame.
+const regOps = require('./util/regOps.js')
+const RandExp = require('randexp')
+const spellcheck = require('./util/spellcheck')
+//const {beA, be} = require('./predicates')
+const Sentence = require('./Sentence')
+
+const entityStr = require('./entityStr')
+const {toRegexs} = require('./util/specarr')
+
+//const consistsOfTree = require('./nouns/consistsOfTree')
+
+const EventEmitter = require('events')
+
+// MORE REQUIRES AT BOTTOM
+
+/**
+ * Entity represents an object in the world. It is half derived from the word
+ * 'noun', half from the word 'entityenon'. Though it fits the definition of
+ * neither precisely.
+ * @class Entity
+ * @extends EventEmitter
+ * @constructor
+ */
+
+ /**
+  * @event fact
+  * @param {Sentence} sentence The new fact.
+  */
+
+/**
+ * Emitted whenever the object changes location.
+ * @event move
+ * @param {Entity} oldLocation
+ * @param {Entity} newLocation
+ * @param {String} oldLocationType
+ * @param {String} newLocationType
+ */
+/**
+ * Emitter whenever a parent location of the object changes location
+ * @event parentMove
+ */
+/**
+ * @event childEnter
+ */
+/**
+ * @event childExit
+ */
+
+/**
+ * @event exited
+ * @param {Entity} location
+ * @param {String} locationType
+ */
+
+/**
+ * @event entered
+ * @param {Entity} location
+ * @param {String} locationType
+ */
+
+
+
+class Entity extends EventEmitter {
+  constructor(dictionary=null) {
+    super()
+
+    /**
+     * @property {Dictionary} dictionary
+     */
+    this.dictionary = dictionary
+
+    /**
+     * A list of noun-strings which describe the entity.
+     * @property {Array} nouns
+     */
+    this.nouns = []
+
+    /**
+     * A list of adjective strings which describe the entity.
+     * @property {Array} adjectives
+     */
+    this.adjectives = []
+
+    /**
+     * A special array (see src/util/specarr.js) detailing proper nouns that
+     * can be used to describe the Entity.
+     * @property {SpecialArray} properNouns
+     */
+    this.properNouns = [entity => entity.name]
+
+    /**
+     * A list of sentences which are true in the present tense and have the entity
+     * as one of their arguments.
+     * @property {Array} facts
+     */
+    this.facts = []
+
+    /**
+     * A list of sentences which are true in the past tense and have the entity as
+     * one of their arguments.
+     * @property {Array} history
+     */
+    this.history = []
+
+    /**
+     * An object describing the preposition clauses which the entity can be
+     * described with. The values of the object are SpecialArrays, indexed by
+     * the preposition.
+     * @property {Object} prepositionClauses
+     */
+    this.prepositionClauses = {}
+    // ^(each key is a preposition, each value a specarr)
+
+    // SOUND:
+    /*
+     * A list of Sound objects which have the entity as an origin
+     * @property {Array} nowPlayingSounds
+     */
+    //this.nowPlayingSounds = []
+    /*
+     * @property {SoundPlayer} soundPlayer
+     */
+    //this.soundPlayer = null
+  }
+
+  /**
+   * Attach an adjective to the entity.
+   * @method be
+   * @param {String} adjective The adjective to attach
+   * @param {Dictionary} [dictionary = this.dictionary]
+   * @chainable
+   * @throws {String} In the case that the adjective is not in the dictionary.
+   */
+  be(adjective, dictionary=this.dictionary) {
+    if(!dictionary)
+      throw 'Entity .be() needs a Dictionary'
+    // load an adjective extension
+    if(this.is(adjective))
+      return this
+
+    if(dictionary.adjectives[adjective]) {
+
+      dictionary.adjectives[adjective](this)
+      if(!this.adjectives.includes(adjective))
+        this.adjectives.push(adjective)
+
+      return this
+    } else
+      throw 'no such adjective: ' + adjective
+  }
+
+  /**
+   * Check whether a given adjective is attached to the entity
+   * @method is
+   * @param {String} adjective
+   * @return {Boolean}
+   */
+  is(adjective) {
+    return this.adjectives.includes(adjective)
+  }
+
+  /**
+   * Remove a given adjective from the entity.
+   * @method stopBeing
+   * @param {String} adj
+   */
+  stopBeing(adj) {
+    this.adjectives = this.adjectives.filter(a => a != adj)
+    let sentence = Sentence.S(be, this, adj)
+    for(let fact of this.facts) {
+      if(Sentence.compare(sentence, fact))
+        fact.stop()
+    }
+  }
+
+  /**
+   * Inherit properties from a given noun. This enables a non-hierachical
+   * inheritance structure for entities. The dictionary of nouns is defined in
+   * `src/nouns/index.js`.
+   * @method be_a
+   * @param {String} classname The noun to inherit properties from
+   * @param {Dictionary} [dictionary = this.dictionary]
+   * @chainable
+   * @throws {String} In the case that the noun-string is not in the dictionary.
+   */
+  be_a(classname, dictionary=this.dictionary) {
+    // load a noun extension
+    if(!dictionary)
+      throw '.be_a() needs a Dictionary'
+
+    // don't load the same extension twice
+    if(this.is_a(classname))
+      return this
+
+    let noun = dictionary.nouns[classname]
+    if(noun) {
+      // strings can be used as aliases to other classes
+      while(noun.alias) {
+        classname = dictionary.nouns[noun.alias]
+        noun = dictionary.nouns[classname]
+      }
+
+      if(noun.extend)
+        noun.extend(this)
+
+      if(!this.nouns.includes(classname))
+        this.nouns.push(classname)
+
+      // consistsOfTree
+      /*let parts = consistsOfTree[classname]
+      if(parts) {
+        // spawn parts
+        parts = spawn(dictionary, ...parts)
+        for(let part of parts)
+          part.setLocation(this, 'consist')
+      }*/
+
+      // start `beA` sentence
+      //new Sentence(beA, [this, classname]).start()
+
+      /**
+       * Emitted whenever the entity becomes a new noun.
+       * @event becomeNoun
+       * @param {String} classname
+       */
+      this.emit('becomeNoun', classname)
+
+      return this
+    } else
+      throw 'no such entityclass: ' + classname
+  }
+
+  /**
+   * Check whether the entity inherits from a given noun.
+   * @method is_a
+   * @param {String} classname The noun to check.
+   * @return {Boolean}
+   */
+  is_a(classname) {
+    return this.nouns.includes(classname)
+  }
+
+  /**
+   * Compiles a regex for all possible noun-phrase strings for the entity.
+   * @method reg
+   * @param {Number} [depth=1]
+   *  Limits the recursive depth for preposition phrases / embedded noun-phrases
+   * @return {RegExp}
+   */
+  reg(depth=1) {
+    let nounPhraseRegex = regOps.concatSpaced(
+      /a|an|the/,
+      this.nounPhraseletRegex(depth),
+    )
+
+    return regOps.or(
+      nounPhraseRegex,
+      ...toRegexs(this, this.properNouns, depth),
+    )
+  }
+
+  nounPhraseletRegex(depth=1) {
+    // Compile a regex for all possible noun-phraselet strings for this entity.
+    // A noun-phraselet is a noun-phrase without an article, or context
+    // specific adjectives.
+
+    let reg = regOps.or(...this.nouns)
+
+    let adjRegex = this.adjRegex()
+    if(adjRegex){
+      adjRegex = regOps.kleeneJoin(adjRegex, ',? ')
+      reg = regOps.concat(
+        regOps.optional(
+          regOps.concat(adjRegex, ' ')
+        ),
+        reg
+      )
+    }
+
+
+    depth--;
+    if(depth > 0) {
+      let clauseRegex = this.clauseRegex(depth)
+      if(clauseRegex)
+        reg = regOps.optionalConcatSpaced(
+          reg, clauseRegex
+        )
+    }
+
+    return reg
+  }
+
+  /**
+   * @method clauseRegex
+   * @param {Number} depth Limits the recursive depth for embedded noun-phrases
+   * @return {RegExp}
+   *  A regular expression for any preposition phrase that can be included in
+   *  a noun phrase for the entity. Or `null` if there are no prepositions
+   *  clauses.
+   */
+  clauseRegex(depth) {
+    let all = []
+    for(let prep in this.prepositionClauses) {
+      let clauses = this.prepositionClauses[prep]
+      let regexs = toRegexs(this, clauses, depth)
+      if(regexs.length)
+        all.push(regOps.concatSpaced(prep, regOps.or(...regexs)))
+    }
+
+    if(all.length)
+      return regOps.or(...all)
+    else
+      return null
+  }
+
+  /**
+   * Compile a regular expression for any adjective that can be used to
+   * describe this entity.
+   * @method adjRegex
+   * @return {RegExp or Null}
+   */
+  adjRegex() {
+    let regexs = toRegexs(this, this.adjectives)
+    if(regexs.length)
+      return regOps.or(...regexs)
+    else
+      return null
+  }
+
+  /**
+   * Test whether this entity matches a given noun-phrase string.
+   * @method matches
+   * @param {String} str
+   * @return {Boolean}
+   */
+  matches(str) {
+    // test this entity's regex against a string
+    return regOps.whole(this.reg(2)).test(str)
+  }
+
+  matchesPhraselet(str) {
+    // test this entity's noun phraselet regex againt a string
+    return regOps.whole(this.nounPhraseletRegex(2)).test(str)
+  }
+
+  /**
+   * Randomly generate a noun-phrase that describes this entity
+   * @method ref
+   * @deprecated use .str() instead
+   * @param ctx {DescriptionContext}
+   * @param {Object} options
+   * @return {String}
+   */
+  ref(ctx, options) {
+    // come up with a random noun phrase to represent this entity
+    return entityStr(this, ctx, options)
+  }
+
+  /**
+   * Randomly generate a noun-phrase that describes this entity
+   * @method str
+   * @param ctx {DescriptionContext}
+   * @param {Object} options
+   * @return {String}
+   */
+  str(ctx, options) {
+    return entityStr(this, ctx, options)
+  }
+
+  addNoun(noun) {
+    if(!this.nouns.includes(noun))
+      this.nouns.push(noun)
+  }
+
+  removeNoun(noun) {
+    let i = this.nouns.indexOf(noun)
+    if(i != -1)
+      this.nouns.splice(i, 1)
+    else
+      console.warn(
+        'tried to remove noun,', noun, ', that was not added to ', this.str()
+      )
+  }
+
+  addAdjective(adjective) {
+    if(!this.adjectives.includes(adjective))
+      this.adjectives.push(adjective)
+  }
+
+  removeAdjective(adjective) {
+    let i = this.adjectives.indexOf(adjective)
+    if(i != -1)
+      this.adjectives.splice(i, 1)
+    else
+      console.warn(
+        'tried to remove adjective,', adjective, ', that was not added to ',
+        this.str()
+      )
+  }
+
+  /**
+   * Attaches a preposition clause to the entity
+   * @method addClause
+   * @param {String} prep The preposition
+   * @param clause The clause following the preposition.
+   */
+  addClause(prep, clause) {
+    // add a preposition clause to this Entity
+    // the clause may be any unexpanded cell of a specarr
+    if(!this.prepositionClauses[prep])
+      this.prepositionClauses[prep] = [clause]
+    else
+      this.prepositionClauses[prep].push(clause)
+  }
+
+  /**
+   * Remove a given preposition clause from the entity
+   * @method removeClause
+   * @param {String} prep The preposition
+   * @param {String, Substitution, Function or Entity} clause
+      The clause following the preposition
+   */
+  removeClause(prep, clause) {
+    // remove a given preposition clause from this Entity
+    let list = this.prepositionClauses[prep]
+    if(list)
+      this.prepositionClauses[prep] = list.filter(cl => cl != clause)
+  }
+
+  /**
+   * Choose a random sentence which is presently true has this entity as an
+   * argument.
+   * @method randomFact
+   * @return {Sentence}
+   */
+  randomFact() {
+    return this.facts[Math.floor(Math.random() * this.facts.length)]
+  }
+
+  /**
+   * Choose a random sentence which is true in the past-tense and has this entity
+   * as an argument.
+   * @method randomHistoricFact
+   * @return {Sentence}
+   */
+  randomHistoricFact() {
+    return this.history[Math.floor(Math.random() * this.history.length)]
+  }
+
+  /**
+   * Choose a random sentence, true in the past or present tense, and has this
+   * entity as an argument.
+   * @method randomSentence
+   * @return {Sentence}
+   */
+  randomSentence() {
+    if(Math.random() * (this.facts.length + this.history.length) < this.facts.length)
+      return this.randomFact()
+    else
+      return this.randomHistoricFact()
+  }
+}
+Entity.prototype.isEntity = true
+module.exports = Entity
+
+
+const spawn = require('./spawn2')
+
+},{"./Sentence":247,"./entityStr":250,"./spawn2":254,"./util/regOps.js":267,"./util/specarr":269,"./util/spellcheck":270,"events":277,"randexp":229}],239:[function(require,module,exports){
+const Substitution = require('./util/Substitution')
+const getNounPhraselet = require('./util/getNounPhraselet')
+const regops = require('./util/regops')
+const search = require('./search')
+const parseList = require('./util/politeList').parse
+
+const placeholderRegex = /(?:@|#|L)?_/g
+/*
+  /(?:@|#|L)_/
+  @: literal
+  #: number
+  L: list
+*/
+
+/**
+ * @class EntitySpawner
+ * @constructor
+ * @param options
+ * @param {String} options.template
+ *  The template string describing the syntax of the entity spawner.
+ * @param {Function} construct
+ *  A function which takes a list of arguments (parsed from a string) and
+ *  returns an entity.
+ * @param {} format
+ *  The inverse of construct, takes an entity and returns an array of arguments.
+ */
+class EntitySpawner {
+  constructor({template, construct, format, phraseletMode=true}) {
+    this.phraseletMode = phraseletMode
+
+    this.template = template
+    this.unboundRegex = new RegExp(
+      this.template.replace(placeholderRegex, '(.+)')
+    )
+    this.regex = regops.whole(this.unboundRegex)
+
+    let placeholders = this.template.match(placeholderRegex)
+    if(placeholders)
+      this.params = placeholders.map(ph => ({
+        entity: ph[0] == '_',
+        number: ph[0] == '#',
+        literal: ph[0] == '@',
+        list: ph[0] == 'L',
+      }))
+    else
+      this.params = []
+
+    this._construct = construct
+  }
+
+  parse(str, domain) {
+    if(this.phraseletMode)
+      str = getNounPhraselet(str).phraselet
+
+    let result = this.regex.exec(str)
+    if(result) {
+      let args = result.slice(1)
+      for(let i in args) {
+        if(this.params[i].literal)
+          continue
+        if(this.params[i].number) {
+          args[i] = parseFloat(args[i])
+          if(isNaN(args[i]))
+            return null
+        }
+      }
+
+      // parse entities last to reduce the risk of dropping a spawned entity
+      for(let i in args)
+        if(this.params[i].entity) {
+          args[i] = this.dictionary.findOrSpawn(args[i], domain)
+          if(!args[i])
+            return null
+        } else if(this.params[i].list) {
+          let list = parseList(args[i])
+          if(list)
+            for(let j in list) {
+              list[j] = this.dictionary.findOrSpawn(list[j], domain)
+              if(!list[j])
+                return null
+            }
+          args[i] = list
+        }
+      // BUG STILL EXISTS WAITIMG!! Need to delay spawner construction
+
+
+      return {
+        entitySpawner: this,
+        args: args,
+      }
+    } else
+      return null
+  }
+
+  compose(...args) {
+    return new Substitution(this.template, ...args)
+  }
+
+  str(args) {
+    return this.compose(...args).str()
+  }
+
+  construct(...args) {
+    if(this._construct)
+      return this._construct(...args)
+    else
+      throw "EntitySpawner's ._construct() is not defined: " + this.template
+  }
+}
+EntitySpawner.prototype.isEntitySpawner = true
+module.exports = EntitySpawner
+
+},{"./search":252,"./util/Substitution":255,"./util/getNounPhraselet":260,"./util/politeList":266,"./util/regops":268}],240:[function(require,module,exports){
+const {sub} = require('./util/Substitution')
+const specarr = require('./util/specarr')
+
+function entityStr(entity, ctx, options={}) {
+  // Convert a entity into a noun phrase string.
+
+  if(typeof options == 'number')
+    options = {maxDetails: options}
+
+
+  // max details default logic, yuck
+  if(options.maxDetails == undefined)
+    options.maxDetails = 0
+  if(options.maxAdjectives == undefined) {
+    if(options.maxPrepositionClauses == undefined) {
+      // both undefined, distribute at random
+      options.maxPrepositionClauses = Math.floor(Math.random() * (options.maxDetails+1))
+      options.maxAdjectives = options.maxDetails - options.maxPrepositionClauses
+    } else
+      // only maxAdjectives is undefined
+      options.maxAdjectives = options.maxDetails-options.maxPrepositionClauses
+  } else if(options.maxPrepositionClauses == undefined)
+    // only maxPrepositionClauses is undefined
+    options.maxPrepositionClauses = options.maxDetails-options.maxAdjectives
+
+  delete options.maxDetails
+
+  // destructure options and apply default values
+  let {
+    //maxDetails = undefined, // max number of details to give (including nested)
+    maxAdjectives = undefined,  // max number of adjectives to use (inc. nested)
+    maxPrepositionClauses=undefined,  // max number of preposition clauses to use (inc. nested)
+    nounSpecificness=1,     // scale 0-1, how specific should the noun be
+    //dontMention,          // list of entities not to mention
+    //recursionDepth=3,       // limit the number of recursive entityStr calls
+  } = options
+  delete options.article
+
+  // COMPOSE THE NOUN PHRASE
+
+  // choose a noun
+  let out = entity.nouns[Math.floor(nounSpecificness*(entity.nouns.length-0.5))]
+
+  // choose and apply preposition clauses
+  if(maxPrepositionClauses) {
+    let nClauses = Math.floor(Math.random() * (maxPrepositionClauses+1))
+    if(nClauses) {
+      // prepare list of all possible clauses
+      let allClauses = []
+      for(let prep in entity.prepositionClauses)
+        allClauses.push(...specarr.expand(entity, entity.prepositionClauses[prep]).map(
+          clause => sub('_ _', prep, clause)
+        ))
+
+      // chooses clauses to use
+      let clauses = []
+      for(let i=0; i<nClauses && allClauses.length; i++) {
+        clauses.push(
+          allClauses.splice(Math.floor(Math.random() * allClauses.length), 1)
+        )
+
+        // decrement maxPrepositionClauses in options (effects recursive calls/callers)
+        options.maxPrepositionClauses--
+      }
+
+      // append chosen clauses to output
+      if(clauses.length)
+        out = sub('_ _', out, clauses.sort(() => Math.random()*2-1))
+    }
+  }
+
+  // choose and apply adjectives
+  if(maxAdjectives) {
+    let nAdjs = Math.floor(Math.random() * (maxAdjectives+1)) + 1
+    if(nAdjs) {
+      let allAdjs = specarr.expand(entity, entity.adjectives)
+
+      // choose adjectives
+      let adjs = []
+      for(let i=0; allAdjs.length && i<nAdjs; i++) {
+        adjs.push(allAdjs.splice(Math.floor(Math.random() * allAdjs.length), 1))
+        options.maxAdjectives--
+      }
+
+      // prepend chosen adjectives to output
+      if(adjs.length)
+        out = sub('_ _', adjs.sort(() => Math.random()*2-1), out)
+    }
+  }
+
+  if(out.isSubstitution)
+    return out.str(ctx, options)
+  else if(out.constructor == String)
+    return out
+  else
+    throw 'strange output: '+str
+}
+module.exports = entityStr
+
+},{"./util/Substitution":255,"./util/specarr":269}],241:[function(require,module,exports){
+const EventEmitter = require('events')
+const Sentence = require('./Sentence')
+
+/**
+  The FactListener class is a convenient class for handling event listeners on
+  multiple Entitys at once.
+  @class FactListener
+  @constructor
+  @extends EventEmitter
+  @param {Entity} [...entities]
+    A list of member entities to add to the new fact listener.
+*/
+
+class FactListener extends EventEmitter {
+  constructor(...entities) {
+    // call superconstructor
+    super()
+
+    // list of member entities
+    this.entities = []
+
+    // last emitted fact (used to avoid duplicates)
+    this.lastFact = null
+
+    // function to be called by entity event listeners
+    this.callback = sentence => {
+      // if fact is not a duplicate, emit a fact event
+      if(!this.lastFact || !Sentence.compare(this.lastFact, sentence))
+        this.emit('fact', sentence)
+
+      this.lastFact = sentence
+    }
+
+    // add constructor arguments to member list
+    for(let entity of entities)
+      this.add(entity)
+  }
+
+  /**
+   * Adds a single entity member.
+   * @method add
+   * @param {Entity} entity The entity to be added.
+   * @return {null}
+   */
+  add(entity) {
+    // throw an error if argument is not a entity
+    if(!entity.isEntity)
+      throw 'FactListener add() expects a entity'
+    this.entities.push(entity)
+    entity.on('fact', this.callback)
+
+  }
+
+  /**
+    * Removes a single entity member.
+    * @method remove
+    * @param {Entity} entity The entity to be added.
+    * @return {null}
+    */
+  remove(entity) {
+    if(this.entities.includes(entity)) {
+      // remove event listener
+      entity.removeListener('fact', this.callback)
+
+      // remove entity from member list.
+      let i = this.entities.indexOf(entity)
+      this.entities.splice(i, 1)
+    } else
+      console.warn('attempt to remove entity from fact listener to which it is not a member')
+  }
+
+  /**
+    * Remove all entities members
+    * @method clear
+    * @return {null}
+    */
+  clear() {
+    for(let entity of this.entities)
+      this.remove(entity)
+  }
+}
+module.exports = FactListener
+
+
+// PROBLEMS:
+// - Eliminating duplicates.
+
+},{"./Sentence":247,"events":277}],242:[function(require,module,exports){
+/**
+ * @class Noun
+ * @constructor
+ * @param {Object|String} options
+ * @param {String} options.noun
+ * @param {String|Array} options.inherits String or array of strings.
+ * @param {Function} options.extendFunction
+ * @param {Array} options.constructors
+ */
+
+class Noun {
+  constructor(options) {
+    // handle strings
+    if(options.constructor == String)
+      options = {noun:options}
+
+    let {noun, inherits=[], extend, alias, spawners=[]} = options
+
+    this.noun = noun
+
+    if(inherits.constructor == String)
+      this.inherits = [inherits]
+    else if(inherits.constructor == Array)
+      this.inherits = inherits
+
+    if(extend)
+      this.extendFunction = extend
+
+    this.alias = alias
+
+    this.spawners = spawners.slice()
+
+    this.isPhrasal = / /.test(this.noun)
+  }
+
+  extend(entity) {
+    for(let base of this.inherits)
+      entity.be_a(base)
+
+    if(this.extendFunction)
+      this.extendFunction(entity)
+  }
+}
+module.exports = Noun
+
+},{}],243:[function(require,module,exports){
+/**
+  A subclass of Sentence. This class is used to represent a sentence (predicate
+  + arguments) in the form of a noun. For example, "the cigarette that he was
+  smoking".
+
+  A NounPhraseSentence can be used as an argument in another sentence.
+  @class NounPhraseSentence
+  @extends Sentence
+  @constructor
+  @param {Number} mainArgumentIndex
+  @param {Predicate} predicate
+  @param {Array} args
+*/
+
+const Sentence = require('./Sentence')
+
+class NounPhraseSentence extends Sentence {
+  constructor(mainArgumentIndex, predicate, args) {
+    super(predicate, args)
+    this.mainArgumentIndex = mainArgumentIndex
+  }
+
+  /**
+   * @attribute mainArgument
+   * @readOnly
+   */
+  get mainArgument() {
+    return this.args[this.mainArgumentIndex]
+  }
+}
+NounPhraseSentence.prototype.isNounPhraseSentence = true
+module.exports = NounPhraseSentence
+
+},{"./Sentence":247}],244:[function(require,module,exports){
+const PredicateSyntax = require('./PredicateSyntax')
+
+/**
+  @class Predicate
+  @constructor
+  @param {Object} [options] Options for constructing the predicate.
+  @param {String} [options.verb] The verb of the predicate.
+  @param {Array}  [options.params]
+  @param {Array}  [options.forms] Alternatively multiple syntaxes can be defined using an
+                         array of verb/params/constants objects.
+  @param {Function} [options.skipIf]
+  @param {Function} [options.replace]
+  @param {Function} [options.prepare]
+  @param {Function} [options.problem]
+  @param {Function} [options.check]
+  @param {Function} [options.begin]
+  @param {Function} [options.meanwhile]
+  @param {Function} [options.expand]
+  @param {Function} [options.until]
+  @param {Function} [options.afterwards]
+  @param {Boolean}  [options.banal=false]
+*/
+
+class Predicate {
+  constructor({
+    // syntax(s) description
+    verb, params=['subject'], // used if initialising with only one form
+    forms=[],
+    // semantic functions
+    begin, expand, check, until, afterwards, prepare, skipIf, replace, problem, meanwhile,
+    banal=false,
+  }) {
+    // if verb and params are given, initialise with one form
+    if(verb && params)
+      forms.unshift({verb: verb, params:params})
+
+    // initialise forms as PredicateSyntax objects
+    this.forms = forms.map(form => new PredicateSyntax(form))
+
+    // check that form parameters agree
+    this.params = this.forms[0].params.map(param => {
+      return {
+        literal: param.literal
+      }
+    })
+    for(let syntax of this.forms) {
+      if(syntax.params.length != this.params.length)
+        throw 'Predicate has incompatible forms'
+      for(let i in syntax.params)
+        if(syntax.params[i].literal != this.params[i].literal)
+          throw 'Predicate has incompatible forms'
+    }
+
+    // sort forms by specificness
+    this.forms = this.forms.sort((A, B) => B.specificness - A.specificness)
+    // overall specificness is the maximum specificness of the predicates forms
+    this.specificness = this.forms[this.forms.length-1].specificness
+
+    // semantic functions:
+    /**
+      `skipIf` is called as when starting a sentence. If it returns a truthy
+      value then the sentence will cancel starting and won't happen. Should
+      generally be used to check whether an action is unnecessary because its
+      outcome is already true.
+      @property {Function} skipIf
+    */
+    this.skipIf = skipIf
+
+    /**
+     * `replace` is called when starting a sentence. If it returns a truthy
+     * value then the sentence will cancel starting and won't happen. The
+     * returned sentences will be started instead. Should be used to correct
+     * lazy user input.
+     */
+    this.replace = replace
+
+    /**
+      `_prepare` is called before a sentence happens. If it returns a sentence
+      or list of sentences, these sentences will be executed consequetively
+      before the original sentence happens.
+      @property {Function} _prepare
+    */
+    this._prepare = prepare
+
+    /**
+     * Problem returns truthy if the sentence is illegal.
+     * @property {Function} problem
+     */
+    this.problem = problem
+
+    /**
+     `check` is called to decide whether it is necessary to call `_begin`.
+      If it returns truthy then `_begin` will be skipped, the start process
+      will not be cancelled however. Its secondary purpose is for answering
+      question sentences (true/false) when they have not been specifically
+      declared as sentences.
+      @property {Function} check
+    */
+    this.check = check
+
+    /**
+      * `_begin` is called directly after the sentence happens. So far, the
+      * return value is ignored.
+      * @property {Function} _begin
+      */
+    this._begin = begin
+
+    /**
+     * `meanwhile` is called directly after a sentence happens (after `_begin`)
+     * if it returns a sentence, or list of sentences, these will be started
+     * using the original sentence as a cause. In other words, they will be
+     * stopped as soon the original sentence finishes.
+     */
+    this.meanwhile = meanwhile
+
+    /**
+      * `_expand` works in a similar way to `_prepare` except it is called
+      * immediately after a sentence happens. If it returns a sentence, or an
+      * array of sentences, these will be executed consequetively and the main
+      * sentence will be stopped after the last one finishes.
+      * @property {Function} _expand
+      */
+    this._expand = expand
+
+    /**
+      * `until` is called immediately after a sentence happens (after
+      * `_expand`). It has an additional callback arguemnt (prepended) which,
+      * when called will stop the sentence.
+      * @property {Function} until
+      */
+    this.until = until
+
+    /**
+      * `_afterwards` is immediately after the sentence stops. If it returns a
+      * sentence or an array of sentences, these will be executed simultaneously
+      * @property {Function} _afterwards
+      */
+    this._afterwards = afterwards
+
+    /**
+     * If a predicate is marked banal, sentences using it will be ignored by
+     * certain processes to do with story telling.
+     * @property {Boolean} banal
+     * @default false
+     */
+     this.banal = banal
+  }
+
+  /**
+   * Checks whether a given list of arguments are of the right type to fit the
+   * parameters of a predicate.
+   * @method checkArgs
+   * @param {Array} args
+   * @return {Boolean}
+   */
+  checkArgs(args) {
+    if(this.params.length != args.length) {
+      console.warn('wrong number of arguments!')
+      return false // whoops, wrong number of arguments!
+    }
+
+    for(let i in args) {
+      let arg = args[i]
+      if(this.params[i].literal) {
+        // parameter is flagged literal so argument should be a string
+        if(arg.constructor == String)
+          continue
+        else {
+          return false
+        }
+
+      } else if(arg.isEntity)
+        // non-literal args must be a Entity or a NounPhraseSentence
+        continue
+      else if(arg.isNounPhraseSentence && arg.checkArgs())
+        continue
+    }
+
+    // we got to the end, so the arguments are legal
+    return true
+  }
+
+  /** Prase a string against a given list of tenses
+      @method parse
+      @param {String} str The String to parse
+      @param {Array} tenses List of tenses to parse the string against
+      @return {Sentence}
+        A sentence with string placeholders as arguments or null (if cannot be
+        parsed)
+  */
+  parse(str, tenses) {
+    for(let form=0; form<this.forms.length; form++) {
+      let syntax = this.forms[form]
+      let interpretation = syntax.parse(str, tenses)
+      if(interpretation) {
+        interpretation.predicate = this
+        interpretation.form = form
+        return interpretation
+      }
+    }
+    return null
+  }
+
+  /**
+      Parses a string using the imperative tense, for a given subject
+      @method parseImperative
+      @param {String} str The NL string to be parsed.
+      @param {Entity} subject The subject of the sentence.
+      @return {Sentence}
+        A sentence with string placeholders as arguments (except the subject)
+        or `null` in the case that the string cannot be parsed.
+  */
+  parseImperative(str, subject) {
+    for(let form=0; form<this.forms.length; form++) {
+      let syntax = this.forms[form]
+      let interpretation = syntax.parseImperative(str, subject)
+      if(interpretation) {
+        interpretation.predicate = this
+        interpretation.form = form
+        return interpretation
+      }
+    }
+    return null
+  }
+
+  /**
+   * Parses a string in noun phrase form, referring to one of the arguments.
+   * For example, "The cup that is on the table".
+   * @method parseNounPhrase
+   * @param {String} str The string to be parsed
+   * @return {Sentence} A sentence with string placeholders as arguments, or
+                        `null` in the case that the string cannot be parsed.
+   */
+  parseNounPhrase(str) {
+    for(let form=0; form<this.forms.length; form++) {
+      let syntax = this.forms[form]
+      let interpretation = syntax.parseNounPhrase(str)
+      if(interpretation) {
+        interpretation.predicate = this
+        interpretation.form = form
+        return interpretation
+      }
+    }
+  }
+
+  /**
+   * Generate an english string version of the predicate for a given set of
+   * arguments in a given tense.
+   * @method str
+   * @param {Object} details
+   * @param {Array} details.args
+   *  The list of arguments for the sentence.
+   * @param {String} [details.tense = "simple_present"]
+   *  The tense in which to compose the sentence. (see verbPhrase.js)
+   * @param {Number} [details.form = 0]
+   *  The index of the syntactic form to be used (for predicates with multiple
+   *  forms)
+   * @param {DescriptionContext} [ctx]
+   *  An object describing the context for which the string is being generated.
+   * @param {Object} [options]
+   *  The entityStr options, dictating preferences for how entity arguments should
+   *  be written.
+   * @return {String} The written sentence.
+   */
+  str({args, tense, form}, ctx, options) {
+    return this.compose({args:args, tense:tense, form:form}).str(ctx, options)
+  }
+
+  /**
+   * Prepare an english version of the predicate for a given set of
+   * arguments in a given tense.
+   * @method compose
+   * @param {Object} details
+   * @param {Array} details.args
+   *  The list of arguments for the sentence.
+   * @param {String} [details.tense = "simple_present"]
+   *  The tense in which to compose the sentence. (see verbPhrase.js)
+   * @param {Number} [details.form = 0]
+   *  The index of the syntactic form to be used (for predicates with multiple
+   *  forms)
+   * @param {Object} verbPhraseOptions
+   * @return {Substitution} A substitution ready to format the sentence.
+   */
+  compose({args, tense, form}, verbPhraseOptions) {
+    if(form == undefined)
+      form = Math.floor(Math.random()*this.forms.length)
+    return this.forms[form].compose(
+      {args:args, tense:tense},
+      verbPhraseOptions,
+    )
+  }
+
+  /**
+   * Generate a set of preposition clauses for a particular argument.
+   * @method presentPrepositionClausesFor
+   * @param {Number} argIndex
+   *  The index of of the argument to generate clauses for.
+   * @param {Array} args The complete list of arguments.
+   * @return {Array}
+   *  An array of preposition (string) clause (substitution) pairs.
+   */
+  presentPrepositionClausesFor(argIndex, args) {
+    let list = []
+    for(let syntax of this.forms)
+      list.push(...syntax.presentPrepositionClausesFor(argIndex, args))
+
+    return list
+  }
+
+  /**
+   * Generate a set of preposition clauses for a particular argument in the
+   * past tense.
+   * @method pastPrepositionClausesFor
+   * @param {Number} argIndex
+   *  The index of of the argument to generate clauses for.
+   * @param {Array} args The complete list of arguments.
+   * @return {Array}
+   *  An array of preposition (string) clause (substitution) pairs.
+   */
+  pastPrepositionClausesFor(argIndex, args) {
+    let list = []
+    for(let syntax of this.forms)
+      list.push(...syntax.pastPrepositionClausesFor(argIndex, args))
+
+    return list
+  }
+
+  get names() {
+    let list = []
+    for(let form of this.forms) {
+      list.push(form.camelCaseName)
+    }
+    return list
+  }
+}
+Predicate.prototype.isPredicate = true
+module.exports = Predicate
+
+},{"./PredicateSyntax":246}],245:[function(require,module,exports){
+const Predicate = require('./Predicate')
+
+/**
+ * A class for handling multiple predicates at once.
+ * @class PredicateSet
+ * @constructor
+ * @param {Predicate} [...predicates] Predicates to include in the set.
+ */
+
+class PredicateSet {
+  constructor(...predicates) {
+    /**
+     * An array of predicates which are members of the set.
+     * @property predicates {Array}
+     */
+    this.predicates = []
+    /**
+     * The predicates of the set indexed by camel case name.
+     * @property byName {Object}
+     */
+    this.byName = {}
+
+    this.addPredicates(...predicates)
+  }
+
+  /**
+   * Adds predicates to the set.
+   * @method addPredicates
+   * @param {Predicate} ...predicates The predicates to be added.
+   */
+  addPredicates(...predicates) {
+    for(let p of predicates) {
+      if(p.constructor == Object)
+        p = new Predicate(p)
+
+      if(p.isPredicate) {
+        this.predicates.push(p)
+        for(let name of p.names)
+          this.byName[name] = p
+      }
+    }
+    this.sortPredicates()
+  }
+
+  /**
+   * Parse a sentence string against all the predicates in the set.
+   * @method parse
+   * @param {String} str The sentence string to parse
+   * @param {Array} tenses
+   *  An array of strings. The tenses to parse the stirng against.
+   * @return {Array}
+   *  An array of matches to the string as sentenses with
+   *  placeholder-string arguments.
+   */
+  parse(str, tenses) {
+    let interpretations = []
+    for(let p of this.predicates) {
+      let interpretation = p.parse(str, tenses)
+      if(interpretation)
+        interpretations.push(interpretation)
+    }
+
+    return interpretations
+  }
+
+  /**
+   * Parse a string in the imperative tense for a given subject. The subject
+   * will be copied to the subject argument of the resultant sentences
+   * @method parseImperative
+   * @param {String} str
+   * @param {Entity} subject The subject, either a entity or a string.
+   * @return {Array} An array sentence with placeholder-string arguments.
+   */
+  parseImperative(str, subject) {
+    let interpretations = []
+    for(let p of this.predicates) {
+      let interpretation = p.parseImperative(str, subject)
+      if(interpretation)
+        interpretations.push(interpretation)
+    }
+
+    return interpretations
+  }
+
+  /**
+   * Parse a sentence-string in noun-phrase form. Eg/ "the cup that is on the
+   * table".
+   * @method parseNounPhrase
+   * @param {String} str
+   * @return {Array} An array of sentences with string-placeholder arguments
+   */
+  parseNounPhrase(str) {
+    let interpretations = []
+    for(let p of this.predicates) {
+      let interpretation = p.parseNounPhrase(str)
+      if(interpretation)
+      interpretations.push(interpretation)
+    }
+
+    return interpretations
+  }
+
+  /**
+   * @method random
+   * @return {Predicate} A random predicate from the set.
+   */
+  random() {
+    return this.predicates[Math.floor(Math.random()*this.predicates.length)]
+  }
+
+  /**
+   * Sorts predicates in descending order of 'specificness'.
+   * @method sortPredicates
+   */
+  sortPredicates() {
+    this.predicates = this.predicates.sort(
+      (A, B) => B.specificness-A.specificness
+    )
+  }
+}
+module.exports = PredicateSet
+
+},{"./Predicate":244}],246:[function(require,module,exports){
+/**
+  A class for representing a single syntactic 'form' of a predicate.
+  @class PredicateSyntax
+  @constructor
+  @param {Object} options
+  @param {String} options.verb
+  @param {Array} options.params
+  @param {Array} options.constants
+  @param {Array} [options.presentTenses]
+  @param {Array} [options.pastTenses]
+*/
+
+const verbPhrase = require('./util/conjugate/verbPhrase')
+
+const usefulTenses = ['simple_present', 'simple_past']//verbPhrase.tenseList
+// ^ (must be in reverse order of specificness)
+
+
+class PredicateSyntax {
+  constructor({
+    verb, params=['subject'], constants={},
+    presentTenses=['simple_present'],
+    pastTenses=['simple_past'],
+  }) {
+    /**
+     * @property {String} verb
+     */
+    this.verb = verb
+
+    if(constants.subject) {
+      constants._subject = constants.subject
+      delete constants.subject
+    }
+    if(constants.object) {
+      constants._object = constants.object
+      delete constants.object
+    }
+    /**
+     * @property {Array} constants
+     */
+    this.constants = constants
+
+    /**
+     *  The params assign the syntactic function of the arguments.
+     * @property {Array} params
+     */
+    this.params = params.map((param, i) => {
+      if(param.constructor == String) {
+        let literal = false
+        if(param[0] == '@') {
+          literal = true
+          param = param.slice(1)
+        }
+
+        if(param == 'subject')
+          param = '_subject'
+        if(param == 'object')
+          param = '_object'
+
+        return {
+          name: param,
+          literal: literal,
+          index: i
+        }
+      }
+    })
+
+    /**
+     * The param objects indexed by name.
+     * @property {Object} paramsByName
+     */
+    this.paramsByName = {}
+    for(let param of this.params)
+      this.paramsByName[param.name] = param
+    /**
+     * @property {String} camelCaseName
+     */
+    // generate camel case name
+    let words = [
+      ...this.verb.split(/_| /)
+    ]
+    for(let param of this.params)
+      if(param.name[0] != '_')
+        words.push(...param.name.split(/_| /))
+
+    this.camelCaseName = words.map(word => word[0].toUpperCase()+word.slice(1)).join('')
+
+
+    // set-up regexs
+    this.regexs = {}
+    this.makeParamRegexs()
+    // calculate specificness
+    this.getSpecificness()
+
+    // tenses
+    this.presentTenses = presentTenses
+    this.pastTenses = pastTenses
+  }
+
+  /**
+   * Convert an associated arguments object (indexed by param-name) into an
+   * ordered argument list
+   * @method orderArgs
+   * @param {Object} associativeArgs
+   * @return {Array} Ordered args.
+   */
+  orderArgs(associativeArgs={}) {
+    let orderedArgs = []
+    for(let {name} of this.params)
+      orderedArgs.push(associativeArgs[name])
+    return orderedArgs
+  }
+
+  /**
+   * Convert an ordered list of arguments into an associated arguments object
+   * (indexed by param-name).
+   * @method associateArgs
+   * @param {Array} orderedArgs
+   * @return {Object}
+   */
+  associateArgs(orderedArgs) {
+    let associativeArgs = {}
+    for(let i in this.params)
+      associativeArgs[this.params[i].name] = orderedArgs[i]
+    return associativeArgs
+  }
+
+  /**
+   * @method makeRegex
+   * @param {String} tense
+   * @param {Object} options Options for verbPhrase
+   */
+  makeRegex(tense, options) {
+    if(!this.capturingAction){
+      let action = {_verb: this.verb}
+      for(let {name} of this.params) {
+        action[name] = '(?<'+name+'>.+)'
+      }
+      for(let name in this.constants) {
+        action[name] = this.constants[name]
+      }
+      this.capturingAction = action
+    }
+
+    let vp = verbPhrase(this.capturingAction, tense, options)
+
+    return new RegExp('^'+vp.str()+'$')
+  }
+
+  /**
+   * @method makeParamRegexs
+   */
+  makeParamRegexs() {
+    for(let param of this.params) {
+      let {name, literal} = param
+      if(literal)
+        continue
+      param.regexs = {}
+      for(let tense of usefulTenses) {
+        let reg = this.makeRegex(tense, {nounPhraseFor:name})
+        param.regexs[tense] = reg
+      }
+    }
+  }
+
+  /**
+   * @method parse
+   * @param {String} str
+   * @param {Array} [tenses]
+   * @return {Object}
+   */
+  parse(str, tenses=[...this.presentTenses, ...this.pastTenses]) {
+    for(let tense of tenses) {
+      if(!this.regexs[tense])
+        this.regexs[tense] = this.makeRegex(tense)
+      let reg = this.regexs[tense]
+      let result = reg.exec(str)
+      if(result)
+        return {
+          tense: tense,
+          args: this.orderArgs(result.groups),
+          predicate: this,
+        }
+    }
+
+    return null
+  }
+
+  /**
+   * @method parseImperative
+   * @param {String} str
+   * @param {Entity} subject
+   * @return {Object}
+   */
+  parseImperative(str, subject) {
+    // Parse an imperative string for a given subject
+
+    // call parse using imperative tense
+    let parsed = this.parse(str, ['imperative'])
+
+    // set the subject argument to the given subject
+    if(parsed && this.paramsByName._subject)
+      parsed.args[this.paramsByName._subject.index] = subject
+
+    return parsed
+  }
+
+  /**
+   * @method parseNounPhrase
+   * @param {String} str
+   * @return {Object}
+   */
+  parseNounPhrase(str) {
+    for(let param of this.params) {
+      for(let tense in param.regexs) {
+        let reg = param.regexs[tense]
+        let result = reg.exec(str)
+        if(result)
+          return {
+            tense: tense,
+            param: param.name,
+            paramIndex: param.index,
+            predicate: this,
+            args: this.orderArgs(result.groups)
+          }
+      }
+    }
+  }
+
+  /**
+   * @method str
+   * @param {Object} details
+   * @param {Array} details.args
+   * @param {String} details.tense
+   * @param {DescriptionContext} ctx
+   * @param {Object} options entityStr options
+   * @return {String}
+   */
+  str({args, tense}, ctx, options) {
+    return this.compose({args:args, tense:tense}).str(ctx, options)
+  }
+
+  /**
+   * @method compose
+   * @param {Object} details
+   * @param {Array} details.args
+   * @param {String} [tense = "simple_present"]
+   * @param {Object} options verbPhrase options
+   * @return {Substitution}
+   */
+  compose({args, tense='simple_present'}, options) {
+    let action = this.composeAction(args)
+    return verbPhrase(action, tense, options)
+  }
+
+  /**
+   * @method composeAction
+   * @param {Array} orderedArgs
+   * @return {Object}
+   */
+  composeAction(orderedArgs) {
+    let action = this.associateArgs(orderedArgs)
+    action._verb = this.verb
+    for(let name in this.constants)
+      action[name] = this.constants[name]
+    return action
+  }
+
+  /**
+   * @method composeSubjectNounPhrase
+   * @param {Object} details
+   * @param {Array} details.args
+   * @param {String} details.tense
+   * @return {Substitution}
+   */
+  composeSubjectNounPhrase({args, tense}) {
+    return this.compose({args:args, tense:tense}, {nounPhraseFor:'_subject'})
+  }
+
+  /**
+   * @method composePrepositionPhraseFor
+   * @param {Number} argIndex
+   * @param {Object} details
+   * @param {Array} details.args
+   * @param {String} details.tense
+   * @return {Object}
+   */
+  composePrepositionPhraseFor(argIndex, {args, tense}) {
+    return {
+      preposition:'that',
+      clause :this.compose(
+        {args:args, tense:tense},
+        {omit:this.params[argIndex].name}
+      ),
+      mainArgument: args[argIndex],
+    }
+  }
+
+  /**
+   * @method presentPrepositionClausesFor
+   * @param {Number} argIndex
+   * @param {Array} args
+   * @return {Array}
+   */
+  presentPrepositionClausesFor(argIndex, args) {
+    let list = []
+    for(let tense of this.presentTenses)
+      list.push(this.composePrepositionPhraseFor(
+        argIndex, {args:args, tense:tense})
+      )
+    return list
+  }
+
+  /**
+   * @method pastPrepositionClausesFor
+   * @param {Number} argIndex
+   * @param {Array} args
+   * @return {Array}
+   */
+  pastPrepositionClausesFor(argIndex, args) {
+    let list = []
+    for(let tense of this.pastTenses)
+      list.push(this.composePrepositionPhraseFor(
+        argIndex, {args:args, tense:tense})
+      )
+    return list
+  }
+
+  /**
+   *  Calculate a specificness score. Used to order predicates in PredicateSet.
+   *  Low specificness should be processed last when parsing to avoid using
+   *  problems.
+   *  Eg to avoid using '_ is _' when '_ is in _' could have been used.
+   *  @method getSpecificness
+   *  @return {Number}
+   */
+  getSpecificness() {
+    // Calculate a specificness score. Used to order predicates in PredicateSet.
+    // Low specificness should be processed last when parsing to avoid using
+    // problems.
+    // Eg to avoid using '_ is _' when '_ is in _' could have been used.
+
+    if(this.specificness)
+      return this.specificness
+
+    let score = this.verb.length
+    for(let param of this.params) {
+      if(param.name[0] != '_')
+        score += param.name.length * (param.literal ? 1 : 3)
+      //if(param.literal)
+        //score -= 10
+    }
+
+    this.specificness = score
+    return this.specificness
+  }
+}
+PredicateSyntax.prototype.isPredicateSyntax = true
+module.exports = PredicateSyntax
+
+},{"./util/conjugate/verbPhrase":259}],247:[function(require,module,exports){
+const EventEmitter = require('events')
+const SentenceQueue = require('./SentenceQueue')
+// ...more requires at bottom
+
+
+/**
+ * @class Sentence
+ * @extends EventEmitter
+ * @constructor
+ * @param {Predicate} predicate
+ * @param {Array} args
+ */
+class Sentence extends EventEmitter {
+  constructor(predicate=null, args=null) {
+    super()
+
+    if(!predicate)
+      console.warn('WARNING: Sentence created without predicate.')
+
+    /** A Predicate object defining the relationship between the
+     *  arguments
+     * @property {Predicate} predicate
+     */
+    this.predicate = predicate
+
+    /**
+     * an array of Entity/String arguments
+     * @property {Array} args
+     */
+    this.args = args // an array of Entity/String arguments
+
+    /**
+     * The truth value of the sentnece. May be `'true'`, `'planned'`,
+     * `'false'`, `'failed'`, `'past'`, `'hypothetical'` or `'superfluous'`
+     * @property {String} truthValue
+     * @default "hypothetical"
+     */
+    this.truthValue = 'hypothetical'
+
+    /**
+     * A list of sentences which cause this sentence.
+     * @property {Array} causes
+     * @default []
+     */
+    this.causes = []
+
+    /**
+     * A the number of causes.
+     * @property {Number} causeCount
+     */
+    this.causeCount = 0
+
+    /**
+     * a list keeping track of all currently active clause objects
+     * @property {Array} presentClauses
+     */
+    this.presentClauses = []
+    /**
+     * a list keeping track of all past tense clause objects
+     * @property {Array} pastClauses
+     */
+    this.pastClauses = []
+  }
+
+  /**
+   * Check to see if the arguments are compatible with the predicate in
+   * terms of their type.
+   * @method checkArgs
+   * @return {Boolean}
+   */
+  checkArgs() {
+    return this.predicate.checkArgs(this.args)
+  }
+
+  /**
+   * If this sentence already exists in the arguments' fact lists return
+   * the already existing version. Otherwise false.
+   * @method trueInPresent
+   * @return {Sentence|null}
+   */
+  trueInPresent() {
+    if(this.truthValue == 'true')
+      return this
+
+    if(this.truthValue == 'hypothetical') {
+      for(let arg of this.entityArgs) {
+        for(let fact of arg.facts)
+          if(Sentence.compare(fact, this)) {
+            this.truthValue = 'superfluous'
+            return fact
+          }
+      }
+      return null
+    }
+
+
+    // the present truth value for sentences without entity arguments is undefined
+    return undefined
+  }
+
+  /**
+   * Check whether the sentence was true in the past.
+   * @method trueInPast
+   * @return {Boolean}
+   */
+  trueInPast() {
+    if(this.truthValue == 'past')
+      return true
+
+    if(this.truthValue == 'hypothetical')
+      for(let arg of this.args)
+        if(arg.isEntity)
+          return arg.history.some(fact => Sentence.compare(fact, this))
+  }
+
+  /**
+   * Get a list of all arguments which are entities, including those from
+   * embedded sub-sentences.
+   * @attribute recursiveEntityArgs
+   * @readOnly
+   * @type {Array}
+   */
+  get recursiveEntityArgs() {
+    let all = []
+    for(let arg of this.args)
+      if(arg.isNounPhraseSentence)
+        all.push(...arg.recursiveEntityArgs)
+      else if(arg.isEntity)
+        all.push(arg)
+
+    return all
+  }
+
+  /**
+   * Attach facts and preposition clauses to the Entity arguments.
+   * @method addFactsAndClauses
+   * @return {null}
+   */
+  addFactsAndClauses() {
+    if(!this.predicate.dontObserve)
+      for(let i=0; i<this.args.length; i++) {
+        let arg = this.args[i]
+        if(arg.isEntity) {
+          // emit on('fact') event
+          arg.emit('fact', this)
+
+          // add sentence to argument's fact set
+          arg.facts.push(this)
+
+          for(let clause of this.predicate.presentPrepositionClausesFor(i, this.args)) {
+            arg.addClause(clause.preposition, clause.clause)
+
+            // rmb the clause so it can be removed later (when `stop` is called)
+            this.presentClauses.push(clause)
+          }
+        }
+      }
+  }
+
+  /**
+    * Starts a sentence.
+    * @method start
+    * @return Sentence or SentenceQueue (if postponed by prepare)
+    */
+  start() {
+    // throw an error if this.checkArgs() fails
+    if(!this.checkArgs()) {
+      console.log(this)
+      throw 'sentence has illegal args'
+    }
+
+    // exit early if predicate's skipIf returns truthy value
+    if(this.predicate.skipIf) {
+      let skip = this.predicate.skipIf(...this.args, this)
+      if(skip) {
+        this.truthValue = 'skipped'
+
+        return this
+      }
+    }
+
+    if(this.predicate.replace) {
+      let replacement = this.predicate.replace(...this.args, this)
+      if(replacement) {
+        this.truthValue = 'skipped'
+
+        if(replacement.isSentence)
+          replacement = [replacement]
+
+        for(let sentence of replacement)
+          sentence.start()
+
+        return this
+      }
+    }
+
+    // if prepare is defined in the predicate, queue the the preparation and
+    // reschedule this.start()
+    if(this.predicate._prepare && !this.preparationQueue) {
+      let preparationSentences = this.predicate._prepare(...this.args, this)
+      if(preparationSentences) {
+        // create a new queue of the preparation sentences
+        let queue = new SentenceQueue(...preparationSentences)
+        this.preparationQueue = queue
+
+        // reschedule this sentence start to after the queue
+        queue.once('stop', () => this.start())
+
+        // set truth value to planned
+        this.truthValue = 'planned'
+
+        // start the queue
+        queue.start()
+
+        // exit
+        return this
+      }
+    }
+
+    // skip declare if is already true according to this.predicate.check()
+    if(!(this.predicate.check && this.predicate.check(...this.args, this))) {
+
+      // exit early if there are problems according to this.predicate.problem()
+      if(this.predicate.problem) {
+        let problems = this.predicate.problem(...this.args, this)
+        if(problems) {
+          this.truthValue = 'failed'
+          this.failureReason = problems
+
+          /**
+           * Emitted when there is a predicate defined problem starting
+           * the sentence.
+           * @event problem
+           * @param failureReason
+           */
+          this.emit('problem', this.failureReason)
+          return this
+        }
+      }
+
+      // DECLARE: ie' make the sentence true by altering the entity structure
+      // execute nested NounPhraseSentences in arguments
+      let n = 0
+      for(let i in this.args) {
+        if(this.args[i].isNounPhraseSentence) {
+          this.args[i].start() // .start() in new implementation
+          this.args[i] = this.args[i].mainArgument
+          n++
+        }
+      }
+      // check arguments again
+      if(n && !this.checkArgs())
+        throw 'sentence has illegal args after executing nested sentences'
+
+      // execute the predicate on the args
+      if(this.predicate._begin)
+        this.predicate._begin(...this.args, this)
+    }
+
+    // skip observe if is already true according to this.trueInPresent()
+    let alreadyExistingVersion = this.trueInPresent()
+    if(alreadyExistingVersion) {
+      alreadyExistingVersion.once('stop', () => this.stop())
+      return alreadyExistingVersion
+    } else {
+      // OBSERVE:
+
+      // set truth value to true
+      this.truthValue = 'true'
+      this.causeCount++
+
+      // add facts and clauses
+      this.addFactsAndClauses()
+
+      if(this.predicate.meanwhile) {
+        let consequences = this.predicate.meanwhile(...this.args, this)
+        if(consequences) {
+          if(consequences.isSentence)
+            consequences = [consequences]
+          for(let consequence of consequences)
+            consequence.addCause(this)
+        }
+      }
+
+      if(this.predicate._expand) {
+        let expansion = this.predicate._expand(...this.args, this)
+        if(expansion) {
+          let queue = new SentenceQueue(...expansion)
+          queue.once('stop', () => this.stop())
+          queue.start()
+        }
+      }
+
+      // call the predicate's `until` function if it exists
+      if(this.predicate.until)
+        this.predicate.until(
+          () => this.stop(),
+          ...this.args, this,
+        )
+
+      /**
+       * Emitted when a sentence successfully starts
+       * @event start
+       * @deprecated
+       */
+      this.emit('start')
+
+      // return self
+      return this
+    }
+  }
+
+  /**
+   * Stops the sentence.
+   * @method stop
+   */
+  stop() {
+    // make the sentence no longer true
+
+    if(this.truthValue == 'superfluous') {
+      this.emit('stop')
+      return this
+    }
+
+    // exit early if sentence is not 'true'
+    if(this.truthValue != 'true' /*&& this.truthValue != 'planned'*/) {
+      /*console.warn(
+        'rejected sentence stop because truth value = ' + this.truthValue,
+        '('+this.str()+')'
+      )*/
+      return this
+    }
+
+    // set truth value to 'past'
+    this.truthValue = 'past'
+
+    // call _afterwards semantic function and handle consequences
+    if(this.predicate._afterwards) {
+      // call _afterwards. It may return any a Sentence or array of sentences as
+      // consequences.
+      let consequences = this.predicate._afterwards(...this.args, this)
+      if(consequences) {
+        // start a single-sentence consequence
+        if(consequences.isSentence)
+          consequences.start()
+        // start list of consequence sentences
+        else if(consequences.constructor == Array)
+          for(let sentence of consequences)
+            sentence.start()
+      }
+    }
+
+    // remove preposition clauses
+    for(let {mainArgument, preposition, clause} of this.presentClauses)
+      mainArgument.removeClause(preposition, clause)
+
+    // remove facts from arguments
+    for(let arg of this.entityArgs) {
+      //let arg = this.args[i]
+      arg.emit('factOff', this)
+      arg.facts.splice(arg.facts.indexOf(this), 1)
+    }
+
+    // call observe past
+    this.observePast()
+
+    /**
+     * Emitted when the sentence has successfully stopped.
+     * @event stop
+     */
+
+    // emit stop event
+    this.emit('stop')
+  }
+
+  /**
+   * Called when the sentence becomes past-tense
+   * @method observePast
+   */
+  observePast() {
+    // observe that this sentence is now in the past
+
+    for(let i in this.args) {
+      let arg = this.args[i]
+
+      // add fact to arguments history
+      if(arg.history
+      && !arg.history.some(fact => Sentence.compare(fact, this))) {
+
+        arg.history.push(this)
+
+        for(let clause of this.predicate.pastPrepositionClausesFor(i, this.args)) {
+          // attach clause to arg
+          arg.addClause(clause.preposition, clause.clause)
+
+          // remember the clause so it can be removed later
+          this.pastClauses.push(clause)
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate a string version of the sentence.
+   * @method str
+   * @param {String} [tense = "simple_present"]
+   * @param {DescriptionContext} ctx
+   * @param {Object} entityStrOptions
+   * @return {String}
+   */
+  str(tense='simple_present', ctx, entityStrOptions) {
+    return this.predicate.str(
+      {args: this.args, tense:tense},
+      ctx, entityStrOptions
+    )
+  }
+
+  /**
+   * Check equality of two sentences
+   * @method compare
+   * @static
+   * @param {Sentence} P
+   * @param {Sentence} Q
+   * @return {Boolean}
+   */
+  static compare(P, Q) {
+    // Compare two sentences, P and Q.
+    // Return true if both the predicates and the arguments match.
+
+    if(P == Q) // if P and Q are the same object, they are equal
+      return true
+
+    // P and Q are inequal if they have diferent prediactes
+    if(P.predicate != Q.predicate) {
+      return false
+    }
+
+    // P and Q are inequal if any of the arguments don't agree
+    for(let i in P.args)
+      if(P.args[i] != Q.args[i]) {
+        return false
+      }
+
+    // if we reach this point without returning false, P and Q are equal!
+    return true
+  }
+
+  /**
+   * Quick constructor for sentence objects.
+   * @method S
+   * @static
+   * @param {Predicate/String} predicate
+   *  The predicate or a camel case name referencing a the predicate.
+   * @param {Entity/String} ...args
+   *  The arguments.
+   * @return {Sentence}
+   */
+  static S(predicate, ...args) {
+    if(!predicate.isPredicate) {
+      throw "Sentence.S expects a predicate as first argument." +
+            " Recieved: " + predicate
+    }
+    let sentence = new Sentence(predicate, args)
+    sentence = sentence.trueInPresent() || sentence
+    return sentence
+  }
+
+  /**
+   * @attribute entityArgs
+   * @readOnly
+   * @type {Array}
+   */
+  get entityArgs() {
+    return this.args.filter(arg => arg.isEntity)
+  }
+
+  /**
+   * @method randomEntityArg
+   * @return {Entity}
+   */
+  randomEntityArg() {
+    let entityArgs = this.args.filter(arg => arg.isEntity)
+    return entityArgs[Math.floor(Math.random()*entityArgs.length)]
+  }
+
+  // Causes:
+  addCause(sentence) {
+    let trueVersion = sentence.trueInPresent()
+
+    if(trueVersion) {
+      // cause is true, so add to list, start this sentence and listen for stop
+      this.causes.push(trueVersion)
+      trueVersion.once('stop', () => this.removeCause(trueVersion))
+
+      if(this.truthValue == 'hypothetical')
+        this.start()
+
+      else if(this.truthValue != 'true')
+        console.warning('strange cause behaviour')
+
+      else
+        this.causeCount++
+
+    } else
+      throw 'A sentence must be true for it to be a cause of another sentence.'
+
+  }
+
+  removeCause(sentence) {
+    let i = this.causes.findIndex(cause => Sentence.compare(sentence, cause))
+    if(i != -1) {
+      this.causes.splice(i, 1)
+      this.causeCount--
+
+      if(this.truthValue == 'true' && this.causeCount <= 0)
+        this.stop()
+    } else
+      console.warn('tried to remove a cause which doesn\'t exist')
+  }
+}
+Sentence.prototype.isSentence = true
+module.exports = Sentence
+
+},{"./SentenceQueue":248,"events":277}],248:[function(require,module,exports){
+// a list of sentence to be executed consequetively
+
+const EventEmitter = require('events')
+
+/**
+ * @class SentenceQueue
+ * @extends EventEmitter
+ * @constructor
+ * @param {Sentence} ...sentences
+ */
+
+class SentenceQueue extends EventEmitter {
+  constructor(...sentences) {
+    super()
+
+    /**
+     * @property {Array} sentence
+     */
+    this.sentences = []
+    /**
+     * Index of the next sentence to start.
+     * @property {Number} i
+     */
+    this.i = 0
+
+    for(let sentence of sentences)
+      this.appendSentence(sentence)
+  }
+
+  /**
+   * Adds a sentence to the end of the queue.
+   * @method appendSentence
+   * @param {Sentence} sentence
+   */
+  appendSentence(sentence) {
+    if(sentence && sentence.truthValue == 'hypothetical') {
+      this.sentences.push(sentence)
+      sentence.truthValue = 'planned'
+    } else
+    throw "Can only append hypothetical sentence to queue."
+  }
+
+  /**
+   * Begin processing the queue.
+   * @method start
+   */
+  start() {
+    /**
+     * @event start
+     */
+    this.emit('start')
+    this.startNextSentence()
+  }
+
+  /**
+   * Start the next sentence in the queue and increment `i`, or emit `stop` (if
+   * reached the end).
+   * @method startNextSentence
+   */
+  startNextSentence() {
+    let sentence = this.sentences[this.i++]
+
+    if(sentence) {
+      //sentence.once('stop', () => this.startNextSentence())
+      sentence.on('problem', reasons => this.emit('problem', reasons))
+      let result = sentence.start()
+      switch(result.truthValue) {
+        case 'skipped': // sentence was skipped
+        case 'past': // sentence was instantaneously true
+          // start next sentence immediately
+          this.startNextSentence()
+          break;
+
+        case 'planned': // sentence start has been postponed to a later time
+        case 'true': // sentence started straight away
+          // wait for stop event, then start next sentence
+          result.once('stop', () => this.startNextSentence())
+          break
+
+        default:
+          // send a warning if truth value can't be handled
+          console.warn(
+            'SentenceQueue found sentence',
+            result,
+            'with unexpected truth value:',
+            result.truthValue,
+          )
+      }
+
+    } else {
+      /**
+       * @event stop
+       */
+      this.emit('stop')
+    }
+  }
+}
+module.exports = SentenceQueue
+
+},{"events":277}],249:[function(require,module,exports){
+/**
+  * A class for generating descriptions by following relationships between
+  * objects.
+  * @class WanderingDescriber
+  * @constructor
+  * @param {Sentence|Entity} ...toLog
+  */
+class WanderingDescriber {
+  constructor(...toLog) {
+    this.history = []
+    this.recentlyMentionedEntitys = []
+    this.maxLookback = 5
+
+    this.log(...toLog)
+  }
+
+  /**
+   * @method log
+   * @param {Sentence|Entity} ...args
+   */
+  log(...args) {
+    for(let arg of args) {
+      if(arg.isSentence) {
+        // handle Sentence
+        let sentence = arg
+        this.history.push(sentence)
+        this.recentlyMentionedEntitys.push(...sentence.entityArgs)
+        while(this.recentlyMentionedEntitys.length > this.maxLookback)
+          this.recentlyMentionedEntitys.shift()
+      } else if(arg.isEntity) {
+        // handle Entity
+        let entity = arg
+        this.recentlyMentionedEntitys.push(entity)
+        while(this.recentlyMentionedEntitys.length > this.maxLookback)
+          this.recentlyMentionedEntitys.shift()
+      }
+    }
+  }
+
+  /**
+   * @method next
+   * @return {Sentence|null}
+   */
+  next() {
+    let facts = this.allFactsShuffled()
+    for(let fact of facts) {
+      if(!fact.predicate.banal && !this.history.includes(fact)) {
+        this.log(fact)
+        return fact
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * @method nextFew
+   * @param {Number} howMany
+   * @return {Array}
+   */
+  nextFew(howMany) {
+    let list = []
+    let facts = this.allFactsShuffled()
+    for(let fact of facts) {
+      if(!fact.predicate.banal && !this.history.includes(fact)) {
+        this.log(fact)
+        list.push(fact)
+        if(list.length >= howMany)
+          break
+      }
+    }
+
+    return list
+  }
+
+  /**
+   * @method allFactsShuffled
+   * @return {Array}
+   */
+  allFactsShuffled() {
+    let list = []
+    for(let entity of this.recentlyMentionedEntitys)
+      list.push(...entity.facts)
+    return list.sort(() => Math.random()*2-1)
+  }
+}
+module.exports = WanderingDescriber
+
+},{}],250:[function(require,module,exports){
+/*
+  entityStr()
+  Convert a entity into a string using a flexible set of parameters
+*/
+
+const {sub} = require('./util/Substitution')
+const specarr = require('./util/specarr')
+const entityPhraselet = require('./Entity_nounPhraseletStr')
+
+function entityStr(entity, ctx, options={}) {
+  // Convert a entity into a noun phrase string.
+
+  if(!ctx)
+    null//console.warn( "call to entityStr without a description context" )
+  else {
+    let pronoun = ctx.getPronounFor(entity)
+    if(pronoun) {
+      ctx.log(entity, pronoun)
+      return pronoun
+    }
+  }
+
+  let phraselet = entityPhraselet(entity, ctx, options)
+
+  // choose the article
+  let article = 'the'
+  let ordinalAdjective = null
+  if(ctx) {
+    let articles = ctx.getArticles(entity, phraselet)
+
+    article = articles[Math.floor(Math.random()*articles.length)]
+
+    // if using 'the', choose an ordinal adjective
+    if(article == 'the') {
+      let adjs = ctx.getOrdinalAdjectives(entity, phraselet)
+      if(adjs)
+        ordinalAdjective = adjs[Math.floor(Math.random()*adjs.length)]
+    }
+  }
+
+  if(ordinalAdjective)
+    phraselet = sub('_ _', ordinalAdjective, phraselet)
+
+
+  // compile and return final string
+  let str = sub('_ _', article, phraselet).str(ctx, options)
+  if(ctx)
+    ctx.log(entity, str)
+  return str
+}
+module.exports = entityStr
+
+},{"./Entity_nounPhraseletStr":240,"./util/Substitution":255,"./util/specarr":269}],251:[function(require,module,exports){
+/**
+ * @module entity-game
+ */
+
+module.exports = {
+  Dictionary: require('./Dictionary'),
+
+  PredicateSyntax: require('./PredicateSyntax'),
+  Predicate: require('./Predicate'),
+  //PredicateSet: require('./PredicateSet'),
+
+
+  Entity: require('./Entity'),
+  //parseImperative: require('./parseImperative'),
+  Sentence: require('./Sentence'),
+  //SentenceQueue: require('./SentenceQueue'),
+
+  DescriptionContext: require('./DescriptionContext'),
+  WanderingDescriber: require('./WanderingDescriber'),
+  FactListener: require('./FactListener'),
+
+  search: require('./search'),
+
+  sentencify: require('./util/spellcheck').sentencify,
+
+  EntitySpawner: require('./EntitySpawner'),
+
+  Declarer: require('./Declarer'),
+
+  //util: require('./util'),
+}
+
+},{"./Declarer":235,"./DescriptionContext":236,"./Dictionary":237,"./Entity":238,"./EntitySpawner":239,"./FactListener":241,"./Predicate":244,"./PredicateSyntax":246,"./Sentence":247,"./WanderingDescriber":249,"./search":252,"./util/spellcheck":270}],252:[function(require,module,exports){
+const getNounPhraselet = require('./util/getNounPhraselet')
+const parseOrdinal = require('./util/parseOrdinal')
+
+// search within a given iterator for a entity matching a given string.
+function *searchForEntitys(matchStr, domain) {
+  // if domain is a entity, use this entity as a starting point for an explore search
+  if(domain.isEntity)
+    domain = [...explore([domain])]
+
+  // TRY PUTTING THE ORDINAL SEARCH HERE
+  let {phraselet, ordinal} = getNounPhraselet(matchStr)
+  if(phraselet && ordinal) {
+    let n = parseOrdinal(ordinal)
+    if(n) {
+      for(let e of domain) {
+        if(e.matchesPhraselet(phraselet)) {
+          n--
+          console.log('AHAHAHA', e.str(), 'matches', matchStr, n)
+        }
+        if(n == 0)
+          return e
+      }
+    }
+  }
+
+  for(let entity of domain) {
+    if(entity.matches(matchStr))
+      yield entity
+  }
+}
+
+function findFirst(matchStr, domain) {
+  for(let entity of searchForEntitys(matchStr, domain))
+    return entity
+
+  return null
+}
+
+/*function findOrSpawn(matchStr, domain) {
+  let result = findFirst(matchStr, domain)
+  if(result)
+    return result
+  else
+    return spawn(matchStr)
+}*/
+
+function* explore(startingPoint) {
+  let toSearch = startingPoint.slice()
+  for(let i=0; i<toSearch.length; i++) {
+    yield toSearch[i]
+    for(let entity of immediateRelations(toSearch[i]))
+      if(!toSearch.includes(entity))
+        toSearch.push(entity)
+  }
+}
+
+function immediateRelations(entity) {
+  let list = []
+  for(let fact of entity.facts)
+    for(let arg of fact.entityArgs)
+      if(!list.includes(arg))
+        list.push(arg)
+  for(let fact of entity.history)
+    for(let arg of fact.entityArgs)
+      if(!list.includes(arg))
+        list.push(arg)
+  return list
+}
+
+
+module.exports = searchForEntitys
+module.exports.explore = explore
+module.exports.first = findFirst
+//module.exports.orSpawn = findOrSpawn
+
+},{"./util/getNounPhraselet":260,"./util/parseOrdinal":262}],253:[function(require,module,exports){
+const articleReg = /the|a|an|another/
+const regOps = require('./util/regOps.js')
+const getNounPhraselet = require('./util/getNounPhraselet')
+
+const Entity = require('./Entity')
+
+function spawn(dictionary, str, domain) {
+  // spawn a new entity from a noun phrase string
+
+  let phraselet = getNounPhraselet(str)
+
+  // first check all nouns in vanilla form
+  for(let noun in dictionary.nouns) {
+    let formattedNoun = noun.replace(/_/g, ' ')
+    //let reg = new RegExp('^(?:'+articleReg.source + ' ' + noun+')$')
+    let reg = regOps.whole(regOps.concatSpaced(articleReg, formattedNoun))
+    if(reg.test(str))
+      return new Entity(dictionary).be_a(noun)
+  }
+
+  // then check the special entity spawners
+  for(let spawner of dictionary.entitySpawners) {
+    let parsed = spawner.parse(str, domain)
+    if(parsed) {
+      let e = spawner.construct(...parsed.args)
+      if(e)
+        return e
+    }
+  }
+
+
+}
+module.exports = spawn
+
+function randomSpawn(dictionary) {
+  let nounKeys = Object.keys(dictionary.nouns)
+  let noun = nounKeys[Math.floor(Math.random()*nounKeys.length)]
+  return new Entity(dictionary).be_a(noun)
+}
+module.exports.random = randomSpawn
+
+},{"./Entity":238,"./util/getNounPhraselet":260,"./util/regOps.js":267}],254:[function(require,module,exports){
+/** A more flexible version of spawn, allowing quanitifiers and adjectives */
+
+// REQUIRES AT BOTTOM!
+
+
+/**
+ * Create new entities from noun-phrase-strings.
+ * @method spawn
+ * @param {Dictionary} dictionary
+ * @param {String} [...strs] Noun strings
+ * @return {Array} An array of entities
+ * @throws If unable to parse one of the arguments.
+ */
+function spawn(dictionary, ...strs) {
+  let list = []
+  for(let str of strs) {
+    let parsed = parseNounPhrase(str, dictionary)
+    if(!parsed)
+      throw "Unable to spawn: " + str
+
+    let {noun, adjectives, quantityRange} = parsed
+
+    let n = randomInRange(quantityRange)
+
+    for(let i=0; i<n; i++) {
+      let entity = new Entity(dictionary)
+      entity.be_a(noun)
+      for(let adj of adjectives)
+        entity.be(adj)
+
+      list.push(entity)
+    }
+  }
+
+  return list
+}
+module.exports = spawn
+
+
+function randomInRange({min, max}) {
+  if(max == Infinity) {
+    max = min
+    while(Math.random() < 0.75)
+      max++
+  }
+
+  return min + Math.floor(Math.random() * (max-min+1))
+}
+
+const parseNounPhrase = require('./util/parseNounPhrase')
+const Entity = require('./Entity')
+
+},{"./Entity":238,"./util/parseNounPhrase":261}],255:[function(require,module,exports){
+/*
+  Substitution is a class for formatting sentence involving zero or more
+  args. It can be used to avoid generating the noun phrases until the program
+  is sure that they will be needed. A quick function Substitution.substitution
+  can be used to format a one off string.
+*/
+
+const {randexp} = require("randexp")
+const placeholderRegex = /(?:S|O|#|@|L)?_(?:'s)?/g // o = object, s = subject
+const {autoBracket, kleenePoliteList} = require("./regOps")
+const politeList = require('./politeList')
+const toSubject = require('./toSubject')
+const toPossessiveAdjective = require('./toPossessiveAdjective')
+
+
+class Substitution { // sometimes abbreviated Sub
+  constructor(templateStr, ...args) {
+    this.template = templateStr
+    this.args = args
+
+    let placeholderMatches = this.template.match(placeholderRegex)
+    if(placeholderMatches)
+      this.placeholders = placeholderMatches.map(str => ({
+        str: str,
+        subject: str[0] == 'S',
+        object: str[0] == 'O',
+        number: str[0] == '#',
+        possessive: /'s$/.test(str),
+      }))
+    else
+      this.placeholders = []
+  }
+
+  getString(ctx, options) {
+    let toSubIn = this.args.map(o => {
+      if(o == null || o == undefined)
+        return null
+      else if(o.isEntity)
+        return o.str(ctx, options)
+      else if(o.constructor == String)
+        return o
+      else if(o.construtor == RegExp)
+        return randexp(o)
+      else if(o.constructor == Number)
+        return o.toString()
+      else if(o.isSubstitution)
+        return o.getString(ctx, options)
+      //else if(o.isAction) // not used in entity-game, only imaginary-city
+      //  return o.str()
+      else if(o.constructor == Array)
+        return o.length ? Substitution.politeList(o).str(ctx, options) : 'nothing'
+      else {
+        console.warn("Couldn't interpret substitution value:", o, this)
+        return "???"
+      }
+    })
+
+    if(toSubIn.includes(null))
+      return null
+
+    return this.subIn(...toSubIn)
+  }
+  str(ctx, options) {
+    // alias for getString
+    return this.getString(ctx, options)
+  }
+  regex(depth) {
+    // substitute regular expressions into the template for each arguments
+    let toSubIn = this.args.map(o => formatRegex(o, depth))
+
+    if(toSubIn.includes(null))
+      return null
+
+    toSubIn = toSubIn.map(autoBracket)
+    return new RegExp(this.subIn(...toSubIn))
+  }
+  getRegex(depth) {
+    // alias for backwards compatibility
+    return this.regex(depth)
+  }
+
+  subIn(...subs) {
+    // substitute strings into the template
+    for(let i in subs) {
+      let placeholder = this.placeholders[i]
+      if(placeholder.subject)
+        subs[i] = toSubject(subs[i])
+      if(placeholder.possessive)
+        subs[i] = toPossessiveAdjective(subs[i])
+    }
+
+    let bits = this.template.split(placeholderRegex)
+    let out = bits[0]
+    for(var i=1; i<bits.length; i++)
+      out += subs[i-1] + bits[i]
+    return out
+  }
+
+  static substitute(templateStr, ...args) {
+    let ctx
+    if(!args[args.length-1].isEntityenon)
+      ctx = args.pop()
+    else
+      ctx = {}
+
+    return new Substitution(templateStr, ...args).getString(ctx)
+  }
+
+  static politeList(items) {
+    let placeholders = items.map(item => '_')
+    let template = politeList(placeholders)
+    return new Substitution(template, ...items)
+  }
+
+  static concat(...toConcat) {
+    // concatenate many substitutions and strings into a new substitution
+    let strs = []
+    let args = []
+
+    for(let bit of toConcat) {
+      if(bit.constructor == String)
+        strs.push(bit)
+      if(bit.constructor == Substitution) {
+        strs.push(bit.template)
+        args = args.concat(bit.args)
+      }
+    }
+
+    let template = strs.join('')
+    return new Substitution(template, ...args)
+  }
+
+  static sub(...args) {
+    return new Substitution(...args)
+  }
+}
+
+Substitution.prototype.isSubstitution = true
+Substitution.placeholderRegex = placeholderRegex
+module.exports = Substitution
+
+const formatRegex = (o, depth) => {
+  if(o == null || o == undefined)
+    return o
+  else if(o.isEntity)
+    return o.reg(depth).source
+  else if(o.constructor == String)
+    return o
+  else if(o.constructor == RegExp)
+    return autoBracket(o.source)
+  else if(o.constructor == Number)
+    return o.toString()
+  else if(o.constructor == Array) {
+    //throw "cannot (yet) generate regex from substitution containing an array"
+    return kleenePoliteList(...o.map(formatRegex)).source
+  } else if(o.isSubstitution) {
+    let regex = o.getRegex()
+    if(regex && regex.constructor == RegExp)
+      return autoBracket(regex.source)
+    else return null
+  } else {
+    console.warn("Couldn't interpret substitution value:", o)
+    return "???"
+  }
+}
+
+},{"./politeList":266,"./regOps":267,"./toPossessiveAdjective":271,"./toSubject":272,"randexp":229}],256:[function(require,module,exports){
+/*
+  Given the infinitive form of a verb and a person/verbform number (0-8) return
+  the conjugated verb form.
+*/
+
+/*
+VERB FORMS DENOTED AS NUMBERS:
+  0.  infinitive
+  1.  first person singular
+  2.  second person singular
+  3.  third person singular
+  4.  first person plural
+  5.  second person plural
+  6.  third person plural
+  (7.  gerund/present-participle)
+  (8.  past-participle)
+  (9. past tense form)
+*/
+
+const regOp = require("../regOps")
+const irregular = require("./irregularConjugations")
+
+const endsWithShortConsonant = /[aeiou][tpdn]$/
+const endsWithE = /e$/
+const endsWithOOrX = /[oxzs]$/
+
+const FIRST_PERSON_SINGULAR = 1   // I
+const SECOND_PERSON_SINGULAR = 2  // you
+const THIRD_PERSON_SINGULAR = 3   // he/she/it
+const FIRST_PERSON_PLURAL = 4     // we
+const SECOND_PERSON_PLURAL = 5    // you
+const THIRD_PERSON_PLURAL = 6     // they
+const GERUND = 7
+const PAST_PARTICIPLE = 8
+const PAST_TENSE = 9
+const ALL_PERSON_REGEX = 10
+
+function conjugate(infinitive, form) {
+  let words = infinitive.split(' ')
+  infinitive = words[0]
+
+  let conjugated
+  if(form == ALL_PERSON_REGEX)
+    conjugated = anyPersonRegex(infinitive)
+  if(irregular[infinitive] && irregular[infinitive][form])
+    conjugated = irregular[infinitive][form]
+  else
+    conjugated = conjugateRegular(infinitive, form)
+
+  words[0] = conjugated
+  return words.join(' ')
+}
+
+function conjugateRegular(infinitive, form) {
+  switch(form) {
+    // third person singular
+    case THIRD_PERSON_SINGULAR:
+      if(endsWithOOrX.test(infinitive))
+        return infinitive+'es'
+      else
+        return infinitive+'s'
+
+    // gerund
+    case GERUND:
+      if(endsWithE.test(infinitive))
+        return infinitive.slice(0, infinitive.length-1)+'ing'
+      if(endsWithShortConsonant.test(infinitive))
+        return infinitive + infinitive[infinitive.length-1]+'ing'
+      return infinitive+'ing'
+
+    // past participle
+    case PAST_TENSE:
+    case PAST_PARTICIPLE:
+      if(endsWithShortConsonant.test(infinitive))
+        return infinitive + infinitive[infinitive.length-1]+'ed'
+      if(endsWithE.test(infinitive))
+        return infinitive+'d'
+      else
+        return infinitive+'ed';
+
+    default:
+      return infinitive
+  }
+}
+
+function anyPersonRegex(infinitive) {
+  let forms = []
+  for(let person=1; person<=6; ++person) {
+    let form = conjugate(infinitive, person)
+    if(!forms.includes(form))
+      forms.push(form)
+  }
+  return regOp.or(...forms)
+}
+
+
+module.exports = conjugate
+conjugate.anyPersonRegex
+
+},{"../regOps":267,"./irregularConjugations":258}],257:[function(require,module,exports){
+// Determine the numeric person of a given noun phrase
+
+/*
+VERB FORMS DENOTED AS NUMBERS:
+  0.  infinitive
+  1.  first person singular
+  2.  second person singular
+  3.  third person singular
+  4.  first person plural
+  5.  second person plural
+  6.  third person plural
+  (7. gerund/present-participle)
+  (8. past-participle)
+  (9. past tense form)
+*/
+
+const {placeholderRegex} = require("../Substitution")
+const placeholderTest = new RegExp('^'+placeholderRegex.source+'$', '')
+
+function getPerson(subject) {
+  // if subject is not a string, assume third person for now
+  if(subject && subject.constructor != String)
+    return 3
+
+  let lowerCaseSubject = subject.toLowerCase()
+
+  if(lowerCaseSubject == 'i')
+    return 1 // first person singular
+
+  else if(lowerCaseSubject == 'you')
+    return 2 // or 5 but never mind
+
+  else if((/^(he|she|it)$/i).test(subject))
+    return 3 // third person singular
+
+  else if(lowerCaseSubject == 'we')
+    return 4 // first person plural
+
+  else if(lowerCaseSubject == 'they')
+    return 6 // third person plural
+
+  else if(subject.constructor == RegExp || placeholderTest.test(subject))
+    return 10 // placeholder, get regex
+
+  else // otherwise assume third person
+    return 3
+
+  // TODO, what about third person plural non pronouns!
+}
+module.exports = getPerson
+
+},{"../Substitution":255}],258:[function(require,module,exports){
+// list of irregular verbs with their conjugations.
+// (indexed by infinitive)
+
+/*
+VERB FORMS DENOTED AS NUMBERS:
+  0.  infinitive
+  1.  first person singular
+  2.  second person singular
+  3.  third person singular
+  4.  first person plural
+  5.  second person plural
+  6.  third person plural
+  (7.  gerund/present-participle)
+  (8.  past-participle)
+  (9. past tense form)
+*/
+
+const FIRST_PERSON_SINGULAR = 1   // I
+const SECOND_PERSON_SINGULAR = 2  // you
+const THIRD_PERSON_SINGULAR = 3   // he/she/it
+const FIRST_PERSON_PLURAL = 4     // we
+const SECOND_PERSON_PLURAL = 5    // you
+const THIRD_PERSON_PLURAL = 6     // they
+const GERUND = 7
+const PAST_PARTICIPLE = 8
+const PAST_TENSE = 9
+const ALL_PERSON_REGEX = 10
+
+module.exports = {
+  // be IS THIS EVEN A VERB?
+  be: {
+    1: 'am', 2:'are', 3:'is', 4:'are', 5:'are', 6:'are', 7:'being', 8:'been',
+    9:'was',
+  },
+
+  say: {8:'said', 9:'said'},
+
+  make: {8: 'made', 9: 'made'},
+  go:   {8: 'gone', 9: 'went'},
+  take: {8: 'taken',9: 'took'},
+  come: {8: 'come', 9: 'came'},
+  see: {7: 'seeing', 8:'seen', 9:'saw'},
+  know: {8: 'known', 9:'knew'},
+  get: {8:'got', 9:'got'},
+  run: {8:'run', 9:'ran'},
+  were: {1:'was', 3:'was'}, // this is a cludge and i know it
+  have: {3:'has', 8:'had', 9:"had"},
+  eat: {7:'eating', 8:'eaten', 9:'ate'},
+  contain: {7:'containing', 8:'contained', 9:'contained'},
+  hold: {8:'held', 9:'held'},
+  put: {8:'put', 9:'put'},
+  poop: {7:'pooping', 8:'pooped', 9:'pooped'},
+  steal: {7:'stealing', 8:'stolen', 9:'stole'},
+  lead: {7:'leading', 8:'lead', 9:'lead'},
+  lie: {7:'lying', 8:'lay', 9:'lay'},
+  sleep: {7:'sleeping', 8:'slept', 9:'slept'}
+  // give
+  // find
+  // think
+  // tell
+  // become
+  // show
+  // leave
+  // feel
+  // bring
+  // begin
+  // keep
+  // write
+  // stand
+  // hear
+  // let
+  // mean
+  // set
+  // meet
+  // pay
+  // sit
+  // speak
+  // lie
+  // lead
+  // read
+  // grow
+  // lose
+  // fall
+  // send
+  // build
+  // understood
+  // draw
+  // break
+  // spend
+  // cut
+  // rise
+  // drive
+  // buy
+  // wear
+  // choose
+
+  // to shit
+
+}
+
+},{}],259:[function(require,module,exports){
+/*
+Tenses: [source ef.co.uk]
+  - Simple Present ("They walk home.")
+  - Present Continuous ("They are walking home.")
+  - Simple Past ("Peter lived in China in 1965")
+  - Past Continuous ("I was reading when she arrived.")
+  - Present Perfect ("I have lived here since 1987.")
+  - Present Perfect Continuous ("I have been living here for years.")
+  - Past Perfect ("We had been to see her several times before she visited us")
+  - Past Perfect continuous ("He had been watching her for some time when she
+    turned and smiled.")
+  - Future Perfect ("We will have arrived in the states by the time you get this
+    letter.")
+  - Future Perfect Continuous ("By the end of your course, you will have been
+    studying for five years")
+  - Simple Future ("They will go to Italy next week.")
+  - Future Continuous ("I will be travelling by train.")
+
+
+  (Maybe also include:
+  - Zero conditional ("If ice gets hot it melts.")
+  - Type 1 Conditional ("If he is late I will be angry.")
+  - Type 2 Conditional ("If he was in Australia he would be getting up now.")
+  - Type 3 Conditional ("She would have visited me if she had had time")
+  - Mixed Conditional ("I would be playing tennis if I hadn't broken my arm.")
+  - Gerund
+  - Present participle)
+*/
+
+const conjugate = require("./conjugate")
+const getPerson = require("./getPerson")
+const {sub} = require('../Substitution')
+//const Substitution = require("../Substitution")
+const regOps = require("../regOps")
+
+const GERUND = 7
+const PAST_PARTICIPLE = 8
+const PAST_TENSE = 9
+
+const actionReservedWords = ['_verb', '_object', '_subject']
+
+function verbPhrase(
+  action,
+  tense='simple_present',
+  {
+    omit=[],
+    nounPhraseFor=null,
+    prepositionClauseFor=null
+  } = {}
+) {
+  if(prepositionClauseFor)
+    return sub('that _', verbPhrase(
+      action, tense, {omit: [prepositionClauseFor]}
+    ))
+
+  if(nounPhraseFor) {
+    return sub(
+      '_ that _',
+      action[nounPhraseFor],
+      verbPhrase(action, tense, {omit: nounPhraseFor}))
+  }
+
+
+
+  let vp = tenses[tense](action)
+
+  if(action._object && omit != '_object')
+    vp = sub("_ O_", vp, action._object)
+
+  for(var prep in action) {
+    if(!actionReservedWords.includes(prep))
+      if(omit == prep)
+        vp = sub('_ _', vp, prep)
+      else
+        vp = sub('_ _ _', vp, prep, action[prep])
+  }
+
+  if(omit != '_subject' && tense != 'imperative')
+    vp = sub('S_ _', action._subject, vp)
+
+  return vp
+}
+
+function contractBySubject(actions, tense) {
+  // format a set of actions as a contracted phrases sharing the same subject
+
+  // first check that the subjects match
+  let subject = actions[0]._subject
+  for(let action of actions)
+    if(action._subject != subject)
+      throw "cannot perform contraction because the subjects do not match"
+
+  return sub(
+    '_ _', subject,
+    actions.map(action => verbPhrase(action, tense, {omit:['_subject']}))
+  )
+}
+
+function anyTenseRegex(verb) {
+  let action = {_verb:verb, _subject:'_subject'}
+  let forms = []
+  for(var i in tenses) {
+    let form = tenses[i](action)
+    if(form.isSubstitution)
+      form = form.getRegex()
+    forms.push(form)
+  }
+
+  return regOps.or(...forms)
+}
+
+const tenses = {
+  simple_present(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      "_",
+      conjugate(action._verb, person)
+    )
+  },
+
+  present_continuous(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      "_ _",
+      conjugate('be', person),
+      conjugate(action._verb, GERUND)
+    )
+  },
+
+  simple_past(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      '_',
+      conjugate(action._verb, PAST_TENSE)
+    )
+  },
+
+  past_continuous(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      '_ _',
+      conjugate('were', person),
+      conjugate(action._verb, GERUND)
+    )
+  },
+
+  present_perfect(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      '_ _',
+      conjugate('have', person),
+      conjugate(action._verb, PAST_PARTICIPLE)
+    )
+  },
+
+  present_perfect_continuous(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      '_ been _',
+      conjugate('have', person),
+      conjugate(action._verb, GERUND)
+    )
+  },
+
+  past_perfect(action) {
+    let person = getPerson(action._subject)
+    return sub(
+      '_ _',
+      conjugate('have', person),
+      conjugate(action._verb, PAST_PARTICIPLE)
+    )
+  },
+
+  past_perfect_continuous(action) {
+    return sub(
+      'had been _',
+      conjugate(action._verb, GERUND)
+    )
+  },
+
+  future_perfect(action) { // we will have verbed
+    return sub(
+      'will have _',
+      conjugate(action._verb, PAST_PARTICIPLE)
+    )
+  },
+
+  // Future Perfect Continuous ("you will have been studying for five years")
+  future_perfect_continuous(action) {
+    return sub(
+      'will have been _',
+      conjugate(action._verb, GERUND)
+    )
+  },
+
+  // Simple Future ("They will go to Italy next week.")
+  simple_future(action) {
+    return sub(
+      'will _',
+      action._verb,
+    )
+  },
+
+  // Future Continuous ("I will be travelling by train.")
+  future_continuous({_subject, _verb}) {
+    return sub(
+      'will be _',
+      conjugate(_verb, GERUND)
+    )
+  },
+
+  imperative({_verb}) {
+    return sub(_verb)
+  },
+
+  negative_possible_present({_subject, _verb}) {
+    return sub('cannot _', _verb)
+  },
+  negative_possible_past({_subject, _verb}) {
+    return sub('could not _', _verb)
+  },
+}
+
+function tenseType(tense) {
+  if(tense.includes('past'))
+    return 'past'
+  else if(tense.includes('present'))
+    return 'present'
+  else if(tense.includes('future'))
+    return 'future'
+  else
+    return undefined
+}
+
+module.exports = verbPhrase
+verbPhrase.contractBySubject = contractBySubject
+verbPhrase.tenses = tenses
+verbPhrase.tenseList = Object.keys(tenses).reverse() // in descending order of complexity
+verbPhrase.anyTenseRegex = anyTenseRegex
+verbPhrase.getTenseType = tenseType
+
+},{"../Substitution":255,"../regOps":267,"./conjugate":256,"./getPerson":257}],260:[function(require,module,exports){
+const ordinal = require('integer-to-ordinal-english')
+const regops = require('./regOps')
+
+
+const articleRegex = regops.capture(
+  /a|an|another|the/,
+  'article'
+)
+const ordinalRegex = regops.capture(
+  regops.or(
+    /[0-9]+(?:st|nd|rd|th)/,
+    /(?:\w+-)*(?:first|second|third|(?:\w+th))/),
+  'ordinal'
+)
+
+const nounPhraseRegex = regops.whole(regops.concatSpaced(
+  regops.optionalConcatSpaced(articleRegex, ordinalRegex),
+  /(?<phraselet>.+)/
+))
+
+
+function getNounPhraselet(str) {
+  let result = nounPhraseRegex.exec(str)
+  if(result)
+    return result.groups
+  else if(/^[A-Z]/)
+    return {
+      properNoun: str
+    }
+}
+module.exports = getNounPhraselet
+
+},{"./regOps":267,"integer-to-ordinal-english":228}],261:[function(require,module,exports){
+const Plur = require('./plural')
+const parseQuantifier = require('./parseQuantifier')
+
+/**
+ * Parse a noun-phrase without embedded sentence clauses. Noun-phrases must be
+ * in the form: [quantifier] + [...adjectives] + [noun].
+ * @method
+ */
+function parseNounPhrase(str, dictionary) {
+  let noun = null
+  let plural = undefined
+
+  // check phrasal nouns
+  let remainder
+  for(let nounObject of dictionary.phrasalNouns) {
+    let singularNoun = nounObject.noun
+    if(new RegExp(singularNoun+'$', 'i').test(str)) {
+      noun = singularNoun
+      plural = false
+      remainder = str.slice(0, -singularNoun.length).trim()
+      break;
+    }
+
+
+    let pluralNoun = Plur.toPlural(singularNoun)
+    if(new RegExp(pluralNoun+'$', 'i').test(str)) {
+      noun = singularNoun
+      plural = true
+      remainder = str.slice(0, -pluralNoun.length).trim()
+      break;
+    }
+  }
+
+  // Unless phrasal noun was successful, check the last word against regular
+  // nouns.
+  if(remainder == undefined) {
+    // parse last word as singular
+    let lastWord = str.slice((str.lastIndexOf(' ') + 1))
+    if(dictionary.nouns[lastWord]) {
+      noun = lastWord
+      plural = false
+      remainder = str.slice(0, -lastWord.length).trim()
+    } else{
+      // parse last word as a plural
+      let lastWordSingular = Plur.toSingular(lastWord)
+      if(lastWordSingular && dictionary.nouns[lastWordSingular]) {
+        noun = lastWordSingular
+        plural = true
+        remainder = str.slice(0, -lastWord.length).trim()
+      }
+    }
+  }
+
+  // exit early if failed to identify a noun
+  if(!noun)
+    return null
+
+  // parse quantifier/quantity
+  let quantity = plural ? {min:2, max:Infinity} : {min:1, max:1}
+  let quantifier = parseQuantifier(remainder)
+  if(quantifier) {
+    quantity = rangeOverlap(quantity, quantifier)
+    remainder = remainder.slice(quantifier.str.length).trim()
+  } else {
+    console.warn('expected quantifier')
+    return null
+  }
+
+  if(quantity.min > quantity.max)
+    return null
+
+  // treat the remaining words as adjectives
+  let adjectives = remainder.split(' ').filter(adj => adj.length)
+  if(!adjectives.every(adj => dictionary.adjectives[adj]))
+    return null
+
+  return {
+    noun: noun,
+    plural: plural,
+    quantityRange: quantity,
+    adjectives: adjectives,
+  }
+}
+module.exports = parseNounPhrase
+
+/**
+ * Calculate a new range which is the intersection of two given ranges.
+ * @method rangeOverlap
+ * @param range1
+ * @param range1.min
+ * @param range1.max
+ * @param range2.min
+ * @param range2.max
+ * @return {Object} A new range {Min, Max}
+ */
+function rangeOverlap(range1, range2) {
+  return {
+    min: Math.max(range1.min, range2.min),
+    max: Math.min(range1.max, range2.max)
+  }
+}
+
+},{"./parseQuantifier":263,"./plural":265}],262:[function(require,module,exports){
+const ordinal = require('integer-to-ordinal-english')
+
+const LIMIT = 100
+
+function parseOrdinal(str) {
+  let n = parseInt(str)
+  if(!isNaN(n))
+    return n
+
+  str = str.toLowerCase()
+
+  for(let i=1; i<LIMIT; i++) {
+    if(ordinal(i).toLowerCase() == str)
+      return i
+  }
+}
+module.exports = parseOrdinal
+
+},{"integer-to-ordinal-english":228}],263:[function(require,module,exports){
+/**
+ * Parse a quantifier word/phrase as a range of possible meanings
+ * @method parseQuantifier
+ * @param {String} str The quantifier
+ * @return {Object} {min, max}
+ */
+function parseQuantifier(str) {
+  let r // result, a temporary variable, reused many times
+
+  // a few
+  r = getWord(/a few|some/, str)
+  if(r)
+    return {min: 2, max:5, definite:false, str:r[0]}
+
+  // indefinite article
+  r = getWord(/a|an/, str)
+  if(r)
+    return {min:1, max:1, definite:false, str:r[0]}
+
+  // definite article
+  if(getWord(/the/, str))
+    return {min:1, max:Infinity, definite:true, str:'the'}
+
+  // number
+  r = getWord(/\d+/, str)
+  if(r) {
+    let n = parseInt(r[0])
+    if(!isNaN(n))
+      return {min: n, max:n, str:r[0]}
+  }
+
+  // approximate number
+  r = getWord(/(?:approximately|around|about) (?<n>\d+)/, str)
+  if(r) {
+    let n = parseInt(r[1])
+    if(!isNaN(n))
+      return {
+        min: Math.floor(0.75 * n),
+        max: Math.ceil(n / 0.75),
+        str: r[0]
+      }
+  }
+
+  return null
+}
+module.exports = parseQuantifier
+
+function getWord(wordReg, str) {
+  if(wordReg instanceof RegExp)
+    wordReg = wordReg.source
+  let reg = new RegExp('^(?:'+wordReg+')(?= |$)')
+  let result = reg.exec(str)
+  if(result) {
+    return result
+  } else
+    return null
+}
+
+},{}],264:[function(require,module,exports){
+/*
+  Borrowed from NULP, https://github.com/joelyjoel/Nulp/
+  Seperate words, punctuation and capitalisation. Form an array which is easier
+  to process.
+*/
+
+
+const wordCharRegex = /[\w'-]/;
+const punctuationCharRegex = /[.,"()!?-]/;
+
+module.exports = parseText = function(str) {
+    // seperates a string into a list of words and punctuation
+
+    str = removeFancyShit(str);
+
+    var parts = new Array();
+
+    var c, lastC;
+
+    var partType = undefined;
+    parts[0] = "";
+    for(var i=0; i<str.length; i++) {
+        //lastC = c;
+        c = str.charAt(i);
+
+        if(c == "_") {
+            if(partType == undefined)
+                partType = "q";
+            else if(partType == "punctuation") {
+                partType = "q";
+                parts.push("");
+            }
+        }
+        if(partType == "q") {
+            if(c == " " || c == "\n" || c == "\t") {
+                parts.push("");
+                partType = undefined;
+                continue;
+            } else {
+                parts[parts.length-1] += c;
+                continue;
+            }
+        }
+
+        if(c == "\n") {
+            if(partType == "punctuation")
+                parts[parts.length-1] += c;
+            else
+                parts.push(c);
+
+            parts.push("");
+            partType = undefined;
+            continue;
+        }
+
+        if(c == " " && parts[parts.length-1] != "") {
+            parts.push("");
+            partType = undefined
+            continue;
+        }
+
+        // special punctuation (hyphens and apostrophes)
+        if(c == "'") {
+            if(partType == "word" && (str.charAt(i+1).match(wordCharRegex) || str.charAt(i-1) == "s")) {
+                parts[parts.length-1] += c;
+                continue;
+            }
+        }
+
+        if(c == "-") {
+            if(str.charAt(i-1) == " " && str.charAt(i+1) == " ") {
+                parts[parts.length-1] += "~";
+                continue;
+            }
+        }
+
+        // word
+        if(c.match(wordCharRegex)) {
+            if(partType == undefined) {
+                partType = "word";
+            }
+            if(partType != "word") {
+                parts.push("");
+                partType = "word";
+            }
+            parts[parts.length-1] += c;
+            continue;
+        }
+
+        //if(c.match(punctuationCharRegex)) {
+        else {
+            /*if(partType == undefined) {
+                partType = "punctuation";
+            }
+            if(partType != "punctuation") {
+                parts.push("");
+                partType = "punctuation";
+            }
+            parts[parts.length-1] += c;*/
+            parts.push(c);
+            partType = "punctuation";
+            continue;
+        }
+
+        console.warn("Unrecognised character", c);
+    }
+    for(var i=0; i<parts.length; i++) {
+        if(parts[i] == "")
+            continue;
+        if(parts[i][0].match(/[A-Z]/) && parts[i].slice(1).match(/[a-z]/)) {
+            parts[i] = parts[i].toLowerCase();
+            parts.splice(i, 0, "^");
+            i++;
+        }
+    }
+
+    return parts;
+}
+
+function isWord(str) {
+  var c
+  for(var i in str) {
+    c = str[i]
+    if(!c.match(wordCharRegex))
+      return false
+  }
+  return true
+}
+module.exports.isWord = isWord
+
+function removeFancyShit(str) {
+    while(str.indexOf("’") != -1) {
+        str = str.replace("’", "\'")
+    }
+
+    return str;
+}
+
+function recombine(bits) {
+    var printedWords = []
+    var upper = false
+    for(var i in bits) {
+        let w = bits[i]
+        if(isWord(w)) {
+            if(upper) {
+                w = w[0].toUpperCase() + w.slice(1)
+                upper = false;
+            }
+            printedWords.push(w)
+        } else {
+            if(w == "^") {
+                upper = true;
+                continue;
+            }
+            printedWords[printedWords.length-1] += w;
+        }
+    }
+    return printedWords.join(" ")
+}
+module.exports.recombine = recombine
+
+},{}],265:[function(require,module,exports){
+/**
+ * Convert english nouns between their singular and plural forms.
+ * @class plural
+ * @static
+ */
+
+/**
+ * Convert a singular noun to a plural.
+ * @method toPlural
+ * @param {String} singularNoun
+ * @return {String}
+ */
+function toPlural(singularNoun) {
+  // if irregular return the irregular plural
+  if(irregular[singularNoun])
+    return irregular[singularNoun]
+
+  // If the singular noun ends in -o, ‑s, -ss, -sh, -ch, -x, or -z, add ‑es
+  if(/(o|s|ss|sh|ch|x|z)$/i.test(singularNoun))
+    return singularNoun + 'es'
+
+  // If the noun ends with ‑f or ‑fe, the f is often changed to ‑ve before
+  // adding the -s to form the plural version.
+  // -- FOR NOW, TREATING THESE AS IRREGULAR.
+
+  // If a singular noun ends in ‑y and the letter before the -y is a consonant,
+  // change the ending to ‑ies to make the noun plural.
+  if(/[bcdfghjklmnpqrstvwxyz]y$/i.test(singularNoun))
+    return singularNoun.slice(0, -1) + 'ies'
+
+  // If the singular noun ends in ‑us, the plural ending is frequently ‑i.
+  if(/us$/.test(singularNoun))
+    return singularNoun.slice(0, -1) + 'i'
+
+  // If the singular noun ends in ‑is, the plural ending is ‑es.
+  // -- IGNORING BECAUSE HARD IT INTRODUCES AMBIGUITY IN INVERSION. TREATING
+  //    THESE WORDS AS IRREGULAR.
+
+  // If the singular noun ends in ‑on, the plural ending is ‑a.
+  if(/on$/.test(singularNoun))
+    return singularNoun.slice(0, -2) + 'a'
+
+  // otherwise add -s on the end
+  return singularNoun+'s'
+}
+
+/**
+  * Convert a plural noun to a singular
+  * @method toSingular
+  * @param {String} pluralNoun
+  * @return {String|null}
+  */
+function toSingular(pluralNoun) {
+  // If irregular, replace with the singular
+  if(irregularInverted[pluralNoun])
+    return irregularInverted[pluralNoun]
+
+  // If the plural noun ends -ies, replace with -y
+  if(/ies$/.test(pluralNoun))
+    return pluralNoun.slice(0, -3) + 'y'
+
+  // If the plural noun ends with a consonant followed by -les, remove -s
+  if(/[bcdfghjklmnpqrstvwxyz]les$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1)
+
+  // If the plural noun ends with a vowell followed by a consonant followed by
+  // -es, remove -s
+  if(/[aeiou][bcdfghjklmnpqrstvwxyz]es$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1)
+
+  // If the plural noun ends -es, remove -es
+  if(/es$/.test(pluralNoun))
+    return pluralNoun.slice(0, -2)
+
+  // If the plural noun ends -s, remove -s
+  if(/s$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1)
+
+  // If the plural noun ends -i, replace with -us
+  if(/i$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1) + 'us'
+
+  // If the plural noun ends -a, replace with -on
+  if(/a$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1) + 'on'
+
+  // If the plural noun ends -s, remove -s
+  if(/s$/.test(pluralNoun))
+    return pluralNoun.slice(0, -1)
+
+  // Otherwise return null, this is recognised as a plural noun
+  return null
+}
+
+module.exports = {
+  toPlural: toPlural,
+  toSingular: toSingular,
+}
+
+const irregular = {
+  // singular : plural,
+  sheep: 'sheep',
+  ice: 'ice',
+
+  goose: 'geese',
+  child: 'children',
+  woman: 'women',
+  man: 'men',
+  tooth: 'teeth',
+  foot: 'feet',
+  mouse: 'mice',
+  person: 'people',
+
+  toe: 'toes',
+
+  // phrasal nouns
+  'pair of trousers': 'pairs of trousers',
+}
+
+const irregularInverted = {}
+for(let singular in irregular) {
+  let plural = irregular[singular]
+  irregularInverted[plural] = singular
+}
+
+},{}],266:[function(require,module,exports){
+function politeList(list) {
+  if(list.length == 1)
+    return list[0]
+  else {
+    return list.slice(0, list.length-1).join(", ") + " and " + list[list.length-1]
+  }
+}
+module.exports = politeList
+
+function parsePoliteList(str) {
+  //result = /^([A-Z ]+)(?:(?:, (.+))* and (.+))$/i.exec(str)
+  result = /^(?:(?:(.+), )*(.+) and )(.+)$/.exec(str)
+
+  if(result)
+    return result.slice(1).filter(o=>o)
+}
+module.exports.parse = parsePoliteList
+
+},{}],267:[function(require,module,exports){
+function sourcify(list) {
+  return list
+    .filter(item => item)
+    .map(item => item.constructor == RegExp ? item.source : item)
+}
+
+function bracket(str) {
+  return "(?:" + str + ")"
+}
+function autoBracket(str) {
+  if(/^[\w, ]*$/.test(str))
+    return str
+  else
+    return bracket(str)
+}
+
+function concat(...operands) {
+  return new RegExp(
+    sourcify(operands)
+      .map(autoBracket)
+      .join("")
+  )
+}
+function concatSpaced(...operands) {
+  return new RegExp(
+    sourcify(operands)
+      .map(autoBracket)
+      .join(" ")
+  )
+}
+function or(...operands) {
+  return new RegExp(
+    sourcify(operands)
+      .map(autoBracket)
+      .join("|")
+  )
+}
+function optional(operand) {
+  operand = new RegExp(operand).source
+  operand = bracket(operand)
+  return operand + "?"
+}
+function kleene(operand) {
+  operand = new RegExp(operand).source
+  operand = bracket(operand)
+  return operand + "*"
+}
+
+function kleeneSpaced(operand) {
+  return kleeneJoin(operand, ' ')
+}
+
+function kleeneJoin(operand, seperator) {
+  operand = new RegExp(operand).source
+  seperator = new RegExp(seperator).source
+  return concat(operand, kleene(concat(seperator, operand)))
+}
+
+function kleenePoliteList(...operands) {
+  operand = or(...operands)
+  return concat(
+    optional(concat(kleeneJoin(operand,', '), ',? and ')),
+    operand
+  )
+}
+
+function optionalConcatSpaced(stem, ...optionalAppendages) {
+  stem = autoBracket(new RegExp(stem).source)
+  optionalAppendages = sourcify(optionalAppendages)
+    .map(a => autoBracket(a))
+    .map(a => optional(" " + a))
+  return concat(stem, ...optionalAppendages)
+}
+
+function kleeneConcatSpaced(stem, ...optionalAppendages) {
+  stem = autoBracket(new RegExp(stem).source)
+  optionalAppendages = sourcify(optionalAppendages)
+
+  let toConcat = kleene(concat(' ', or(...optionalAppendages).source))
+  return concat(stem, toConcat)
+}
+
+function whole(operand) {
+  operand = autoBracket(new RegExp(operand).source)
+  return new RegExp('^'+operand+'$')
+}
+
+function capture(operand, groupName) {
+  if(operand.constructor == RegExp)
+    operand = operand.source
+
+  let name = groupName ? '?<'+groupName+'>' : ''
+
+  return new RegExp('(' + name + operand + ')')
+}
+
+module.exports = {
+  concat: concat,
+  concatSpaced: concatSpaced,
+  or: or,
+  optional: optional,
+  kleene: kleene,
+  kleeneJoin: kleeneJoin,
+  kleeneSpaced: kleeneSpaced,
+  kleenePoliteList: kleenePoliteList,
+  kleeneConcatSpaced: kleeneConcatSpaced,
+  optionalConcatSpaced: optionalConcatSpaced,
+  autoBracket: autoBracket,
+  whole: whole,
+  capture: capture,
+}
+
+},{}],268:[function(require,module,exports){
+arguments[4][267][0].apply(exports,arguments)
+},{"dup":267}],269:[function(require,module,exports){
+/*
+  A set of tools for using the so-called 'special array', or 'specarr'.
+
+  Special Arrays consist of:
+  [
+    - null values to ignore
+    - strings
+    - Regexs
+    - Entityena
+    - substitutions
+    - functions returning:
+      - null values to ignore
+      - strings
+      - regexs
+      - entityena
+      - substitutions
+      - special arrays for recursion
+  ]
+
+  Fully expanded special arrays consist of:
+  [
+    - strings,
+    - regexs,
+    - entityena,
+    - substitutions
+    - NO FUNCTIONS AND NO NULL VALUES
+  ]
+
+  Note: I in the function names in this file I am using an underscore to mean
+        'to'. Eg/ specarr_regexs means "Special array to regular expressions"
+*/
+
+const {randexp} = require("randexp")
+
+function specarr_regexs(target, specialArr, depth) { // special array to regexps
+  // convert a 'special array' into an array of strings and regular expressions
+  if(!target || (!target.isEntityenon && !target.isEntity))
+    throw "expects target to be a Entityenon. "+target
+  if(!specialArr || specialArr.constructor != Array)
+    throw "expects specialArr to be an array."
+
+  var out = [] // the output array
+  for(var i in specialArr) {
+    let item = specialArr[i]
+
+    if(!item) // skip null values
+      continue
+
+    else if(item.constructor == String) // accept strings as regexs
+      out.push(new RegExp(item))
+
+    else if(item.constructor == RegExp) // accept regular expressions
+      out.push(item)
+
+    else if(item.isEntityenon)
+      out.push(item.refRegex())
+    else if(item.isEntity)
+      out.push(item.reg(depth))
+
+    // if substitution, interpret the substitution as a regex and add
+    else if(item.isSubstitution) {
+      //console.warn("Very odd, a substitution that is not returned by a function")
+      let subbed = item.getRegex(depth)
+      if(subbed)
+        out.push(subbed)
+    }
+
+    else if(item.constructor == Function) {
+      // call function on the target
+      let result = item(target)
+
+      // if result is null, skip.
+      if(!result)
+        continue;
+      // accept result if RegExp
+      else if(result.constructor == RegExp)
+        out.push(result)
+      // if string cast as RegExp and accept
+      else if(result.constructor == String)
+        out.push(new RegExp(result))
+      // if substitution, interpret the substitution as a regex and add
+      else if(result.isSubstitution) {
+        let subbed = result.getRegex(depth)
+        if(subbed)
+          out.push(subbed)
+      }
+      // if entityenon, return its regex
+      else if(result.isEntityenon)
+        out.push(result.refRegex())
+      else if(result.isEntity)
+        out.push(result.reg(depth))
+      // if array, recursively interpret and concatenate the result
+      else if(result.constructor == Array)
+        out = out.concat(specarr_regexs(target, result))
+      else
+        console.warn("Uninterpretted value from function:", result)
+    } else
+      console.warn("Uninterpretted value from list:", item)
+  }
+
+  // perhaps remove duplicates?
+  for(var i in out) {
+    if(out[i].constructor != RegExp)
+      console.warn("specarr_regexs returned item which is not a regex:", out[i])
+  }
+
+  return out
+}
+
+function expand(target, specialArr) {
+  /* Return the list of strings, regexs, objects and substitutions implied by
+      the special array. */
+  if(!target || !(target.isEntityenon || target.isEntity))
+    throw "expects target to be a Entityenon."
+  if(!specialArr || specialArr.constructor != Array)
+    throw "expects specialArr to be an array."
+
+  let out = []
+  for(var i in specialArr) {
+    let item = specialArr[i]
+    if(!item) // skip null values
+      continue
+
+    else if(item.constructor == String) // accept strings
+      out.push(item)
+
+    else if(item.constructor == RegExp) // accept regular expressions
+      out.push(item)
+
+    else if(item.isSubstitution) // accept substitutions
+      out.push(item)
+
+    else if(item.isEntityenon || item.isEntity) // accept entityenon
+      out.push(item)
+
+    else if(item.isAction) // accept actions
+      out.push(item)
+
+    else if(typeof item == 'object' && item._verb) // accept rough actions
+      out.push(item)
+
+    // execute functions
+    else if(item.constructor == Function) {
+      let result = item(target)
+
+      if(!result) // skip null function returns
+        continue
+
+      else if(result.constructor == RegExp) // accept regex function returns
+        out.push(result)
+
+      else if(result.constructor == String) // accept strings
+        out.push(result)
+
+      else if(result.isSubstitution) // accept substitutions
+        out.push(result)
+
+      else if(result.isEntityenon || item.isEntity) // accept entityena
+        out.push(result)
+
+      else if(result.isAction) // accept actions
+        out.push(result)
+
+      else if(typeof result == 'object' && result._verb) // accept rough actions
+        out.push(result)
+
+      else if(result.constructor == Array)
+        out = out.concat(expand(target, result))
+      else
+        console.warn("Uninterpretted value from function:", result)
+    } else
+      console.warn("Uninterpretted value from list:", item)
+  }
+
+  return out
+}
+
+function cellToString(cell, descriptionCtx) { // "special array cell to string"
+  // get a finalised string for an expanded special arr cell
+
+  // if null or function, throw an error
+  if(!cell || cell.constructor == Function)
+    throw "illegal special cell."
+
+  // if string, return as is
+  if(cell.constructor == String)
+    return cell
+  // if regex, return using randexp
+  if(cell.constructor == RegExp)
+    return randexp(cell)
+  // if entityenon, get its ref
+  if(cell.isEntityenon)
+    return cell.ref(descriptionCtx)
+  if(cell.isEntity)
+    return cell.ref()
+  // if substitution, get its string
+  if(cell.isSubstitution)
+    return cell.getString(descriptionCtx)
+}
+
+// TODO: cellToRegex
+
+function randomString(target, arr, ctx) {
+  let expanded = expand(target, arr).sort(() => Math.random()*2-1)
+  for(var i=0; i<expanded.length; i++) {
+    let str = cellToString(expanded[i], ctx)
+    if(str)
+      return str
+  }
+  return null
+}
+
+function randomStrings(target, arr, ctx, n=1) {
+  let expanded = expand(target, arr).sort(() => Math.random()*2-1)
+  let list = []
+  for(var i=0; i<expanded.length && list.length < n; i++) {
+    let str = cellToString(expanded[i], ctx)
+    if(str)
+      list.push(str)
+  }
+  return list
+}
+
+function random(target, arr) {
+  let expanded = expand(target, arr)
+  return expanded[Math.floor(Math.random()*expanded.length)]
+}
+
+
+module.exports = {
+  toRegexs: specarr_regexs,
+  expand: expand,
+  cellToString: cellToString,
+  randomString: randomString,
+  randomStrings: randomStrings,
+  random: random,
+}
+
+},{"randexp":229}],270:[function(require,module,exports){
+const parseText = require("./parseText")
+
+function spellcheck(str) {
+  // correct the indefinite articles
+  let reg = /(?<=^| )a?(?= [aeiou])/ig
+  let reg2 = /(?<=^| )(?:an)?(?= [^aeiou])/ig
+  return str.replace(reg, 'an').replace(reg2, 'a')
+}
+module.exports = spellcheck
+
+function sentencify(str) {
+  // check and correct spelling of indefinite articles
+  str = spellcheck(str)
+
+  // auto capitalise first letter of first word
+  if(!/^[A-Z]/.test(str))
+    str = str[0].toUpperCase() + str.slice(1)
+
+  // add full-stop if does not exist
+  str = str.trim()
+  if(!/[!.?,:;]$/.test(str))
+    str += '.'
+
+  return str
+}
+module.exports.sentencify = sentencify
+
+},{"./parseText":264}],271:[function(require,module,exports){
+
+/* Convert a noun-phrase, proper-noun or pronoun to a possessive adjective. */
+function toPossessiveAdjective(nounPhrase) {
+  // handle special cases:
+  switch(nounPhrase.toLowerCase()) {
+    case 'i':
+    case 'me':
+      return 'my';
+
+    case 'you':
+      return 'your';
+
+    case 'he':
+    case 'him':
+      return 'his';
+
+    case 'she':
+    case 'her':
+      return 'her';
+
+    case 'it':
+      return 'its'
+
+    case 'we':
+      return 'our';
+
+    case 'they':
+    case 'them':
+      return 'their';
+  }
+
+  // regular cases
+  let lastWord = nounPhrase.slice(nounPhrase.lastIndexOf(' ')+1)
+  if(lastWord[lastWord.length-1] == 's') {
+    // Assume that words beginning with a capital letter are proper nouns
+    if(/^[A-Z]/.test(lastWord))
+      return nounPhrase + "\'s"
+    else
+      return nounPhrase + "\'"
+  } else {
+    return nounPhrase + "\'s"
+  }
+}
+module.exports = toPossessiveAdjective
+
+},{}],272:[function(require,module,exports){
+// get the subject-form of a pronoun
+
+const subjectForms = {
+  'him': 'he',
+  'her': 'she',
+  'them': 'they',
+  'me': 'I',
+}
+
+function toSubject(str) {
+  if(subjectForms[str])
+    return subjectForms[str]
+  else
+    return str
+}
+module.exports = toSubject
+
+},{}],273:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -79708,9 +79767,9 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],272:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 
-},{}],273:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -81426,7 +81485,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":271,"ieee754":276}],274:[function(require,module,exports){
+},{"base64-js":273,"ieee754":278}],276:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -81537,7 +81596,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":278}],275:[function(require,module,exports){
+},{"../../is-buffer/index.js":280}],277:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -81841,7 +81900,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],276:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -81927,9 +81986,9 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],277:[function(require,module,exports){
-arguments[4][217][0].apply(exports,arguments)
-},{"dup":217}],278:[function(require,module,exports){
+},{}],279:[function(require,module,exports){
+arguments[4][180][0].apply(exports,arguments)
+},{"dup":180}],280:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -81952,14 +82011,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],279:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],280:[function(require,module,exports){
+},{}],282:[function(require,module,exports){
 exports.endianness = function () { return 'LE' };
 
 exports.hostname = function () {
@@ -82006,7 +82065,7 @@ exports.tmpdir = exports.tmpDir = function () {
 
 exports.EOL = '\n';
 
-},{}],281:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -82053,7 +82112,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 }
 
 }).call(this,require('_process'))
-},{"_process":282}],282:[function(require,module,exports){
+},{"_process":284}],284:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -82239,10 +82298,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],283:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":284}],284:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":286}],286:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -82367,7 +82426,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":286,"./_stream_writable":288,"core-util-is":274,"inherits":277,"process-nextick-args":281}],285:[function(require,module,exports){
+},{"./_stream_readable":288,"./_stream_writable":290,"core-util-is":276,"inherits":279,"process-nextick-args":283}],287:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -82415,7 +82474,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":287,"core-util-is":274,"inherits":277}],286:[function(require,module,exports){
+},{"./_stream_transform":289,"core-util-is":276,"inherits":279}],288:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -83425,7 +83484,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":284,"./internal/streams/BufferList":289,"./internal/streams/destroy":290,"./internal/streams/stream":291,"_process":282,"core-util-is":274,"events":275,"inherits":277,"isarray":279,"process-nextick-args":281,"safe-buffer":296,"string_decoder/":298,"util":272}],287:[function(require,module,exports){
+},{"./_stream_duplex":286,"./internal/streams/BufferList":291,"./internal/streams/destroy":292,"./internal/streams/stream":293,"_process":284,"core-util-is":276,"events":277,"inherits":279,"isarray":281,"process-nextick-args":283,"safe-buffer":298,"string_decoder/":300,"util":274}],289:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -83640,7 +83699,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":284,"core-util-is":274,"inherits":277}],288:[function(require,module,exports){
+},{"./_stream_duplex":286,"core-util-is":276,"inherits":279}],290:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -84307,7 +84366,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":284,"./internal/streams/destroy":290,"./internal/streams/stream":291,"_process":282,"core-util-is":274,"inherits":277,"process-nextick-args":281,"safe-buffer":296,"util-deprecate":299}],289:[function(require,module,exports){
+},{"./_stream_duplex":286,"./internal/streams/destroy":292,"./internal/streams/stream":293,"_process":284,"core-util-is":276,"inherits":279,"process-nextick-args":283,"safe-buffer":298,"util-deprecate":301}],291:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -84382,7 +84441,7 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":296}],290:[function(require,module,exports){
+},{"safe-buffer":298}],292:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -84455,13 +84514,13 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":281}],291:[function(require,module,exports){
+},{"process-nextick-args":283}],293:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":275}],292:[function(require,module,exports){
+},{"events":277}],294:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":293}],293:[function(require,module,exports){
+},{"./readable":295}],295:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -84470,13 +84529,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":284,"./lib/_stream_passthrough.js":285,"./lib/_stream_readable.js":286,"./lib/_stream_transform.js":287,"./lib/_stream_writable.js":288}],294:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":286,"./lib/_stream_passthrough.js":287,"./lib/_stream_readable.js":288,"./lib/_stream_transform.js":289,"./lib/_stream_writable.js":290}],296:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":293}],295:[function(require,module,exports){
+},{"./readable":295}],297:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":288}],296:[function(require,module,exports){
+},{"./lib/_stream_writable.js":290}],298:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -84540,7 +84599,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":273}],297:[function(require,module,exports){
+},{"buffer":275}],299:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -84669,7 +84728,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":275,"inherits":277,"readable-stream/duplex.js":283,"readable-stream/passthrough.js":292,"readable-stream/readable.js":293,"readable-stream/transform.js":294,"readable-stream/writable.js":295}],298:[function(require,module,exports){
+},{"events":277,"inherits":279,"readable-stream/duplex.js":285,"readable-stream/passthrough.js":294,"readable-stream/readable.js":295,"readable-stream/transform.js":296,"readable-stream/writable.js":297}],300:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('safe-buffer').Buffer;
@@ -84942,7 +85001,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":296}],299:[function(require,module,exports){
+},{"safe-buffer":298}],301:[function(require,module,exports){
 (function (global){
 
 /**

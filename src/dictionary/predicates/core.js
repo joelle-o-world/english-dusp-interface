@@ -11,7 +11,7 @@ const BeAnInletOf = new Predicate({
     return !inlet.is_a('inlet')
   },
   begin(inlet, unit) {
-    inlet.addClause('of', unit)
+    //inlet.addClause('of', unit)
   },
   permanent: true,
 })
@@ -23,7 +23,7 @@ const BeAnOutletOf = new Predicate({
     return !outlet.is_a('outlet')
   },
   begin(outlet, unit) {
-    outlet.addClause('of', unit)
+    //outlet.addClause('of', unit)
   },
   permanent: true,
 })
