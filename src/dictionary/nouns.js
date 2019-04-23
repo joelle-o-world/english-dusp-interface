@@ -38,12 +38,20 @@ module.exports = [
     },
   },*/
 
+  { noun: 'oscillator',
+    extend(e) {
+      if(!e.unit)
+        e.be_a('sine wave')
+    }
+  },
+
   { noun: 'sine wave',
     inherits: 'unit',
     extend(e) {
       if(!e.unit) {
         e.unit = new Osc(undefined, 'sin')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -53,6 +61,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'saw')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -63,6 +72,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'triangle')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -73,6 +83,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'square')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },

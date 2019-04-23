@@ -8,21 +8,25 @@
 
     <script>
       let demos = [
+        new HTMLPlayer('There is an oscillator. The inlet that is an inlet of the oscillator is set to 1Hz. There is a noise generator. There is a multiplying unit. The outlet that is an outlet of the oscillator is routed to the first inlet that is an inlet of the multiplying unit. The outlet that is an outlet of the noise generator is routed to the second inlet that is an inlet of the multiplying unit. The outlet that is an outlet of the multiplying unit is the rendering outlet.'),
+        new HTMLPlayer('A noise generator is attenuated by a 1Hz sine wave.'),
         new HTMLPlayer('A sine wave.'),
         new HTMLPlayer(
-          'A 50Hz triangle wave. After 7s, every 2 seconds another random sine wave modulates the triangle wave. Multiply the triangle wave by a 1s decay envelope. The envelope restarts every 2 seconds.',
-          16
+          "A 50Hz triangle wave. Every 2 seconds, another random sine wave modulates the triangle wave. Multiply the triangle wave by a 1s decay envelope. The envelope restarts every 2 seconds.",
+          32
         ),
         new HTMLPlayer(
-          'A 50Hz sawtooth wave is routed to a low pass filter. The low pass filter is attenuated by a 5s decay envelope.'
+          'A 50Hz sawtooth wave is routed to a low pass filter. The low pass filter is attenuated by a 5s decay envelope. The sawtooth wave slides to 200Hz over 5s.', 5
         ),
-        new HTMLPlayer(
-          "A square wave slides from 50Hz to 100Hz in 3s. After 6 seconds, the frequency slides from 100Hz to 50Hz in 2 seconds.",
-          10
-        ),
+        new HTMLPlayer("A 75Hz square wave.\nAfter 0.25s, the frequency is set to 100Hz.\nAfter 1s, the frequency is set to 75Hz.\nAfter 1.25s, the frequency is set to 100Hz.\nAfter 2s, the frequency is set to 75Hz.\nAfter 2.25s, the frequency is set to 100Hz.\nAfter 2.5s, the frequency is set to 75Hz.\nAfter 2.75s, the frequency is set to 100Hz.\nAfter 3s, the frequency is set to 125Hz.\nAfter 3.25s, the frequency is set to 150Hz.\nAfter 3.75s, the frequency slides to 131Hz over 0.5s.\nAfter 5s, the frequency is set to 110Hz.\nAfter 5.25s the frequency is set to 131.\nAfter 6s, the frequency is set to 110Hz.\nAfter 6.25s, the frequency is set to 131\nAfter 6.5s, the frequency is set to 110Hz\nAfter 6.75s, the frequency is set to 94Hz.\nAfter 7s, the frequency is set to 110Hz\nAfter 7.25s, the frequency is set to 75Hz\nAfter 7.5s, the frequency slides to 37.5Hz in 0.25s.\n\nThe square wave is multiplied by a decay envelope.\nThe duration of the envelope is set to 0.5s.\nAfter 3.25s, the duration of the envelope is set to 1s.\nAfter 4.25s, the duration is set to 0.25s.\nAfter 7.25s the duration is set to 0.75s.\nThe decay envelope triggers after 0.25s.\nThe decay envelope triggers after 1s.\nThe decay envelope triggers after 1.25s.\nThe decay envelope triggers after 2s.\nThe decay envelope triggers after 2.25s.\nThe decay envelope triggers after 2.5s.\nThe decay envelope triggers after 2.75s.\nThe decay envelope triggers after 3s.\nThe decay envelope triggers after 3.25s.\nThe decay envelope triggers after 4.25s.\nThe decay envelope triggers after 5s.\nThe decay envelope triggers after 5.25s.\nThe decay envelope triggers after 6s.\nThe decay envelope triggers after 6.25s.\nThe decay envelope triggers after 6.5s.\nThe decay envelope triggers after 6.75s.\nThe decay envelope triggers after 7s.\nThe decay envelope triggers after 7.25s.", 8),
 
+        new HTMLPlayer("The sum of a random sine wave, another random sine wave, another random sine wave, another random sine wave, another random sine wave, another random sine wave, another random sine wave, another random sine wave, another random sine wave and a random sine wave."),
 
-        new HTMLPlayer('The sum of a 200Hz sine wave, a 210Hz sine wave, a 220Hz sine wave and a 230Hz.'),
+        new HTMLPlayer("A summing unit. Every 3 seconds, the sum of another random sine wave, another random sine wave and another random sine wave is routed to the first inlet of the summing unit. Every 5 seconds, the sum of another random sine wave, another random sine wave and another random sine wave is routed to the 2nd inlet of the summing unit.", 30),
+
+        new HTMLPlayer("The sum of a 100Hz square wave, a 101Hz square wave, a 102Hz square wave and a 103Hz square wave is routed to a low pass filter. The first square wave is modulated by a 2Hz triangle wave. The second square wave is modulated by a 1 Hz triangle wave. The third square wave is modulated by a 3Hz triangle wave. The frequency of the low pass filter slides from 30Hz to 1000Hz over 30 seconds. After 30s, the frequency of the low pass filter slides to 20Hz.", 35),
+
+        new HTMLPlayer("A 0.05s decay envelope attenuates a triangle wave. The envelope triggers every 0.1s. The triangle wave slides from 5000Hz to 100Hz over 30s. The triangle wave is modulated by a noise generator multiplied by a 30 second attack envelope. The frequency of the noise generator is set to 10Hz. After 30s the second inlet of the decay envelope slides to 0 over 15s.", 45)
       ]
       window.onload = function() {
         for(let player of demos) {
@@ -34,6 +38,6 @@
     </script>
   </head>
   <body>
-
+    <p>This is an interactive demo. Please feel free to edit the english descriptions and experiment. Also, please note that an up to date version of google chrome is required and that some of the more complex examples will take up to a minute to buffer before playing.</p>
   </body>
 </html>

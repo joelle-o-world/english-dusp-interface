@@ -2,6 +2,15 @@ body {
   background-color: #333;
 }
 
+p {
+  width:500px;
+  font-family:sans-serif;
+  color:white;
+  font-size:20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 div.engdusp {
   display: block;
   max-width:500px;
@@ -21,6 +30,7 @@ textarea.engdusp_input {
   width:100%;
   height:200px;
   border:1px solid #ccc;
+  border-radius: 4px;
   resize:none;
   box-sizing: border-box;
   padding: 20px;
@@ -37,5 +47,6 @@ textarea.engdusp_input {
   margin:0px;
 
   border:1px solid #999;
+  border-radius:4px;
   background-color:white;
 }

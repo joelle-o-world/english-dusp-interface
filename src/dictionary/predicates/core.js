@@ -127,10 +127,17 @@ const BeTheRenderingOutlet = new Predicate({
   },
 })
 
+const ThereIs = new Predicate({
+  forms:[
+    {verb:'be', params:['object'], constants:{subject:'there'}}
+  ]
+})
+
 Object.assign(module.exports, {
   BeAnInletOf: BeAnInletOf,
   BeAnOutletOf: BeAnOutletOf,
   BeRoutedTo: BeRoutedTo,
   BeSetTo: BeSetTo,
   BeTheRenderingOutlet: BeTheRenderingOutlet,
+  ThereIs: ThereIs,
 })

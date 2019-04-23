@@ -72702,12 +72702,20 @@ module.exports = [
     },
   },*/
 
+  { noun: 'oscillator',
+    extend(e) {
+      if(!e.unit)
+        e.be_a('sine wave')
+    }
+  },
+
   { noun: 'sine wave',
     inherits: 'unit',
     extend(e) {
       if(!e.unit) {
         e.unit = new Osc(undefined, 'sin')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -72717,6 +72725,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'saw')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -72727,6 +72736,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'triangle')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -72737,6 +72747,7 @@ module.exports = [
       if(!e.unit) {
         e.unit = new Osc(undefined, 'square')
         entify(e.unit, e)
+        e.be_a('oscillator')
       }
     }
   },
@@ -73061,12 +73072,19 @@ const BeTheRenderingOutlet = new Predicate({
   },
 })
 
+const ThereIs = new Predicate({
+  forms:[
+    {verb:'be', params:['object'], constants:{subject:'there'}}
+  ]
+})
+
 Object.assign(module.exports, {
   BeAnInletOf: BeAnInletOf,
   BeAnOutletOf: BeAnOutletOf,
   BeRoutedTo: BeRoutedTo,
   BeSetTo: BeSetTo,
   BeTheRenderingOutlet: BeTheRenderingOutlet,
+  ThereIs: ThereIs,
 })
 
 },{"../../entify":222,"english-io":178}],218:[function(require,module,exports){
@@ -73444,7 +73462,9 @@ const Of = new EntitySpawner({
       .map(piglet => entify(piglet))
 
   //  console.log(str, piglets)
-    return search.first(str, piglets)
+    let e = search.first(str, piglets)
+    console.log("OF worked", e)
+    return e
   }
 })
 
@@ -74814,7 +74834,7 @@ class Declarer {
   findOrSpawn(nounPhraseStr) {
     let entity = this.findFirst(nounPhraseStr)
     if(!entity)
-      entity = this.dictionary.spawnSingle(nounPhraseStr)
+      entity = this.dictionary.spawnSingle(nounPhraseStr, this.entities)
 
     return entity
   }
@@ -75933,7 +75953,6 @@ class EntitySpawner {
           args[i] = list
         }
       // BUG STILL EXISTS WAITIMG!! Need to delay spawner construction
-
 
       return {
         entitySpawner: this,
@@ -77859,22 +77878,23 @@ const parseOrdinal = require('./util/parseOrdinal')
 function *searchForEntitys(matchStr, domain) {
   // if domain is a entity, use this entity as a starting point for an explore search
   if(domain.isEntity)
-    domain = [...explore([domain])]
+    domain = explore([domain])
+
+  domain = [...domain]
 
   // TRY PUTTING THE ORDINAL SEARCH HERE
   let {phraselet, ordinal} = getNounPhraselet(matchStr)
   if(phraselet && ordinal) {
     let n = parseOrdinal(ordinal)
-    if(n) {
-      for(let e of domain) {
+    if(n)
+      for(let e of domain)
         if(e.matchesPhraselet(phraselet)) {
           n--
-          console.log('AHAHAHA', e.str(), 'matches', matchStr, n)
+          if(n == 0) {
+            yield e
+            return
+          }
         }
-        if(n == 0)
-          return e
-      }
-    }
   }
 
   for(let entity of domain) {
@@ -77889,14 +77909,6 @@ function findFirst(matchStr, domain) {
 
   return null
 }
-
-/*function findOrSpawn(matchStr, domain) {
-  let result = findFirst(matchStr, domain)
-  if(result)
-    return result
-  else
-    return spawn(matchStr)
-}*/
 
 function* explore(startingPoint) {
   let toSearch = startingPoint.slice()

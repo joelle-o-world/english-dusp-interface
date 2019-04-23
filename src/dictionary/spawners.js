@@ -96,7 +96,9 @@ const Of = new EntitySpawner({
       .map(piglet => entify(piglet))
 
   //  console.log(str, piglets)
-    return search.first(str, piglets)
+    let e = search.first(str, piglets)
+    console.log("OF worked", e)
+    return e
   }
 })
 
