@@ -1,4 +1,7 @@
 # A Modular Synthesiser which Understands English
+
+Wouldn't it be nice to have a modular synthesiser that can talk to you!
+
 In modular synthesis the various components of a synthesiser are laid bare as 'modules', each of which performs a distinct sonic process. The musician is free to connect these modules up in any way they wish, allowing for an enormous variety of circuits and sonic outcomes. Analogue modular synthesisers can be bought as physical machines and are connected together with cables. Inside a computer many digital modular synthesisers exist which have various interfaces: from programming libraries/frameworks, like C-Sound, to specialist programming languages such as Faust, to the fully grown graphical interfaces of Pure-Data and Max-MSP.
 
 For this project I am developing and probing the viability of an interface for modular synthesis which uses only sentences in English to communicate with the musician. I have written a special javascript library `english-io` to handle the linguistic side of the project. For the synthesiser itself, I will be using the `DUSP` javascript library, which I have been developing for the last 2 years.
